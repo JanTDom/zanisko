@@ -1,0 +1,19 @@
+{
+  "name": "claimcheck",
+  "version": "0.1.0",
+  "description": "Deterministyczny audytor kosztorysów ubezpieczeniowych OC i generator wezwań przedsądowych",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc"
+  },
+  "keywords": ["insurance", "claims", "knf", "audatex", "eurotax"],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
