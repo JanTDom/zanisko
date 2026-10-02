@@ -10,8 +10,8 @@
   },
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/api"
+      "source": "/:path*",
+      "destination": "/api?__url=/:path*"
     }
   ]
 }

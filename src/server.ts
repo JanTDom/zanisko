@@ -2042,7 +2042,14 @@ const HTML_PAGE = `<!DOCTYPE html>
 `;
 
 export function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host || 'localhost'}`);
+  const host = req.headers.host || 'localhost';
+  const rawReqUrl = new URL(req.url ?? '/', `http://${host}`);
+  const forwardedPath = rawReqUrl.searchParams.get('__url')
+    || (req.headers['x-forwarded-uri'] as string)
+    || (req.headers['x-matched-path'] as string)
+    || req.url
+    || '/';
+  const url = new URL(forwardedPath.startsWith('/') ? forwardedPath : `/${forwardedPath}`, `http://${host}`);
 
     // GET / - Główna aplikacja
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/') {
