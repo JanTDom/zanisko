@@ -1724,19 +1724,19 @@ const HTML_PAGE = `<!DOCTYPE html>
         
         let itemsHtml = '';
         if (v.affectedItems && v.affectedItems.length > 0) {
-          itemsHtml = '<div class="violation-items"><strong>Wykaz zakwestionowanych pozycji:\u003c/strong\u003e<ul>' +
-            v.affectedItems.map(it => '<li>' + it + '\u003c/li\u003e').join('') + '\u003c/ul\u003e\u003c/div\u003e';
+          itemsHtml = '<div class="violation-items"><strong>Wykaz zakwestionowanych pozycji:</strong><ul>' + 
+            v.affectedItems.map(it => '<li>' + it + '</li>').join('') + '</ul></div>';
         }
 
         const amountText = v.lossGross > 0 ? '+' + v.lossGross.toFixed(2) + ' zł brutto' : 'Naruszenie technologiczne';
 
-        card.innerHTML =
+        card.innerHTML = 
           '<div class="violation-header">' +
-            '<div class="violation-title">' + (i + 1) + '. ' + v.title + '\u003c/div\u003e' +
-            '<div class="violation-amount">' + amountText + '\u003c/div\u003e' +
-          '\u003c/div\u003e' +
-          '<div class="violation-basis">Podstawa prawna: ' + v.legalBasis + '\u003c/div\u003e' +
-          '<div class="violation-desc">' + v.description + '\u003c/div\u003e' +
+            '<div class="violation-title">' + (i + 1) + '. ' + v.title + '</div>' +
+            '<div class="violation-amount">' + amountText + '</div>' +
+          '</div>' +
+          '<div class="violation-basis">Podstawa prawna: ' + v.legalBasis + '</div>' +
+          '<div class="violation-desc">' + v.description + '</div>' +
           itemsHtml;
 
         vContainer.appendChild(card);
@@ -1848,11 +1848,11 @@ const HTML_PAGE = `<!DOCTYPE html>
         hideProgress();
 
         let bundleText = currentLetterText + '\\n\\n' + '='.repeat(60) + '\\n\\n';
-        let bundleHtml = '<div style="page-break-after: always;">' + currentLetterText.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>') + '\u003c/div\u003e';
+        let bundleHtml = '<div style="page-break-after: always;">' + currentLetterText.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>') + '</div>';
 
         data.attachments.forEach((att) => {
           bundleText += '\\n\\n' + '='.repeat(60) + '\\n' + att.title + '\\n' + '='.repeat(60) + '\\n\\n' + att.textContent + '\\n';
-          bundleHtml += '<div style="page-break-before: always; margin-top: 30pt;">' + att.htmlContent + '\u003c/div\u003e';
+          bundleHtml += '<div style="page-break-before: always; margin-top: 30pt;">' + att.htmlContent + '</div>';
         });
 
         const claimSafe = currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_');
