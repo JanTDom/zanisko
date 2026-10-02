@@ -43,7 +43,7 @@ const HTML_PAGE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimCheck — Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
+  <title>zanisko.pl — Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -266,53 +266,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-size: 16px;
       border-radius: 8px;
       font-family: 'Space Grotesk', sans-serif;
-    }
-
-    /* PASEK SZYBKIEGO POBIERANIA MATERIAŁÓW TESTOWYCH */
-    .test-materials-bar {
-      background: rgba(22, 29, 46, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .materials-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .materials-links {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .chip-btn {
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 8px;
-      background: var(--surface);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--accent);
-      text-decoration: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .chip-btn:hover {
-      background: #1e293b;
-      border-color: var(--accent);
-      color: #fff;
     }
 
     /* NARZĘDZIE AUDYTU - KARTA ROBOCZA */
@@ -892,10 +845,7 @@ const HTML_PAGE = `<!DOCTYPE html>
   <nav>
     <div class="nav-inner">
       <a href="/" class="brand-logo">
-        <div class="logo-badge">CC</div>
-        <div>
-          <div class="brand-name">ClaimCheck</div>
-        </div>
+        <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 38px; width: auto; object-fit: contain;">
         <span class="brand-tag">Audytor OC 2026</span>
       </a>
       <div class="nav-status">
@@ -949,32 +899,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
       </div>
     </section>
-
-    <!-- PASEK SZYBKIEGO POBIERANIA MATERIAŁÓW TESTOWYCH -->
-    <div class="test-materials-bar">
-      <div class="materials-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="7 10 12 15 17 10"></polyline>
-          <line x1="12" y1="15" x2="12" y2="3"></line>
-        </svg>
-        <span>Materiały do testowania aplikacji:</span>
-      </div>
-      <div class="materials-links">
-        <button class="chip-btn" onclick="downloadSamplePdfDirect()">
-          Pobierz kosztorys PDF
-        </button>
-        <button class="chip-btn" onclick="downloadSampleImageDirect('desk-audit-comparison.jpg')">
-          Pobierz zdjęcie kosztorysu (.jpg)
-        </button>
-        <button class="chip-btn" onclick="downloadSampleImageDirect('mechanic-understated-explanation.jpg')">
-          Pobierz zdjęcie rozbitego auta (.jpg)
-        </button>
-        <button class="chip-btn" onclick="downloadSampleTxtDirect()">
-          Pobierz kosztorys (.txt)
-        </button>
-      </div>
-    </div>
 
     <!-- NARZĘDZIE AUDYTU -->
     <section class="tool-section" id="skaner">
@@ -1089,12 +1013,12 @@ const HTML_PAGE = `<!DOCTYPE html>
         <button class="btn-primary" id="startAuditBtn" onclick="runCurrentAudit()">
           Rozpocznij audyt kosztorysu
         </button>
-        <button class="btn-secondary" onclick="loadSampleTextAndAudit()">
+        <button class="btn-secondary" id="loadSampleBtn" onclick="loadSampleTextAndAudit()">
           Wczytaj przykładowy kosztorys (Toyota Corolla PZU)
         </button>
-        <button class="btn-secondary" onclick="downloadSamplePdfDirect()">
+        <a class="btn-secondary" id="downloadPdfBtn" href="/przykladowy_kosztorys_pzu.pdf" download="przykladowy_kosztorys_pzu.pdf" target="_blank">
           Pobierz plik PDF do testów
-        </button>
+        </a>
       </div>
     </section>
 
@@ -1350,7 +1274,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           <div class="feature-tag">Rekomendacje KNF 15 i 16</div>
           <h3>Realne stawki rynkowe robocizny</h3>
           <p>
-            Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). ClaimCheck weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.
+            Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). zanisko.pl weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.
           </p>
         </div>
       </div>
@@ -1358,7 +1282,7 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     <!-- FOOTER -->
     <footer>
-      <p>ClaimCheck — Niezależny system audytu kosztorysów szkód komunikacyjnych z OC sprawcy.</p>
+      <p>zanisko.pl — Niezależny system audytu kosztorysów szkód komunikacyjnych z OC sprawcy.</p>
       <p style="margin-top: 6px;">
         Zgodność z orzecznictwem Sądu Najwyższego RP oraz Rekomendacjami Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r.
       </p>
@@ -1847,7 +1771,8 @@ const HTML_PAGE = `<!DOCTYPE html>
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'wezwanie_do_zaplaty_' + (currentAuditReport ? currentAuditReport.header.claimNumber.replace(/[\/\\]/g, '_') : 'szkoda') + '.txt';
+      const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber) ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_') : 'szkoda';
+      a.download = 'wezwanie_do_zaplaty_' + claimSafe + '.txt';
       a.click();
       showToast('Pobrano plik wezwania do zapłaty.');
     }
