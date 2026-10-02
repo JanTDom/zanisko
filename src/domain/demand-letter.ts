@@ -120,7 +120,30 @@ W przypadku braku zapłaty lub odmownego rozpatrzenia reklamacji, sprawa zostani
 (własnoręczny podpis poszkodowanego)
 
 Załączniki:
-1. Zestawienie analityczne audytu kosztorysu ClaimCheck.
-2. Kosztorys ubezpieczyciela będący przedmiotem reklamacji.
+1. Załącznik nr 1: Kalkulacja korygująca i audyt różnicowy kosztorysu (zanisko.pl).
+2. Załącznik nr 2: Wyciąg ze stawek rynkowych roboczogodziny Polskiej Izby Motoryzacji (PIM 2026).
+3. Załącznik nr 3: Zestawienie orzecznictwa Sądu Najwyższego RP (uchwała SN III CZP 80/11) oraz Rekomendacji KNF.
+4. Załącznik nr 4: Kopia kalkulacji ubezpieczyciela będącej przedmiotem wezwania.
 `;
+}
+
+/**
+ * Konwertuje tekst wezwania na sformatowany kod HTML do eksportu DOC / PDF.
+ */
+export function demandLetterToHtml(text: string): string {
+  const paragraphs = text.split('\n\n');
+  return paragraphs
+    .map(p => {
+      const trimmed = p.trim();
+      if (!trimmed) return '';
+      if (trimmed.startsWith('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY')) {
+        return `<h1 style="text-align: center; font-size: 15pt; margin: 16pt 0 8pt 0;">${trimmed.replace(/\n/g, '<br>')}</h1>`;
+      }
+      if (trimmed.startsWith('I. ') || trimmed.startsWith('II. ') || trimmed.startsWith('III. ') || trimmed.startsWith('IV. ')) {
+        const [title, ...rest] = trimmed.split('\n');
+        return `<h2>${title}</h2><p>${rest.join('<br>')}</p>`;
+      }
+      return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
+    })
+    .join('\n');
 }

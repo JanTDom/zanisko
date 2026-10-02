@@ -5,10 +5,13 @@ import { PDFParse } from 'pdf-parse';
 import { CostEstimateParser } from './parser/pdf-parser.js';
 import { runAudit } from './domain/audit-engine.js';
 import { generateDemandLetter } from './domain/demand-letter.js';
-import { Voivodeship, VehicleSegment } from './domain/types.js';
+import { Voivodeship, VehicleSegment, AuditReport } from './domain/types.js';
 import { getRegionalBenchmark, REGIONAL_BENCHMARKS } from './domain/regional-rates.js';
 import { extractTextFromImage } from './parser/ocr-service.js';
 import { GeminiService } from './services/gemini-service.js';
+import { generateAttachment1Audit, generateAttachment2PimRates, generateAttachment3LegalBasis } from './domain/attachments.js';
+import { exportToDoc, exportToRtf, exportToTxt, exportToPdf } from './services/document-exporter.js';
+import { demandLetterToHtml } from './domain/demand-letter.js';
 
 if (typeof (process as unknown as { loadEnvFile?: (path?: string) => void }).loadEnvFile === 'function') {
   const envPath = path.resolve(process.cwd(), '.env');
@@ -55,6 +58,10 @@ const HTML_PAGE = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>zanisko.pl — Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-192.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/images/favicon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -101,10 +108,10 @@ const HTML_PAGE = `<!DOCTYPE html>
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(7, 9, 14, 0.85);
+      background: rgba(7, 9, 14, 0.9);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      padding: 18px 24px;
+      padding: 12px 24px;
     }
     .nav-inner {
       max-width: 1240px;
@@ -116,9 +123,20 @@ const HTML_PAGE = `<!DOCTYPE html>
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       text-decoration: none;
       color: var(--text);
+    }
+    .brand-logo img {
+      height: 56px;
+      max-height: 58px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+      transition: transform 0.2s ease;
+    }
+    .brand-logo:hover img {
+      transform: scale(1.02);
     }
     .logo-badge {
       width: 36px;
@@ -765,6 +783,84 @@ const HTML_PAGE = `<!DOCTYPE html>
       box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
+    /* ZAŁĄCZNIKI DO WEZWANIA */
+    .attachments-section {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .attachments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-top: 16px;
+    }
+    .attachment-card {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+    .attachment-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+    .att-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .attachment-card h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+    }
+    .att-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .att-downloads {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .att-btn {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .att-btn:hover {
+      border-color: var(--accent);
+      color: #fff;
+      background: rgba(56, 189, 248, 0.15);
+    }
+
     /* SEKCJE EDUKACYJNE / ZDJĘCIA W GRIDZIE */
     .features-grid {
       display: grid;
@@ -856,7 +952,7 @@ const HTML_PAGE = `<!DOCTYPE html>
   <nav>
     <div class="nav-inner">
       <a href="/" class="brand-logo">
-        <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 38px; width: auto; object-fit: contain;">
+        <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 56px; width: auto; object-fit: contain;">
         <span class="brand-tag">Audytor OC 2026</span>
       </a>
       <div class="nav-status">
@@ -1215,9 +1311,9 @@ const HTML_PAGE = `<!DOCTYPE html>
         <div class="letter-section">
           <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: center; margin-bottom: 24px;">
             <div>
-              <h2>Generator Przedsądowego Wezwania do Zapłaty</h2>
+              <h2>Przedsądowe Wezwanie do Zapłaty</h2>
               <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
-                Dokument sformatowany zgodnie ze standardem kancelarii radcowskiej. Bez gwiazdek, z pełną argumentacją prawną i numerem Twojego rachunku bankowego.
+                Oficjalne pismo procesowe przygotowane w standardzie kancelarii prawnej, z pełną argumentacją prawną, kalkulacją zaniżeń i danymi do przelewu.
               </p>
             </div>
             <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
@@ -1228,39 +1324,115 @@ const HTML_PAGE = `<!DOCTYPE html>
           <div class="claimant-form">
             <div class="param-field">
               <label>Imię i nazwisko poszkodowanego</label>
-              <input type="text" id="claimantName" value="Jan Kowalski">
+              <input type="text" id="claimantName" value="Jan Kowalski" onchange="generateAndDisplayLetter()">
             </div>
             <div class="param-field">
               <label>Adres zamieszkania</label>
-              <input type="text" id="claimantAddress" value="ul. Marszałkowska 10/12, 00-001 Warszawa">
+              <input type="text" id="claimantAddress" value="ul. Marszałkowska 10/12, 00-001 Warszawa" onchange="generateAndDisplayLetter()">
             </div>
             <div class="param-field">
               <label>Numer konta bankowego do dopłaty</label>
-              <input type="text" id="claimantIban" value="12 1020 1026 0000 1234 5678 9012">
+              <input type="text" id="claimantIban" value="12 1020 1026 0000 1234 5678 9012" onchange="generateAndDisplayLetter()">
             </div>
           </div>
 
-          <div class="param-field" style="margin-bottom: 20px;">
-            <label>Dodatkowy kontekst do personalizacji przez Gemini AI (opcjonalny)</label>
-            <input type="text" id="claimantContext" placeholder="Np. samochód wykorzystywany do dojazdów do pracy / działalności gospodarczej, udokumentowana historia serwisowa ASO">
-          </div>
-
           <div class="action-row" style="margin-bottom: 20px;">
-            <button class="btn-primary" onclick="generateAndDisplayLetter()">
-              Generuj wezwanie do zapłaty (Zero gwiazdek)
+            <button class="btn-primary" onclick="downloadLetter('doc')">
+              Pobierz DOC (Word)
             </button>
-            <button class="btn-secondary" onclick="generateWithGeminiAi()">
-              Personalizuj pismo przez Gemini AI
+            <button class="btn-primary" onclick="downloadLetter('pdf')">
+              Pobierz PDF
+            </button>
+            <button class="btn-secondary" onclick="downloadLetter('rtf')">
+              Pobierz RTF
+            </button>
+            <button class="btn-secondary" onclick="downloadLetter('txt')">
+              Pobierz TXT
             </button>
             <button class="btn-secondary" onclick="copyLetterToClipboard()">
-              Kopiuj do schowka
+              Kopiuj treść
             </button>
-            <button class="btn-secondary" onclick="downloadLetterTxt()">
-              Pobierz jako dokument (.txt)
+            <button class="btn-secondary" onclick="generateAndDisplayLetter()">
+              Odśwież pismo
             </button>
           </div>
 
-          <div class="letter-sheet" id="letterPreview">Kliknij przycisk „Generuj wezwanie do zapłaty”, aby wyświetlić gotowe pismo procesowe.</div>
+          <div class="letter-sheet" id="letterPreview">Trwa generowanie spersonalizowanego wezwania do zapłaty...</div>
+
+          <!-- SEKCJA ZAŁĄCZNIKÓW DO WEZWANIA -->
+          <div class="attachments-section" id="attachmentsSection">
+            <div>
+              <h3 style="font-size: 20px; font-weight: 700; color: #f8fafc;">Załączniki do wezwania do zapłaty</h3>
+              <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+                Dokumenty dowodowe wymienione w wezwaniu procesowym. Możesz pobrać poszczególne załączniki lub kompletny pakiet dowodowy.
+              </p>
+            </div>
+
+            <div class="attachments-grid">
+              <!-- ZAŁĄCZNIK 1 -->
+              <div class="attachment-card">
+                <div class="att-header">
+                  <span class="att-badge">Załącznik nr 1</span>
+                  <h4>Kalkulacja korygująca i audyt kosztorysu</h4>
+                </div>
+                <p class="att-desc">
+                  Szczegółowy audyt różnicowy: stawki rynkowe, potrącenia amortyzacyjne, narzucone zamienniki oraz rabaty lakiernicze z wyliczeniem pełnego roszczenia.
+                </p>
+                <div class="att-downloads">
+                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'pdf')">PDF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'rtf')">RTF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'txt')">TXT</button>
+                </div>
+              </div>
+
+              <!-- ZAŁĄCZNIK 2 -->
+              <div class="attachment-card">
+                <div class="att-header">
+                  <span class="att-badge">Załącznik nr 2</span>
+                  <h4>Wyciąg ze stawek rynkowych robocizny PIM 2026</h4>
+                </div>
+                <p class="att-desc">
+                  Urzędowa tabela stawek referencyjnych Polskiej Izby Motoryzacji dla 16 województw z uwzględnieniem Rekomendacji 15 KNF oraz segmentów pojazdów.
+                </p>
+                <div class="att-downloads">
+                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'pdf')">PDF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'rtf')">RTF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'txt')">TXT</button>
+                </div>
+              </div>
+
+              <!-- ZAŁĄCZNIK 3 -->
+              <div class="attachment-card">
+                <div class="att-header">
+                  <span class="att-badge">Załącznik nr 3</span>
+                  <h4>Orzecznictwo Sądu Najwyższego i Rekomendacje KNF</h4>
+                </div>
+                <p class="att-desc">
+                  Zestawienie tez prawnych: zakaz potrąceń amortyzacyjnych (uchwała SN III CZP 80/11), brak wymogu faktur (SN III CZP 32/03) oraz rygor 30 dni milczenia.
+                </p>
+                <div class="att-downloads">
+                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'pdf')">PDF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'rtf')">RTF</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'txt')">TXT</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- KOMPLETNY PAKIET -->
+            <div style="margin-top: 24px; padding: 22px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <div style="font-weight: 700; font-size: 16px; color: #fff;">Kompletny pakiet procesowy</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pobierz Wezwanie do Zapłaty wraz ze wszystkimi Załącznikami (1, 2 i 3) scalone w jeden plik.</div>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-primary" onclick="downloadBundle('doc')">Pobierz pakiet DOC (Word)</button>
+                <button class="btn-primary" onclick="downloadBundle('pdf')">Pobierz pakiet PDF</button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1639,13 +1811,18 @@ const HTML_PAGE = `<!DOCTYPE html>
       }, 100);
     }
 
-    // Generowanie pisma wezwania do zapłaty (BEZ GWIAZDEK)
+    let currentLetterText = '';
+
+    // Generowanie pisma wezwania do zapłaty (od razu w pełni spersonalizowane)
     async function generateAndDisplayLetter() {
       if (!currentAuditReport) return;
 
       const claimantName = document.getElementById('claimantName').value;
       const claimantAddress = document.getElementById('claimantAddress').value;
       const bankAccountNumber = document.getElementById('claimantIban').value;
+      const customApiKey = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value : '';
+
+      document.getElementById('letterPreview').textContent = 'Trwa generowanie spersonalizowanego wezwania do zapłaty...';
 
       try {
         const res = await fetch('/api/generate-letter', {
@@ -1654,47 +1831,130 @@ const HTML_PAGE = `<!DOCTYPE html>
           body: JSON.stringify({
             report: currentAuditReport,
             options: { claimantName, claimantAddress, bankAccountNumber },
+            useAi: true,
+            customApiKey,
           }),
         });
         const data = await res.json();
+        currentLetterText = data.letter;
         document.getElementById('letterPreview').textContent = data.letter;
-        showToast('Wezwanie do zapłaty wygenerowane bez gwiazdek!');
+        showToast('Wezwanie do zapłaty zostało wygenerowane.');
       } catch (err) {
         alert('Błąd generowania pisma: ' + err.message);
       }
     }
 
-    // Personalizacja pisma przez Gemini AI
-    async function generateWithGeminiAi() {
+    // Pobieranie wezwania w wybranym formacie (DOC, PDF, RTF, TXT)
+    async function downloadLetter(format) {
+      if (!currentLetterText) {
+        await generateAndDisplayLetter();
+      }
+      const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber)
+        ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_')
+        : 'szkoda';
+      const filename = 'wezwanie_do_zaplaty_' + claimSafe;
+      await exportDocument({
+        text: currentLetterText,
+        title: 'PRZEDSĄDOWE WEZWANIE DO ZAPŁATY - SZKODA ' + (currentAuditReport ? currentAuditReport.header.claimNumber : ''),
+        format: format,
+        filename: filename,
+      });
+    }
+
+    // Pobieranie załącznika (attachment1, attachment2, attachment3) w wybranym formacie
+    async function downloadAttachment(attachmentId, format) {
       if (!currentAuditReport) return;
-      showProgress('Gemini AI personalizuje pismo pod kątem likwidatora...', 50);
-
-      const claimantName = document.getElementById('claimantName').value;
-      const claimantAddress = document.getElementById('claimantAddress').value;
-      const bankAccountNumber = document.getElementById('claimantIban').value;
-      const userContext = document.getElementById('claimantContext').value;
-      const customApiKey = document.getElementById('geminiApiKeyInput').value;
-
+      showProgress('Przygotowywanie załącznika do pobrania...', 40);
       try {
-        const res = await fetch('/api/gemini/enhance-letter', {
+        const res = await fetch('/api/attachments/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            report: currentAuditReport,
-            claimantName,
-            claimantAddress,
-            bankAccountNumber,
-            userContext,
-            customApiKey,
-          }),
+          body: JSON.stringify({ report: currentAuditReport }),
         });
         const data = await res.json();
         hideProgress();
-        document.getElementById('letterPreview').textContent = data.letter;
-        showToast('Pismo spersonalizowane przez Gemini AI!');
+        const att = data.attachments.find(a => a.id === attachmentId);
+        if (!att) throw new Error('Nie odnaleziono załącznika');
+
+        const claimSafe = currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_');
+        const filename = att.id + '_' + claimSafe;
+        await exportDocument({
+          text: att.textContent,
+          html: att.htmlContent,
+          title: att.title,
+          format: format,
+          filename: filename,
+        });
       } catch (err) {
         hideProgress();
-        alert('Błąd Gemini: ' + err.message);
+        alert('Błąd pobierania załącznika: ' + err.message);
+      }
+    }
+
+    // Pobieranie kompletnego pakietu procesowego (Wezwanie + Załączniki w jednym pliku)
+    async function downloadBundle(format) {
+      if (!currentAuditReport) return;
+      if (!currentLetterText) {
+        await generateAndDisplayLetter();
+      }
+      showProgress('Generowanie kompletnego pakietu procesowego...', 40);
+      try {
+        const res = await fetch('/api/attachments/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: currentAuditReport }),
+        });
+        const data = await res.json();
+        hideProgress();
+
+        let bundleText = currentLetterText + '\n\n' + '='.repeat(60) + '\n\n';
+        let bundleHtml = '<div style="page-break-after: always;">' + currentLetterText.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>') + '</div>';
+
+        data.attachments.forEach((att) => {
+          bundleText += '\n\n' + '='.repeat(60) + '\n' + att.title + '\n' + '='.repeat(60) + '\n\n' + att.textContent + '\n';
+          bundleHtml += '<div style="page-break-before: always; margin-top: 30pt;">' + att.htmlContent + '</div>';
+        });
+
+        const claimSafe = currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_');
+        const filename = 'kompletny_pakiet_procesowy_' + claimSafe;
+
+        await exportDocument({
+          text: bundleText,
+          html: bundleHtml,
+          title: 'KOMPLETNY PAKIET PROCESOWY - SZKODA ' + currentAuditReport.header.claimNumber,
+          format: format,
+          filename: filename,
+        });
+      } catch (err) {
+        hideProgress();
+        alert('Błąd generowania pakietu: ' + err.message);
+      }
+    }
+
+    // Uniwersalna funkcja pobierania pliku
+    async function exportDocument(params) {
+      showProgress('Przygotowywanie pliku ' + params.format.toUpperCase() + '...', 60);
+      try {
+        const res = await fetch('/api/export-document', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+        if (!res.ok) throw new Error('Serwer zwrócił kod błędu ' + res.status);
+        const blob = await res.blob();
+        hideProgress();
+
+        const ext = params.format === 'doc' ? '.doc' : params.format === 'pdf' ? '.pdf' : params.format === 'rtf' ? '.rtf' : '.txt';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = params.filename + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Pobrano dokument ' + params.format.toUpperCase() + '.');
+      } catch (err) {
+        hideProgress();
+        alert('Błąd eksportu: ' + err.message);
       }
     }
 
@@ -1776,17 +2036,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         showToast('Treść wezwania do zapłaty została skopiowana.');
       });
     }
-
-    function downloadLetterTxt() {
-      const text = document.getElementById('letterPreview').textContent;
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber) ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_') : 'szkoda';
-      a.download = 'wezwanie_do_zaplaty_' + claimSafe + '.txt';
-      a.click();
-      showToast('Pobrano plik wezwania do zapłaty.');
-    }
   </script>
 </body>
 </html>
@@ -1833,13 +2082,31 @@ export function createServer(port = 3000) {
       return;
     }
 
+    // GET /favicon.ico - Bezpośrednie serwowanie ikony favicon
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/favicon.ico') {
+      const faviconPath = path.resolve('public/favicon.ico');
+      if (fs.existsSync(faviconPath)) {
+        const stat = fs.statSync(faviconPath);
+        res.writeHead(200, {
+          'Content-Type': 'image/x-icon',
+          'Content-Length': stat.size,
+          'Cache-Control': 'public, max-age=86400',
+        });
+        if (req.method === 'HEAD') { res.end(); return; }
+        fs.createReadStream(faviconPath).pipe(res);
+        return;
+      }
+    }
+
     // GET /images/* - Serwowanie grafik i fotografii użytkownika
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname.startsWith('/images/')) {
       const imageName = path.basename(url.pathname);
       const imagePath = path.resolve('public/images', imageName);
       if (fs.existsSync(imagePath)) {
         const ext = path.extname(imageName).toLowerCase();
-        const contentType = ext === '.png' ? 'image/png' : 'image/jpeg';
+        let contentType = 'image/jpeg';
+        if (ext === '.png') contentType = 'image/png';
+        if (ext === '.ico') contentType = 'image/x-icon';
         const stat = fs.statSync(imagePath);
         res.writeHead(200, {
           'Content-Type': contentType,
@@ -2008,19 +2275,115 @@ export function createServer(port = 3000) {
       return;
     }
 
-    // POST /api/generate-letter - Standardowe generowanie pisma procesowego
+    // POST /api/generate-letter - Natychmiastowe generowanie spersonalizowanego pisma procesowego
     if (req.method === 'POST' && url.pathname === '/api/generate-letter') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
-      req.on('end', () => {
+      req.on('end', async () => {
         try {
           const payload = JSON.parse(body);
-          const letter = generateDemandLetter(payload.report, payload.options);
+          let letter: string;
+
+          if (payload.useAi && geminiService.isConfigured(payload.customApiKey)) {
+            try {
+              letter = await geminiService.enhanceDemandLetter({
+                report: payload.report,
+                claimantName: payload.options?.claimantName || 'Jan Kowalski',
+                claimantAddress: payload.options?.claimantAddress || 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+                bankAccountNumber: payload.options?.bankAccountNumber || '12 1020 1026 0000 1234 5678 9012',
+                userContext: payload.options?.userContext,
+                customApiKey: payload.customApiKey,
+              });
+            } catch {
+              letter = generateDemandLetter(payload.report, payload.options);
+            }
+          } else {
+            letter = generateDemandLetter(payload.report, payload.options);
+          }
 
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ letter }));
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : 'Nieprawidłowe żądanie';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/attachments/generate - Zwraca komplet danych dla wszystkich 3 załączników
+    if (req.method === 'POST' && url.pathname === '/api/attachments/generate') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body);
+          const report = payload.report as AuditReport;
+          const att1 = generateAttachment1Audit(report);
+          const att2 = generateAttachment2PimRates(report.header.voivodeship, report.header.vehicleSegment);
+          const att3 = generateAttachment3LegalBasis();
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ attachments: [att1, att2, att3] }));
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd generowania załączników';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/export-document - Uniwersalny eksport dokumentów procesowych (DOC, RTF, TXT, PDF)
+    if (req.method === 'POST' && url.pathname === '/api/export-document') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const format = String(payload.format || 'txt').toLowerCase();
+          const title = payload.title || 'Dokument procesowy';
+          const text = payload.text || '';
+          const html = payload.html || demandLetterToHtml(text);
+          const filename = payload.filename || 'dokument';
+
+          let buffer: Buffer;
+          let contentType: string;
+          let ext: string;
+
+          switch (format) {
+            case 'doc':
+              buffer = exportToDoc(html, title);
+              contentType = 'application/msword; charset=utf-8';
+              ext = '.doc';
+              break;
+            case 'rtf':
+              buffer = exportToRtf(text);
+              contentType = 'application/rtf; charset=utf-8';
+              ext = '.rtf';
+              break;
+            case 'pdf':
+              buffer = await exportToPdf(text, title);
+              contentType = 'application/pdf';
+              ext = '.pdf';
+              break;
+            case 'txt':
+            default:
+              buffer = exportToTxt(text);
+              contentType = 'text/plain; charset=utf-8';
+              ext = '.txt';
+              break;
+          }
+
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'Content-Length': buffer.length,
+            'Content-Disposition': `attachment; filename="${filename}${ext}"`,
+          });
+          res.end(buffer);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd eksportu dokumentu';
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: message }));
         }

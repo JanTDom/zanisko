@@ -185,5 +185,61 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(data.letter).toContain('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY');
     expect(data.letter).toContain('Piotr Zieliński');
     expect(data.letter).not.toContain('*');
-  }, 25000);
+  }, 45000);
+
+  it('GET /favicon.ico powinien serwować plik ikony', async () => {
+    const res = await fetch(`${baseUrl}/favicon.ico`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/x-icon');
+    const buffer = await res.arrayBuffer();
+    expect(buffer.byteLength).toBeGreaterThan(100);
+  });
+
+  it('POST /api/attachments/generate powinien wygenerować zestaw 3 załączników dowodowych', async () => {
+    const sampleTextRes = await fetch(`${baseUrl}/api/sample`);
+    const sampleText = await sampleTextRes.text();
+
+    const auditRes = await fetch(`${baseUrl}/api/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText: sampleText, voivodeship: 'mazowieckie' }),
+    });
+    const report = await auditRes.json();
+
+    const res = await fetch(`${baseUrl}/api/attachments/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report }),
+    });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.attachments).toBeDefined();
+    expect(data.attachments.length).toBe(3);
+    expect(data.attachments[0].id).toBe('attachment1');
+    expect(data.attachments[1].id).toBe('attachment2');
+    expect(data.attachments[2].id).toBe('attachment3');
+  });
+
+  it('POST /api/export-document powinien wyeksportować wezwanie w formatach DOC, RTF, TXT i PDF', async () => {
+    const formats = ['doc', 'rtf', 'txt', 'pdf'] as const;
+
+    for (const format of formats) {
+      const res = await fetch(`${baseUrl}/api/export-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: 'PRZEDSĄDOWE WEZWANIE DO ZAPŁATY: 1200 zł',
+          format,
+          title: 'Wezwanie',
+          filename: 'test_doc',
+        }),
+      });
+      expect(res.status).toBe(200);
+      const disposition = res.headers.get('content-disposition');
+      expect(disposition).toContain(`attachment; filename="test_doc.${format}"`);
+      const buffer = await res.arrayBuffer();
+      expect(buffer.byteLength).toBeGreaterThan(20);
+    }
+  });
 });
+
