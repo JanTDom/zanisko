@@ -2027,6 +2027,11 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           const pdfBuffer = Buffer.from(payload.pdfBase64, 'base64');
           const voivodeship = (payload.voivodeship ?? 'mazowieckie') as Voivodeship;
 
+          // Serverless (Vercel): worker pdf.js musi być załadowany jawnie, inaczej brak pliku w paczce funkcji
+          if (!(globalThis as any).pdfjsWorker) {
+            // @ts-ignore brak typów dla pliku workera
+            (globalThis as any).pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
+          }
           const { PDFParse } = await import('pdf-parse');
           const pdfInstance = new PDFParse({ data: new Uint8Array(pdfBuffer) });
           const textResult = await pdfInstance.getText();
