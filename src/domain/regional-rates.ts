@@ -59,7 +59,7 @@ export const REGIONAL_BENCHMARKS: Record<Voivodeship, RegionalLaborBenchmark> = 
     recommendedRateNet: 150.0,
     sourceNotes: 'Średnia stawka warsztatów niezależnych (Łódź i subregiony)',
   },
-  kujawsko_pomorskie: {
+  'kujawsko-pomorskie': {
     voivodeship: 'kujawsko-pomorskie',
     displayName: 'Województwo kujawsko-pomorskie',
     recommendedRateNet: 145.0,
@@ -101,7 +101,7 @@ export const REGIONAL_BENCHMARKS: Record<Voivodeship, RegionalLaborBenchmark> = 
     recommendedRateNet: 145.0,
     sourceNotes: 'Średnia stawka warsztatów niezależnych',
   },
-  warminsko_mazurskie: {
+  'warminsko-mazurskie': {
     voivodeship: 'warminsko-mazurskie',
     displayName: 'Województwo warmińsko-mazurskie',
     recommendedRateNet: 140.0,
@@ -116,15 +116,8 @@ export const REGIONAL_BENCHMARKS: Record<Voivodeship, RegionalLaborBenchmark> = 
 } as const;
 
 export function getRegionalBenchmark(voivodeship: Voivodeship): RegionalLaborBenchmark {
-  const normalizedKey = (
-    voivodeship === 'kujawsko-pomorskie' ? 'kujawsko_pomorskie' :
-    voivodeship === 'warminsko-mazurskie' ? 'warminsko_mazurskie' :
-    voivodeship
-  ) as keyof typeof REGIONAL_BENCHMARKS;
-
-  const benchmark = REGIONAL_BENCHMARKS[normalizedKey];
+  const benchmark = REGIONAL_BENCHMARKS[voivodeship];
   if (!benchmark) {
-    // Bezpieczny fallback ogólnopolski
     return {
       voivodeship,
       displayName: 'Średnia ogólnopolska',
