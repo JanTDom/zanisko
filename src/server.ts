@@ -482,32 +482,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 600;
     }
 
-    /* GEMINI AI BADGE */
-    .gemini-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-      border: 1px solid rgba(168, 85, 247, 0.35);
-      color: #c084fc;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* SEKCJA GEMINI AI USZKODZEŃ ZE ZDJĘĆ */
-    .gemini-feature-section {
-      margin-top: 36px;
-      background: linear-gradient(180deg, rgba(22, 29, 46, 0.8) 0%, rgba(15, 20, 32, 0.95) 100%);
-      border: 1px solid rgba(168, 85, 247, 0.3);
-      border-radius: 16px;
-      padding: 28px;
-    }
-
-    /* WYNIKI AUDYTU - DWA STANY: TEASER & ODBLOKOWANY */
+    /* SEKCJA WYNIKÓW AUDYTU */
     #auditResultsArea {
       margin-top: 40px;
       display: none;
@@ -958,7 +933,6 @@ const HTML_PAGE = `<!DOCTYPE html>
       <div class="nav-status">
         <div class="pulse-dot"></div>
         <span>Baza stawek PIM & KNF 2026 (16 województw)</span>
-        <span class="gemini-badge">Gemini 2.5 Flash AI</span>
       </div>
     </div>
   </nav>
@@ -1020,7 +994,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           Dokument PDF (Audatex / Eurotax)
         </button>
         <button class="tab-btn" id="tabOcrBtn" onclick="switchTab('ocr')">
-          Zdjęcie / Skan (Gemini Vision + OCR)
+          Skan / Zdjęcie kosztorysu (OCR)
         </button>
         <button class="tab-btn" id="tabTextBtn" onclick="switchTab('text')">
           Wklej tekst kalkulacji
@@ -1051,7 +1025,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
           <div class="dropzone-title">Przeciągnij zdjęcie kosztorysu lub skan smartfonem</div>
-          <div class="dropzone-sub">Gemini Vision AI oraz OCR rozpoznają tabele i kwoty (PNG, JPG, JPEG)</div>
+          <div class="dropzone-sub">Silnik OCR rozpoznaje tabele i kwoty kosztorysu (PNG, JPG, JPEG)</div>
           <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
         </div>
         <div style="margin-top: 14px; text-align: center;">
@@ -1108,10 +1082,6 @@ const HTML_PAGE = `<!DOCTYPE html>
             <option value="PREMIUM">Segment Premium (+25% ADAS: BMW, Mercedes, Audi, Volvo)</option>
             <option value="LUXURY">Segment luksusowy (+50%: Porsche, Bentley, Ferrari)</option>
           </select>
-        </div>
-        <div class="param-field">
-          <label>Klucz Gemini API Key (opcjonalny)</label>
-          <input type="password" id="geminiApiKeyInput" placeholder="${process.env.GEMINI_API_KEY ? 'Klucz serwera aktywny (Gemini 2.5 Flash)' : 'Domyślnie: aktywny silnik hybrydowy'}">
         </div>
       </div>
 
@@ -1269,34 +1239,6 @@ const HTML_PAGE = `<!DOCTYPE html>
               <div class="step-title">Egzekucja lub Rzecznik</div>
               <div class="step-desc">Wniosek interwencyjny do Rzecznika Finansowego lub skierowanie pozwu z odsetkami ustawowymi za opóźnienie.</div>
             </div>
-          </div>
-        </div>
-
-        <!-- MODUŁ GEMINI AI: WYKRYWANIE POMINIĘTYCH USZKODZEŃ ZE ZDJĘĆ -->
-        <div class="gemini-feature-section">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div>
-              <span class="gemini-badge">Gemini 2.5 Flash Damage Inspector</span>
-              <h3 style="font-size: 20px; color: #fff; margin-top: 6px;">Wykryj zatajone uszkodzenia ze zdjęcia rozbitego auta</h3>
-              <p style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">
-                Gemini Vision porówna fotografię uszkodzeń samochodu z kosztorysem i wykryje pominięte elementy.
-              </p>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-            <input type="file" id="damagePhotoInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
-            <button class="btn-primary" onclick="document.getElementById('damagePhotoInput').click()">
-              Wgraj zdjęcie uszkodzeń auta do analizy
-            </button>
-            <button class="btn-secondary" onclick="runPreloadedDamageInspection()">
-              Przetestuj z przykładowym zdjęciem uszkodzeń
-            </button>
-          </div>
-
-          <div id="damageInspectionResult" style="margin-top: 18px; display: none; background: rgba(7, 9, 14, 0.6); padding: 18px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.3);">
-            <div style="font-weight: 700; color: #c084fc; font-size: 15px; margin-bottom: 8px;">Wynik inspekcji rzeczoznawczej Gemini AI:</div>
-            <div id="damageInspectionText" style="font-size: 14px; color: #e2e8f0; line-height: 1.6;"></div>
           </div>
         </div>
 
@@ -1605,9 +1547,9 @@ const HTML_PAGE = `<!DOCTYPE html>
       reader.readAsDataURL(file);
     }
 
-    // Obsługa OCR / Gemini Vision zdjęć
+    // Obsługa OCR zdjęć
     async function handleImageFile(file) {
-      showProgress('Gemini Vision i silnik OCR analizują zdjęcie...', 35);
+      showProgress('Silnik OCR analizuje zdjęcie kosztorysu...', 35);
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
@@ -1619,7 +1561,6 @@ const HTML_PAGE = `<!DOCTYPE html>
             body: JSON.stringify({
               imageBase64: base64,
               voivodeship: document.getElementById('voivodeshipSelect').value,
-              customApiKey: document.getElementById('geminiApiKeyInput').value,
             }),
           });
           const data = await res.json();
@@ -1656,7 +1597,6 @@ const HTML_PAGE = `<!DOCTYPE html>
             body: JSON.stringify({
               imageBase64: base64,
               voivodeship: document.getElementById('voivodeshipSelect').value,
-              customApiKey: document.getElementById('geminiApiKeyInput').value,
             }),
           });
           const data = await res.json();
@@ -1820,7 +1760,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       const claimantName = document.getElementById('claimantName').value;
       const claimantAddress = document.getElementById('claimantAddress').value;
       const bankAccountNumber = document.getElementById('claimantIban').value;
-      const customApiKey = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value : '';
+      const customApiKey = '';
 
       document.getElementById('letterPreview').textContent = 'Trwa generowanie spersonalizowanego wezwania do zapłaty...';
 
@@ -1956,78 +1896,6 @@ const HTML_PAGE = `<!DOCTYPE html>
         hideProgress();
         alert('Błąd eksportu: ' + err.message);
       }
-    }
-
-    // Inspekcja uszkodzeń ze zdjęcia auta
-    document.getElementById('damagePhotoInput').onchange = async (e) => {
-      if (e.target.files.length === 0) return;
-      const file = e.target.files[0];
-      showProgress('Gemini Vision bada uszkodzenia pojazdu...', 40);
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = reader.result.split(',')[1];
-        try {
-          showProgress('Porównywanie uszkodzeń ze specyfikacją kosztorysu...', 75);
-          const res = await fetch('/api/gemini/compare-damage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              photoBase64: base64,
-              estimateText: currentAuditRawText,
-              customApiKey: document.getElementById('geminiApiKeyInput').value,
-            }),
-          });
-          const result = await res.json();
-          hideProgress();
-          displayDamageInspection(result);
-        } catch (err) {
-          hideProgress();
-          alert('Błąd inspekcji uszkodzeń: ' + err.message);
-        }
-      };
-      reader.readAsDataURL(file);
-    };
-
-    async function runPreloadedDamageInspection() {
-      showProgress('Ładowanie przykładowego zdjęcia rozbitego przodu auta...', 30);
-      try {
-        const imgRes = await fetch('/images/mechanic-understated-explanation.jpg');
-        const blob = await imgRes.blob();
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64 = reader.result.split(',')[1];
-          showProgress('Gemini Vision analizuje uszkodzenia zderzaka i reflektora...', 75);
-          const res = await fetch('/api/gemini/compare-damage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              photoBase64: base64,
-              estimateText: currentAuditRawText,
-              customApiKey: document.getElementById('geminiApiKeyInput').value,
-            }),
-          });
-          const result = await res.json();
-          hideProgress();
-          displayDamageInspection(result);
-        };
-        reader.readAsDataURL(blob);
-      } catch (err) {
-        hideProgress();
-        alert('Błąd: ' + err.message);
-      }
-    }
-
-    function displayDamageInspection(res) {
-      const box = document.getElementById('damageInspectionResult');
-      box.style.display = 'block';
-      let html = '<p style="margin-bottom: 12px;">' + res.aiCommentary + '</p>';
-      html += '<div style="font-weight: 700; color: #f87171; margin-bottom: 8px;">Pominięte / zatajone uszkodzenia (szacunek: +' + res.totalOmittedValuePln.toLocaleString('pl-PL') + ' zł):</div><ul>';
-      res.omittedDamages.forEach(d => {
-        html += '<li style="margin-left: 20px; margin-bottom: 6px;"><strong>' + d.component + '</strong>: ' + d.observedDamage + ' (' + d.recommendation + ') — ok. ' + d.estimatedValuePln + ' zł</li>';
-      });
-      html += '</ul>';
-      document.getElementById('damageInspectionText').innerHTML = html;
-      showToast('Wykryto pominięte uszkodzenia ze zdjęcia!');
     }
 
     function copyLetterToClipboard() {
@@ -2177,7 +2045,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
       return;
     }
 
-    // POST /api/upload-image - Silnik Gemini Vision / OCR
+    // POST /api/upload-image - Silnik OCR / AI rozpoznawania obrazu
     if (req.method === 'POST' && url.pathname === '/api/upload-image') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
