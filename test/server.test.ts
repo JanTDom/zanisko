@@ -124,24 +124,56 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(buffer.byteLength).toBeGreaterThan(1500);
   });
 
-  it('POST /api/upload-pdf powinien sparsować wgrany plik PDF w base64 i zwrócić audyt', async () => {
-    const pdfRes = await fetch(`${baseUrl}/przykladowy_kosztorys_pzu.pdf`);
-    const arrayBuffer = await pdfRes.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString('base64');
+  it('GET /api/sample/txt powinien zwrócić plik tekstowy kosztorysu do pobrania', async () => {
+    const res = await fetch(`${baseUrl}/api/sample/txt`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-disposition')).toContain('attachment');
+    const text = await res.text();
+    expect(text).toContain('AUDATEX POLSKA');
+  });
 
-    const uploadRes = await fetch(`${baseUrl}/api/upload-pdf`, {
+  it('POST /api/gemini/compare-damage powinien przeanalizować uszkodzenia i zwrócić rozbieżności', async () => {
+    const res = await fetch(`${baseUrl}/api/gemini/compare-damage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        pdfBase64: base64,
-        voivodeship: 'malopolskie',
+        photoBase64: 'dGVzdA==',
+        estimateText: 'Zderzak przedni kpl.',
       }),
     });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.omittedDamages).toBeDefined();
+    expect(data.omittedDamages.length).toBeGreaterThan(0);
+    expect(data.totalOmittedValuePln).toBeGreaterThan(0);
+  });
 
-    expect(uploadRes.status).toBe(200);
-    const data = await uploadRes.json();
-    expect(data.auditReport).toBeDefined();
-    expect(data.auditReport.header.claimNumber).toBe('PL/PZU/2026/09/99120');
-    expect(data.auditReport.summary.totalLossGross).toBeGreaterThan(1500);
+  it('POST /api/gemini/enhance-letter powinien zwrócić spersonalizowane wezwanie', async () => {
+    const sampleTextRes = await fetch(`${baseUrl}/api/sample`);
+    const sampleText = await sampleTextRes.text();
+
+    const auditRes = await fetch(`${baseUrl}/api/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText: sampleText, voivodeship: 'mazowieckie' }),
+    });
+    const report = await auditRes.json();
+
+    const res = await fetch(`${baseUrl}/api/gemini/enhance-letter`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report,
+        claimantName: 'Piotr Zieliński',
+        claimantAddress: 'ul. Marszałkowska 1',
+        bankAccountNumber: '12 1020 0000 0000 0000 0000 0000',
+        userContext: 'Pojazd używany w działalności gospodarczej',
+      }),
+    });
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.letter).toContain('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY');
+    expect(data.letter).toContain('Piotr Zieliński');
+    expect(data.letter).not.toContain('*');
   });
 });

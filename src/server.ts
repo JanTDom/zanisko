@@ -8,8 +8,10 @@ import { generateDemandLetter } from './domain/demand-letter.js';
 import { Voivodeship, VehicleSegment } from './domain/types.js';
 import { getRegionalBenchmark, REGIONAL_BENCHMARKS } from './domain/regional-rates.js';
 import { extractTextFromImage } from './parser/ocr-service.js';
+import { GeminiService } from './services/gemini-service.js';
 
 const parser = new CostEstimateParser();
+const geminiService = new GeminiService();
 
 const SAMPLE_ESTIMATE_TEXT = `AUDATEX POLSKA SP. Z O.O.
 KALKULACJA NAPRAWY NR: 9812-PL-2026
@@ -138,7 +140,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     .nav-status {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       font-size: 13px;
       color: var(--text-muted);
     }
@@ -266,9 +268,56 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-family: 'Space Grotesk', sans-serif;
     }
 
+    /* PASEK SZYBKIEGO POBIERANIA MATERIAŁÓW TESTOWYCH */
+    .test-materials-bar {
+      background: rgba(22, 29, 46, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .materials-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .materials-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chip-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .chip-btn:hover {
+      background: #1e293b;
+      border-color: var(--accent);
+      color: #fff;
+    }
+
     /* NARZĘDZIE AUDYTU - KARTA ROBOCZA */
     .tool-section {
-      margin-top: 20px;
+      margin-top: 10px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -432,6 +481,48 @@ const HTML_PAGE = `<!DOCTYPE html>
     .btn-secondary:hover {
       border-color: rgba(255, 255, 255, 0.25);
       background: #1c2438;
+    }
+
+    /* TOAST ALERT */
+    #statusToast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: none;
+      z-index: 999;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* GEMINI AI BADGE */
+    .gemini-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      color: #c084fc;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* SEKCJA GEMINI AI USZKODZEŃ ZE ZDJĘĆ */
+    .gemini-feature-section {
+      margin-top: 36px;
+      background: linear-gradient(180deg, rgba(22, 29, 46, 0.8) 0%, rgba(15, 20, 32, 0.95) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      padding: 28px;
     }
 
     /* WYNIKI AUDYTU - DWA STANY: TEASER & ODBLOKOWANY */
@@ -809,7 +900,8 @@ const HTML_PAGE = `<!DOCTYPE html>
       </a>
       <div class="nav-status">
         <div class="pulse-dot"></div>
-        <span>Baza stawek PIM i KNF: Aktywna (16 województw)</span>
+        <span>Baza stawek PIM & KNF 2026 (16 województw)</span>
+        <span class="gemini-badge">Gemini 2.5 Flash AI</span>
       </div>
     </div>
   </nav>
@@ -858,6 +950,32 @@ const HTML_PAGE = `<!DOCTYPE html>
       </div>
     </section>
 
+    <!-- PASEK SZYBKIEGO POBIERANIA MATERIAŁÓW TESTOWYCH -->
+    <div class="test-materials-bar">
+      <div class="materials-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Materiały do testowania aplikacji:</span>
+      </div>
+      <div class="materials-links">
+        <button class="chip-btn" onclick="downloadSamplePdfDirect()">
+          Pobierz kosztorys PDF
+        </button>
+        <button class="chip-btn" onclick="downloadSampleImageDirect('desk-audit-comparison.jpg')">
+          Pobierz zdjęcie kosztorysu (.jpg)
+        </button>
+        <button class="chip-btn" onclick="downloadSampleImageDirect('mechanic-understated-explanation.jpg')">
+          Pobierz zdjęcie rozbitego auta (.jpg)
+        </button>
+        <button class="chip-btn" onclick="downloadSampleTxtDirect()">
+          Pobierz kosztorys (.txt)
+        </button>
+      </div>
+    </div>
+
     <!-- NARZĘDZIE AUDYTU -->
     <section class="tool-section" id="skaner">
       <div class="section-header">
@@ -871,7 +989,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           Dokument PDF (Audatex / Eurotax)
         </button>
         <button class="tab-btn" id="tabOcrBtn" onclick="switchTab('ocr')">
-          Zdjęcie / Skan (OCR)
+          Zdjęcie / Skan (Gemini Vision + OCR)
         </button>
         <button class="tab-btn" id="tabTextBtn" onclick="switchTab('text')">
           Wklej tekst kalkulacji
@@ -902,8 +1020,13 @@ const HTML_PAGE = `<!DOCTYPE html>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
           <div class="dropzone-title">Przeciągnij zdjęcie kosztorysu lub skan smartfonem</div>
-          <div class="dropzone-sub">Automatyczny silnik OCR rozpozna tabelę i kwoty (PNG, JPG, JPEG)</div>
+          <div class="dropzone-sub">Gemini Vision AI oraz OCR rozpoznają tabele i kwoty (PNG, JPG, JPEG)</div>
           <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
+        </div>
+        <div style="margin-top: 14px; text-align: center;">
+          <button class="chip-btn" onclick="testOcrWithPreloadedImage()" style="margin: 0 auto;">
+            Przetestuj OCR na gotowym zdjęciu kosztorysu (1 kliknięcie)
+          </button>
         </div>
       </div>
 
@@ -955,6 +1078,10 @@ const HTML_PAGE = `<!DOCTYPE html>
             <option value="LUXURY">Segment luksusowy (+50%: Porsche, Bentley, Ferrari)</option>
           </select>
         </div>
+        <div class="param-field">
+          <label>Klucz Gemini API Key (opcjonalny)</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="Domyślnie: aktywny silnik hybrydowy">
+        </div>
       </div>
 
       <!-- PRZYCISKI AKCJI -->
@@ -962,12 +1089,12 @@ const HTML_PAGE = `<!DOCTYPE html>
         <button class="btn-primary" id="startAuditBtn" onclick="runCurrentAudit()">
           Rozpocznij audyt kosztorysu
         </button>
-        <button class="btn-secondary" onclick="loadSampleText()">
-          Wczytaj przykładowy kosztorys (Toyota Corolla 2021 PZU)
+        <button class="btn-secondary" onclick="loadSampleTextAndAudit()">
+          Wczytaj przykładowy kosztorys (Toyota Corolla PZU)
         </button>
-        <a class="btn-secondary" href="/przykladowy_kosztorys_pzu.pdf" download>
+        <button class="btn-secondary" onclick="downloadSamplePdfDirect()">
           Pobierz plik PDF do testów
-        </a>
+        </button>
       </div>
     </section>
 
@@ -1114,6 +1241,34 @@ const HTML_PAGE = `<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- MODUŁ GEMINI AI: WYKRYWANIE POMINIĘTYCH USZKODZEŃ ZE ZDJĘĆ -->
+        <div class="gemini-feature-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <span class="gemini-badge">Gemini 2.5 Flash Damage Inspector</span>
+              <h3 style="font-size: 20px; color: #fff; margin-top: 6px;">Wykryj zatajone uszkodzenia ze zdjęcia rozbitego auta</h3>
+              <p style="font-size: 14px; color: var(--text-muted); margin-top: 2px;">
+                Gemini Vision porówna fotografię uszkodzeń samochodu z kosztorysem i wykryje pominięte elementy.
+              </p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+            <input type="file" id="damagePhotoInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
+            <button class="btn-primary" onclick="document.getElementById('damagePhotoInput').click()">
+              Wgraj zdjęcie uszkodzeń auta do analizy
+            </button>
+            <button class="btn-secondary" onclick="runPreloadedDamageInspection()">
+              Przetestuj z przykładowym zdjęciem uszkodzeń
+            </button>
+          </div>
+
+          <div id="damageInspectionResult" style="margin-top: 18px; display: none; background: rgba(7, 9, 14, 0.6); padding: 18px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.3);">
+            <div style="font-weight: 700; color: #c084fc; font-size: 15px; margin-bottom: 8px;">Wynik inspekcji rzeczoznawczej Gemini AI:</div>
+            <div id="damageInspectionText" style="font-size: 14px; color: #e2e8f0; line-height: 1.6;"></div>
+          </div>
+        </div>
+
         <!-- PEŁNA LISTA ZARZUTÓW PRAWNO-TECHNOLOGICZNYCH -->
         <div class="section-header" style="margin-top: 36px;">
           <h2>Szczegółowy wykaz zaniżeń w Twoim kosztorysie</h2>
@@ -1150,9 +1305,17 @@ const HTML_PAGE = `<!DOCTYPE html>
             </div>
           </div>
 
+          <div class="param-field" style="margin-bottom: 20px;">
+            <label>Dodatkowy kontekst do personalizacji przez Gemini AI (opcjonalny)</label>
+            <input type="text" id="claimantContext" placeholder="Np. samochód wykorzystywany do dojazdów do pracy / działalności gospodarczej, udokumentowana historia serwisowa ASO">
+          </div>
+
           <div class="action-row" style="margin-bottom: 20px;">
             <button class="btn-primary" onclick="generateAndDisplayLetter()">
-              Generuj treść wezwania do zapłaty
+              Generuj wezwanie do zapłaty (Zero gwiazdek)
+            </button>
+            <button class="btn-secondary" onclick="generateWithGeminiAi()">
+              Personalizuj pismo przez Gemini AI
             </button>
             <button class="btn-secondary" onclick="copyLetterToClipboard()">
               Kopiuj do schowka
@@ -1162,7 +1325,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             </button>
           </div>
 
-          <div class="letter-sheet" id="letterPreview">Kliknij przycisk „Generuj treść wezwania do zapłaty”, aby wyświetlić gotowe pismo procesowe.</div>
+          <div class="letter-sheet" id="letterPreview">Kliknij przycisk „Generuj wezwanie do zapłaty”, aby wyświetlić gotowe pismo procesowe.</div>
         </div>
 
       </div>
@@ -1203,10 +1366,35 @@ const HTML_PAGE = `<!DOCTYPE html>
 
   </div>
 
+  <div id="statusToast"></div>
+
   <!-- SKRYPT KLIENTA -->
   <script>
     let currentAuditReport = null;
     let currentAuditRawText = '';
+
+    function showToast(msg) {
+      const toast = document.getElementById('statusToast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    // Bezpośrednie pobieranie plików bez blokowania
+    function downloadSamplePdfDirect() {
+      window.open('/przykladowy_kosztorys_pzu.pdf', '_blank');
+      showToast('Rozpoczęto pobieranie przykładowego kosztorysu PDF.');
+    }
+
+    function downloadSampleImageDirect(imageName) {
+      window.open('/images/' + imageName, '_blank');
+      showToast('Otwarto zdjęcie testowe w nowym oknie.');
+    }
+
+    function downloadSampleTxtDirect() {
+      window.open('/api/sample/txt', '_blank');
+      showToast('Rozpoczęto pobieranie kosztorysu tekstowego.');
+    }
 
     // Obsługa zakładek
     function switchTab(tab) {
@@ -1239,9 +1427,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     pdfDropzone.ondrop = (e) => {
       e.preventDefault();
       pdfDropzone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handlePdfFile(e.dataTransfer.files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) handlePdfFile(e.dataTransfer.files[0]);
     };
     pdfFileInput.onchange = (e) => {
       if (e.target.files.length > 0) handlePdfFile(e.target.files[0]);
@@ -1256,9 +1442,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     imageDropzone.ondrop = (e) => {
       e.preventDefault();
       imageDropzone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleImageFile(e.dataTransfer.files[0]);
-      }
+      if (e.dataTransfer.files.length > 0) handleImageFile(e.dataTransfer.files[0]);
     };
     imageFileInput.onchange = (e) => {
       if (e.target.files.length > 0) handleImageFile(e.target.files[0]);
@@ -1305,28 +1489,30 @@ const HTML_PAGE = `<!DOCTYPE html>
           currentAuditReport = data.auditReport;
           currentAuditRawText = data.extractedText;
           renderAuditResults(data.auditReport);
+          showToast('Pomyślnie sparsowano kosztorys PDF!');
         } catch (err) {
           hideProgress();
-          alert('Wystąpił błąd podczas komunikacji z serwerem: ' + err.message);
+          alert('Błąd podczas komunikacji z serwerem: ' + err.message);
         }
       };
       reader.readAsDataURL(file);
     }
 
-    // Obsługa OCR zdjęć
+    // Obsługa OCR / Gemini Vision zdjęć
     async function handleImageFile(file) {
-      showProgress('Silnik OCR Tesseract rozpoznaje tekst ze zdjęcia...', 35);
+      showProgress('Gemini Vision i silnik OCR analizują zdjęcie...', 35);
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
         try {
-          showProgress('Ekstrakcja stawek i tabel naprawczych...', 70);
+          showProgress('Rozpoznawanie stawek, części i potrąceń...', 70);
           const res = await fetch('/api/upload-image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               imageBase64: base64,
               voivodeship: document.getElementById('voivodeshipSelect').value,
+              customApiKey: document.getElementById('geminiApiKeyInput').value,
             }),
           });
           const data = await res.json();
@@ -1338,6 +1524,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           currentAuditReport = data.auditReport;
           currentAuditRawText = data.extractedText;
           renderAuditResults(data.auditReport);
+          showToast('Zdjęcie kosztorysu rozpoznane pomyślnie!');
         } catch (err) {
           hideProgress();
           alert('Błąd OCR: ' + err.message);
@@ -1346,20 +1533,74 @@ const HTML_PAGE = `<!DOCTYPE html>
       reader.readAsDataURL(file);
     }
 
-    // Wczytanie przykładowego tekstu
-    async function loadSampleText() {
-      const res = await fetch('/api/sample');
-      const text = await res.text();
-      document.getElementById('rawTextarea').value = text;
-      switchTab('text');
-      runCurrentAudit();
+    // Test OCR na gotowym zdjęciu
+    async function testOcrWithPreloadedImage() {
+      showProgress('Pobieranie zdjęcia testowego desk-audit-comparison.jpg...', 30);
+      try {
+        const imgRes = await fetch('/images/desk-audit-comparison.jpg');
+        const blob = await imgRes.blob();
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result.split(',')[1];
+          showProgress('Przetwarzanie OCR i silnik audytowy...', 75);
+          const res = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64: base64,
+              voivodeship: document.getElementById('voivodeshipSelect').value,
+              customApiKey: document.getElementById('geminiApiKeyInput').value,
+            }),
+          });
+          const data = await res.json();
+          hideProgress();
+          currentAuditReport = data.auditReport;
+          currentAuditRawText = data.extractedText;
+          renderAuditResults(data.auditReport);
+          showToast('Rozpoznano tekst z testowego zdjęcia kosztorysu!');
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        hideProgress();
+        alert('Błąd testu: ' + err.message);
+      }
     }
 
-    // Uruchomienie bieżącego audytu
+    // Wczytanie i natychmiastowy audyt przykładowego tekstu
+    async function loadSampleTextAndAudit() {
+      showProgress('Pobieranie przykładowej kalkulacji Toyota Corolla...', 30);
+      try {
+        const res = await fetch('/api/sample');
+        const text = await res.text();
+        document.getElementById('rawTextarea').value = text;
+        switchTab('text');
+
+        showProgress('Wykonywanie audytu różnicowego...', 75);
+        const auditRes = await fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rawText: text,
+            voivodeship: document.getElementById('voivodeshipSelect').value,
+          }),
+        });
+        const report = await auditRes.json();
+        hideProgress();
+        currentAuditReport = report;
+        currentAuditRawText = text;
+        renderAuditResults(report);
+        showToast('Wczytano i zbadano przykładowy kosztorys!');
+      } catch (err) {
+        hideProgress();
+        alert('Błąd: ' + err.message);
+      }
+    }
+
+    // Ręczne uruchomienie audytu
     async function runCurrentAudit() {
       const rawText = document.getElementById('rawTextarea').value;
       if (!rawText.trim()) {
-        alert('Wklej tekst kosztorysu lub wgraj plik PDF / zdjęcie.');
+        alert('Najpierw wklej treść kosztorysu lub kliknij przycisk „Wczytaj przykładowy kosztorys”.');
         return;
       }
       showProgress('Audytowanie kalkulacji wg stawek PIM 2026...', 50);
@@ -1377,15 +1618,17 @@ const HTML_PAGE = `<!DOCTYPE html>
         currentAuditReport = report;
         currentAuditRawText = rawText;
         renderAuditResults(report);
+        showToast('Audyt zakończony pomyślnie!');
       } catch (err) {
         hideProgress();
         alert('Błąd audytu: ' + err.message);
       }
     }
 
-    // Renderowanie wyników audytu (Najpierw Teaser z kłódkami, aby chronić wartość)
+    // Renderowanie wyników (Etap 1: Teaser & Paywall)
     function renderAuditResults(report) {
-      document.getElementById('auditResultsArea').style.display = 'block';
+      const area = document.getElementById('auditResultsArea');
+      area.style.display = 'block';
       document.getElementById('teaserView').style.display = 'block';
       document.getElementById('unlockedView').style.display = 'none';
 
@@ -1398,17 +1641,19 @@ const HTML_PAGE = `<!DOCTYPE html>
       document.getElementById('teaserViolationsCount').textContent = 
         '(wykryto ' + report.violations.length + ' kategorie bezprawnych potrąceń)';
 
-      // Szacowany przedział kwoty (ukrywamy dokładną liczbę, pokazujemy rząd wielkości)
+      // Szacowany przedział kwoty
       const minEstimated = Math.floor((s.totalLossGross * 0.9) / 100) * 100;
       const maxEstimated = Math.ceil((s.totalLossGross * 1.1) / 100) * 100;
       document.getElementById('teaserEstimatedRange').textContent = 
         'od ' + minEstimated.toLocaleString('pl-PL') + ' zł do ' + maxEstimated.toLocaleString('pl-PL') + ' zł';
 
-      // Przewiń płynnie do wyników
-      document.getElementById('auditResultsArea').scrollIntoView({ behavior: 'smooth' });
+      // Przewiń stronę do wyników natychmiast
+      setTimeout(() => {
+        area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
 
-    // Odblokowanie pełnego raportu i pisma (po symulacji płatności lub zakupu)
+    // Odblokowanie pełnego raportu i wezwania
     function unlockFullReport() {
       document.getElementById('teaserView').style.display = 'none';
       document.getElementById('unlockedView').style.display = 'block';
@@ -1423,7 +1668,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       document.getElementById('unlockedFairGross').textContent = s.fairAmountGross.toFixed(2) + ' zł';
       document.getElementById('unlockedFairNet').textContent = 'Netto: ' + s.fairAmountNet.toFixed(2) + ' zł';
 
-      // Wyrenderuj listę naruszeń
+      // Renderowanie listy naruszeń
       const vContainer = document.getElementById('violationsList');
       vContainer.innerHTML = '';
       currentAuditReport.violations.forEach((v, i) => {
@@ -1450,11 +1695,13 @@ const HTML_PAGE = `<!DOCTYPE html>
         vContainer.appendChild(card);
       });
 
-      // Wygeneruj od razu pismo procesowe
+      // Wygeneruj pismo
       generateAndDisplayLetter();
+      showToast('Pełny raport odblokowany!');
 
-      // Przewiń do odblokowanego widoku
-      document.getElementById('unlockedView').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        document.getElementById('unlockedView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
 
     // Generowanie pisma wezwania do zapłaty (BEZ GWIAZDEK)
@@ -1476,20 +1723,125 @@ const HTML_PAGE = `<!DOCTYPE html>
         });
         const data = await res.json();
         document.getElementById('letterPreview').textContent = data.letter;
+        showToast('Wezwanie do zapłaty wygenerowane bez gwiazdek!');
       } catch (err) {
         alert('Błąd generowania pisma: ' + err.message);
       }
     }
 
-    // Kopiowanie pisma
+    // Personalizacja pisma przez Gemini AI
+    async function generateWithGeminiAi() {
+      if (!currentAuditReport) return;
+      showProgress('Gemini AI personalizuje pismo pod kątem likwidatora...', 50);
+
+      const claimantName = document.getElementById('claimantName').value;
+      const claimantAddress = document.getElementById('claimantAddress').value;
+      const bankAccountNumber = document.getElementById('claimantIban').value;
+      const userContext = document.getElementById('claimantContext').value;
+      const customApiKey = document.getElementById('geminiApiKeyInput').value;
+
+      try {
+        const res = await fetch('/api/gemini/enhance-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            report: currentAuditReport,
+            claimantName,
+            claimantAddress,
+            bankAccountNumber,
+            userContext,
+            customApiKey,
+          }),
+        });
+        const data = await res.json();
+        hideProgress();
+        document.getElementById('letterPreview').textContent = data.letter;
+        showToast('Pismo spersonalizowane przez Gemini AI!');
+      } catch (err) {
+        hideProgress();
+        alert('Błąd Gemini: ' + err.message);
+      }
+    }
+
+    // Inspekcja uszkodzeń ze zdjęcia auta
+    document.getElementById('damagePhotoInput').onchange = async (e) => {
+      if (e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      showProgress('Gemini Vision bada uszkodzenia pojazdu...', 40);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        try {
+          showProgress('Porównywanie uszkodzeń ze specyfikacją kosztorysu...', 75);
+          const res = await fetch('/api/gemini/compare-damage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              photoBase64: base64,
+              estimateText: currentAuditRawText,
+              customApiKey: document.getElementById('geminiApiKeyInput').value,
+            }),
+          });
+          const result = await res.json();
+          hideProgress();
+          displayDamageInspection(result);
+        } catch (err) {
+          hideProgress();
+          alert('Błąd inspekcji uszkodzeń: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    async function runPreloadedDamageInspection() {
+      showProgress('Ładowanie przykładowego zdjęcia rozbitego przodu auta...', 30);
+      try {
+        const imgRes = await fetch('/images/mechanic-understated-explanation.jpg');
+        const blob = await imgRes.blob();
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result.split(',')[1];
+          showProgress('Gemini Vision analizuje uszkodzenia zderzaka i reflektora...', 75);
+          const res = await fetch('/api/gemini/compare-damage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              photoBase64: base64,
+              estimateText: currentAuditRawText,
+              customApiKey: document.getElementById('geminiApiKeyInput').value,
+            }),
+          });
+          const result = await res.json();
+          hideProgress();
+          displayDamageInspection(result);
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        hideProgress();
+        alert('Błąd: ' + err.message);
+      }
+    }
+
+    function displayDamageInspection(res) {
+      const box = document.getElementById('damageInspectionResult');
+      box.style.display = 'block';
+      let html = '<p style="margin-bottom: 12px;">' + res.aiCommentary + '</p>';
+      html += '<div style="font-weight: 700; color: #f87171; margin-bottom: 8px;">Pominięte / zatajone uszkodzenia (szacunek: +' + res.totalOmittedValuePln.toLocaleString('pl-PL') + ' zł):</div><ul>';
+      res.omittedDamages.forEach(d => {
+        html += '<li style="margin-left: 20px; margin-bottom: 6px;"><strong>' + d.component + '</strong>: ' + d.observedDamage + ' (' + d.recommendation + ') — ok. ' + d.estimatedValuePln + ' zł</li>';
+      });
+      html += '</ul>';
+      document.getElementById('damageInspectionText').innerHTML = html;
+      showToast('Wykryto pominięte uszkodzenia ze zdjęcia!');
+    }
+
     function copyLetterToClipboard() {
       const text = document.getElementById('letterPreview').textContent;
       navigator.clipboard.writeText(text).then(() => {
-        alert('Treść wezwania do zapłaty została skopiowana do schowka.');
+        showToast('Treść wezwania do zapłaty została skopiowana.');
       });
     }
 
-    // Pobieranie pisma jako .txt
     function downloadLetterTxt() {
       const text = document.getElementById('letterPreview').textContent;
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -1497,6 +1849,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       a.href = URL.createObjectURL(blob);
       a.download = 'wezwanie_do_zaplaty_' + (currentAuditReport ? currentAuditReport.header.claimNumber.replace(/[\/\\]/g, '_') : 'szkoda') + '.txt';
       a.click();
+      showToast('Pobrano plik wezwania do zapłaty.');
     }
   </script>
 </body>
@@ -1515,6 +1868,35 @@ export function createServer(port = 3000) {
       return;
     }
 
+    // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF z wymuszonym nagłówkiem attachment
+    if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
+      const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
+      if (fs.existsSync(pdfPath)) {
+        const stat = fs.statSync(pdfPath);
+        res.writeHead(200, {
+          'Content-Type': 'application/pdf',
+          'Content-Length': stat.size,
+          'Content-Disposition': 'attachment; filename="przykladowy_kosztorys_pzu.pdf"',
+        });
+        if (req.method === 'HEAD') { res.end(); return; }
+        fs.createReadStream(pdfPath).pipe(res);
+        return;
+      }
+    }
+
+    // GET /api/sample/txt - Pobranie przykładowego kosztorysu jako plik .txt
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/api/sample/txt') {
+      const buffer = Buffer.from(SAMPLE_ESTIMATE_TEXT, 'utf-8');
+      res.writeHead(200, {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Content-Length': buffer.length,
+        'Content-Disposition': 'attachment; filename="przykladowy_kosztorys_toyota_corolla.txt"',
+      });
+      if (req.method === 'HEAD') { res.end(); return; }
+      res.end(buffer);
+      return;
+    }
+
     // GET /images/* - Serwowanie grafik i fotografii użytkownika
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname.startsWith('/images/')) {
       const imageName = path.basename(url.pathname);
@@ -1530,22 +1912,6 @@ export function createServer(port = 3000) {
         });
         if (req.method === 'HEAD') { res.end(); return; }
         fs.createReadStream(imagePath).pipe(res);
-        return;
-      }
-    }
-
-    // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF
-    if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
-      const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
-      if (fs.existsSync(pdfPath)) {
-        const stat = fs.statSync(pdfPath);
-        res.writeHead(200, {
-          'Content-Type': 'application/pdf',
-          'Content-Length': stat.size,
-          'Content-Disposition': 'attachment; filename="przykladowy_kosztorys_pzu.pdf"',
-        });
-        if (req.method === 'HEAD') { res.end(); return; }
-        fs.createReadStream(pdfPath).pipe(res);
         return;
       }
     }
@@ -1601,28 +1967,80 @@ export function createServer(port = 3000) {
       return;
     }
 
-    // POST /api/upload-image - Silnik OCR (rozpoznawanie ze zdjęć/skanów i audyt)
+    // POST /api/upload-image - Silnik Gemini Vision / OCR
     if (req.method === 'POST' && url.pathname === '/api/upload-image') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
       req.on('end', async () => {
         try {
           const payload = JSON.parse(body);
-          const imgBuffer = Buffer.from(payload.imageBase64, 'base64');
           const voivodeship = (payload.voivodeship ?? 'mazowieckie') as Voivodeship;
 
-          const ocrResult = await extractTextFromImage(imgBuffer);
-          const parsed = parser.parseText(ocrResult.text, voivodeship);
-          const auditReport = runAudit(parsed.estimate);
+          const result = await geminiService.auditEstimateWithVision({
+            imageBase64: payload.imageBase64,
+            voivodeship,
+            customApiKey: payload.customApiKey,
+          });
 
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
-            auditReport,
-            extractedText: ocrResult.text,
-            confidence: ocrResult.confidence,
+            auditReport: result.auditReport,
+            extractedText: result.extractedText,
+            aiInsights: result.aiInsights,
           }));
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Błąd silnika OCR';
+          const message = err instanceof Error ? err.message : 'Błąd silnika rozpoznawania obrazu';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/gemini/compare-damage - Porównanie foto uszkodzeń auta z kosztorysem
+    if (req.method === 'POST' && url.pathname === '/api/gemini/compare-damage') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const result = await geminiService.compareDamagePhotoWithEstimate({
+            photoBase64: payload.photoBase64,
+            estimateText: payload.estimateText || SAMPLE_ESTIMATE_TEXT,
+            customApiKey: payload.customApiKey,
+          });
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(result));
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd inspekcji uszkodzeń Gemini';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/gemini/enhance-letter - Personalizacja kancelaryjna wezwania z Gemini
+    if (req.method === 'POST' && url.pathname === '/api/gemini/enhance-letter') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const letter = await geminiService.enhanceDemandLetter({
+            report: payload.report,
+            claimantName: payload.claimantName || 'Jan Kowalski',
+            claimantAddress: payload.claimantAddress || 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+            bankAccountNumber: payload.bankAccountNumber || '12 1020 1026 0000 1234 5678 9012',
+            userContext: payload.userContext,
+            customApiKey: payload.customApiKey,
+          });
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ letter }));
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd personalizacji Gemini';
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: message }));
         }
@@ -1654,7 +2072,7 @@ export function createServer(port = 3000) {
       return;
     }
 
-    // POST /api/generate-letter - Generowanie pisma procesowego
+    // POST /api/generate-letter - Standardowe generowanie pisma procesowego
     if (req.method === 'POST' && url.pathname === '/api/generate-letter') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
