@@ -30,8 +30,27 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(res.status).toBe(200);
     const text = await res.text();
     expect(text).toContain('ClaimCheck');
-    expect(text).toContain('Weryfikator kosztorysów naprawy z OC sprawcy');
-    expect(text).toContain('Odzyskaj zaniżone odszkodowanie');
+    expect(text).toContain('audytor kosztorysów naprawy z OC sprawcy');
+    expect(text).toContain('Odzyskaj należne odszkodowanie');
+    expect(text).toContain('hero-claim-comparison.jpg');
+    expect(text).toContain('Odblokuj pełny audyt');
+  });
+
+  it('GET /images/:filename powinien serwować zdjęcia wgrane przez użytkownika', async () => {
+    const res = await fetch(`${baseUrl}/images/hero-claim-comparison.jpg`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/jpeg');
+    const buffer = await res.arrayBuffer();
+    expect(buffer.byteLength).toBeGreaterThan(10000);
+  });
+
+  it('GET /api/benchmarks powinien zwrócić bazę stawek 16 województw', async () => {
+    const res = await fetch(`${baseUrl}/api/benchmarks`);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.mazowieckie).toBeDefined();
+    expect(data.mazowieckie.rate).toBe(175);
+    expect(data.slaskie.rate).toBe(165);
   });
 
   it('GET /api/sample powinien zwrócić przykładowy kosztorys Audatex', async () => {

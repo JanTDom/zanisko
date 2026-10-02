@@ -1,4 +1,5 @@
 import { CostEstimate, EstimateHeader, EstimateLabor, EstimatePartItem, Voivodeship } from '../domain/types.js';
+import { detectVehicleSegment } from '../domain/regional-rates.js';
 
 export interface ParseResult {
   estimate: CostEstimate;
@@ -81,6 +82,21 @@ export class CostEstimateParser {
     const vehicleMatch = text.match(/(?:pojazd|marka\/model|model|samochód)[:\s]*([A-Za-z0-9\s\-]+?)(?=\n|nr\s*rej|vin|rok)/i);
     const vehicleMakeModel = vehicleMatch ? vehicleMatch[1].trim() : 'Pojazd poszkodowanego';
 
+    // Rok produkcji (np. "Rok prod: 2021", "Rok: 2020", lub rok w nazwie modelu)
+    let productionYear = new Date().getFullYear() - 4; // Bezpieczny domyślny wiek (ok. 4 lata)
+    const yearMatch = text.match(/(?:rok\s*prod(?:ukcji|\.)?|rok\s*modelowy|rok)[:\s]*([12]\d{3})/i);
+    if (yearMatch) {
+      productionYear = parseInt(yearMatch[1], 10);
+    } else {
+      const inModelYearMatch = vehicleMakeModel.match(/\b(19\d{2}|20\d{2})\b/);
+      if (inModelYearMatch) {
+        productionYear = parseInt(inModelYearMatch[1], 10);
+      }
+    }
+
+    // Segment pojazdu (Popular / Premium / Luxury)
+    const vehicleSegment = detectVehicleSegment(vehicleMakeModel);
+
     // Nr rejestracyjny (bez łapania znaków nowej linii)
     const regMatch = text.match(/(?:nr\s*rej(?:estracyjny)?\.?|rejestracja)[:\s]*([A-Z0-9 ]{4,10})(?=\r?\n|$)/i);
     const registrationNumber = regMatch ? regMatch[1].trim() : 'REJESTRACJA';
@@ -93,6 +109,8 @@ export class CostEstimateParser {
       claimNumber,
       insurerName,
       vehicleMakeModel,
+      vehicleSegment,
+      productionYear,
       registrationNumber,
       damageDate,
       voivodeship: defaultVoivodeship,

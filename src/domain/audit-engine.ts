@@ -12,14 +12,21 @@ function round2(val: number): number {
 
 /**
  * Deterministyczny silnik audytowy kosztorysów ubezpieczeniowych ClaimCheck.
- * Opiera się na twardych wytycznych KNF (z 1 listopada 2022 r.) oraz orzecznictwie SN.
+ * Uwzględnia markę, model, rocznik pojazdu, segment rynkowy oraz wiek auta w odniesieniu
+ * do Rekomendacji KNF (z 1 listopada 2022 r.) i uchwały Sądu Najwyższego III CZP 80/11.
  */
 export function runAudit(estimate: CostEstimate): AuditReport {
   const violations: AuditViolation[] = [];
   const vatMultiplier = 1 + estimate.vatRate;
+  const currentYear = new Date().getFullYear();
+  const vehicleAgeYears = Math.max(0, currentYear - (estimate.header.productionYear || currentYear));
+  const isWarrantyProtected = vehicleAgeYears <= 3;
 
-  // 1. Audyt Robocizny (Rekomendacja 15 KNF)
-  const regionalBenchmark = getRegionalBenchmark(estimate.header.voivodeship);
+  // 1. Audyt Robocizny z uwzględnieniem regionu i segmentu marki (Rekomendacja 15 KNF)
+  const regionalBenchmark = getRegionalBenchmark(
+    estimate.header.voivodeship,
+    estimate.header.vehicleSegment
+  );
   const benchmarkRate = regionalBenchmark.recommendedRateNet;
 
   const totalHours =
@@ -27,7 +34,6 @@ export function runAudit(estimate: CostEstimate): AuditReport {
     estimate.labor.paintHours +
     (estimate.labor.mechanicalHours ?? 0);
 
-  // Średnia ważona stawki przyjętej przez ubezpieczyciela
   const appliedLaborSum =
     estimate.labor.sheetMetalHours * estimate.labor.sheetMetalRateNet +
     estimate.labor.paintHours * estimate.labor.paintRateNet +
@@ -40,6 +46,11 @@ export function runAudit(estimate: CostEstimate): AuditReport {
     const laborLossNet = round2(fairLaborSum - appliedLaborSum);
     const laborLossGross = round2(laborLossNet * vatMultiplier);
 
+    const segmentInfo =
+      estimate.header.vehicleSegment === 'PREMIUM'
+        ? ` jako pojazd segmentu Premium (${estimate.header.vehicleMakeModel}) wymaga wyższych reżimów technologicznych (kalibracja systemów ADAS, technologie spajania stopów lekkich)`
+        : '';
+
     violations.push({
       type: 'UNDERSTATED_LABOR_RATE',
       title: 'Zaniżenie stawki za roboczogodzinę (RBH)',
@@ -47,14 +58,14 @@ export function runAudit(estimate: CostEstimate): AuditReport {
         'Rekomendacja 15 KNF z dnia 1 listopada 2022 r. oraz art. 361 § 2 i art. 363 § 1 k.c.',
       description:
         `Ubezpieczyciel przyjął stawkę uśrednioną na poziomie ${round2(appliedAverageRate).toFixed(2)} zł/rbh netto ` +
-        `(blacharz: ${estimate.labor.sheetMetalRateNet} zł, lakiernik: ${estimate.labor.paintRateNet} zł). ` +
-        `Średnia stawka rynkowa dla warsztatów niezależnych w ${regionalBenchmark.displayName} wynosi ${benchmarkRate.toFixed(2)} zł/rbh netto ` +
-        `(${regionalBenchmark.sourceNotes}). Łączny wymiar naprawy: ${totalHours.toFixed(1)} rbh.`,
+        `(blacharz: ${estimate.labor.sheetMetalRateNet.toFixed(2)} zł, lakiernik: ${estimate.labor.paintRateNet.toFixed(2)} zł). ` +
+        `Średnia stawka rynkowa dla certyfikowanych warsztatów w ${regionalBenchmark.displayName} wynosi ${benchmarkRate.toFixed(2)} zł/rbh netto ` +
+        `(${regionalBenchmark.sourceNotes}). Pojazd poszkodowanego${segmentInfo}. Łączny wymiar naprawy: ${totalHours.toFixed(1)} rbh.`,
       lossNet: laborLossNet,
       lossGross: laborLossGross,
       affectedItems: [
-        `Prace blacharskie: ${estimate.labor.sheetMetalHours} rbh (stawka: ${estimate.labor.sheetMetalRateNet} zł)`,
-        `Prace lakiernicze: ${estimate.labor.paintHours} rbh (stawka: ${estimate.labor.paintRateNet} zł)`,
+        `Prace blacharskie: ${estimate.labor.sheetMetalHours} rbh (stawka przyjęta: ${estimate.labor.sheetMetalRateNet.toFixed(2)} zł/h, referencyjna: ${benchmarkRate.toFixed(2)} zł/h)`,
+        `Prace lakiernicze: ${estimate.labor.paintHours} rbh (stawka przyjęta: ${estimate.labor.paintRateNet.toFixed(2)} zł/h, referencyjna: ${benchmarkRate.toFixed(2)} zł/h)`,
       ],
     });
   }
@@ -79,20 +90,20 @@ export function runAudit(estimate: CostEstimate): AuditReport {
 
     violations.push({
       type: 'ILLEGAL_PART_DEPRECIATION',
-      title: 'Bezprawne potrącenie amortyzacyjne (tzw. urealnienie części)',
+      title: 'Bezprawne potrącenie amortyzacyjne (tzw. urealnienie części ze względu na rocznik)',
       legalBasis:
         'Uchwała Sądu Najwyższego z dnia 12 kwietnia 2012 r. (sygn. akt III CZP 80/11) oraz Rekomendacja 17 KNF',
       description:
-        `Ubezpieczyciel bezprawnie obniżył wartość części zamiennych o stopień amortyzacji ze względu na wiek pojazdu. ` +
-        `Zgodnie z ugruntowaną uchwałą SN III CZP 80/11 zakład ubezpieczeń ma obowiązek pokryć pełen koszt nowych części niezbędnych do naprawy, ` +
-        `chyba że wykaże, iż montaż nowych części doprowadził do wzrostu wartości rynkowej pojazdu jako całości (ciężar dowodu spoczywa na ubezpieczycielu).`,
+        `Ubezpieczyciel bezprawnie obniżył wartość części zamiennych o stopień amortyzacji z uwagi na wiek auta (${vehicleAgeYears} lat, rocznik ${estimate.header.productionYear}). ` +
+        `Zgodnie z ugruntowaną uchwałą SN III CZP 80/11 zakład ubezpieczeń ma obowiązek pokryć pełen koszt nowych części niezbędnych do naprawy. ` +
+        `Potrącenie z uwagi na wiek jest dopuszczalne wyłącznie wtedy, gdy ubezpieczyciel w konkretnym przypadku wykaże wzrost wartości rynkowej pojazdu jako całości (ciężar dowodu spoczywa na ubezpieczycielu).`,
       lossNet,
       lossGross,
       affectedItems: depreciatedParts,
     });
   }
 
-  // 3. Audyt Narzucenia Zamienników Najniższej Jakości PJ (Rekomendacja 16 KNF)
+  // 3. Audyt Doboru Części i Ryzyka Utraty Gwarancji (Rekomendacja 16 KNF)
   let totalSubstitutionLossNet = 0;
   const substitutedParts: string[] = [];
 
@@ -102,7 +113,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       if (priceDifference > 0) {
         totalSubstitutionLossNet += priceDifference;
         substitutedParts.push(
-          `${part.partName} (${part.partNumber}): zamiennik ${part.qualityCode} (${part.basePriceNet.toFixed(2)} zł) zamiast oryginału O (${part.originalPartEquivalentPriceNet.toFixed(2)} zł), różnica: ${round2(priceDifference).toFixed(2)} zł netto`
+          `${part.partName} (${part.partNumber}): narzucono zamiennik ${part.qualityCode} (${part.basePriceNet.toFixed(2)} zł) zamiast części oryginalnej O (${part.originalPartEquivalentPriceNet.toFixed(2)} zł), zaniżenie: ${round2(priceDifference).toFixed(2)} zł netto`
         );
       }
     }
@@ -124,6 +135,22 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       lossNet,
       lossGross,
       affectedItems: substitutedParts,
+    });
+  }
+
+  // Dodatkowe ostrzeżenie gwarancyjne dla aut do 3 lat
+  if (isWarrantyProtected && substitutedParts.length > 0) {
+    violations.push({
+      type: 'WARRANTY_LOSS_RISK',
+      title: 'Ryzyko utraty gwarancji fabrycznej producenta pojazdu',
+      legalBasis:
+        'Rekomendacja 16 KNF (pkt 16.3) oraz art. 361 k.c.',
+      description:
+        `Pojazd poszkodowanego (rocznik ${estimate.header.productionYear}, wiek: ${vehicleAgeYears} lat) znajduje się w okresie ochrony gwarancyjnej producenta (${estimate.header.vehicleMakeModel}). ` +
+        `Zastosowanie nieautoryzowanych zamienników dystrybutorskich w miejsce części OEM skutkuje utratą gwarancji na powłokę lakierniczą, perforację blach oraz komponenty współpracujące, za co ubezpieczyciel ponosi bezpośrednią odpowiedzialność odszkodowawczą.`,
+      lossNet: 0,
+      lossGross: 0,
+      affectedItems: ['Status pojazdu: w okresie ochrony gwarancyjnej'],
     });
   }
 
@@ -166,6 +193,8 @@ export function runAudit(estimate: CostEstimate): AuditReport {
     fairAmountGross,
     benchmarkLaborRateNet: benchmarkRate,
     appliedLaborRateNet: round2(appliedAverageRate),
+    vehicleAgeYears,
+    isWarrantyProtected,
   };
 
   return {

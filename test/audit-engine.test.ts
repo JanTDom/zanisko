@@ -10,6 +10,8 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
       claimNumber: 'SZK/2026/09/88219',
       insurerName: 'Powszechny Zakład Ubezpieczeń S.A.',
       vehicleMakeModel: 'Volkswagen Passat B8 2.0 TDI',
+      vehicleSegment: 'POPULAR',
+      productionYear: 2018,
       registrationNumber: 'WI 9821A',
       damageDate: '2026-09-15',
       voivodeship: 'mazowieckie',
@@ -49,9 +51,9 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
     vatRate: 0.23,
   };
 
-  it('powinien poprawnie wykryć stawkę referencyjną dla województwa mazowieckiego', () => {
+  it('powinien poprawnie wykryć stawkę referencyjną dla województwa mazowieckiego (175 zł w 2026 r.)', () => {
     const benchmark = getRegionalBenchmark('mazowieckie');
-    expect(benchmark.recommendedRateNet).toBe(165.0);
+    expect(benchmark.recommendedRateNet).toBe(175.0);
     expect(benchmark.voivodeship).toBe('mazowieckie');
   });
 
@@ -60,9 +62,9 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
     const laborViolation = report.violations.find(v => v.type === 'UNDERSTATED_LABOR_RATE');
 
     expect(laborViolation).toBeDefined();
-    // 20 godzin * (165 zł benchmark - 75 zł przyjęte) = 20 * 90 zł = 1800 zł netto
-    expect(laborViolation?.lossNet).toBe(1800.0);
-    expect(laborViolation?.lossGross).toBe(2214.0); // 1800 * 1.23
+    // 20 godzin * (175 zł benchmark - 75 zł przyjęte) = 20 * 100 zł = 2000 zł netto
+    expect(laborViolation?.lossNet).toBe(2000.0);
+    expect(laborViolation?.lossGross).toBe(2460.0); // 2000 * 1.23
     expect(laborViolation?.legalBasis).toContain('Rekomendacja 15 KNF');
   });
 
@@ -102,19 +104,19 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
   it('powinien poprawnie obliczyć podsumowanie finansowe (Suma netto i brutto)', () => {
     const report = runAudit(sampleEstimate);
 
-    // Suma netto: 1800 (rbh) + 720 (amortyzacja) + 1200 (zamiennik) + 264 (lakier) = 3984 zł netto
-    expect(report.summary.totalLossNet).toBe(3984.0);
-    // Suma brutto: 3984 * 1.23 = 4900.32 zł brutto
-    expect(report.summary.totalLossGross).toBe(4900.32);
+    // Suma netto: 2000 (rbh) + 720 (amortyzacja) + 1200 (zamiennik) + 264 (lakier) = 4184 zł netto
+    expect(report.summary.totalLossNet).toBe(4184.0);
+    // Suma brutto: 4184 * 1.23 = 5146.32 zł brutto
+    expect(report.summary.totalLossGross).toBe(5146.32);
 
-    // Wypłacona kwota bezsporna netto = 3500 zł -> fair amount netto = 3500 + 3984 = 7484 zł
-    expect(report.summary.fairAmountNet).toBe(7484.0);
-    expect(report.summary.fairAmountGross).toBe(9205.32);
-    expect(report.summary.benchmarkLaborRateNet).toBe(165.0);
+    // Wypłacona kwota bezsporna netto = 3500 zł -> fair amount netto = 3500 + 4184 = 7684 zł
+    expect(report.summary.fairAmountNet).toBe(7684.0);
+    expect(report.summary.fairAmountGross).toBe(9451.32);
+    expect(report.summary.benchmarkLaborRateNet).toBe(175.0);
     expect(report.summary.appliedLaborRateNet).toBe(75.0);
   });
 
-  it('powinien wygenerować kompletne formalne wezwanie do zapłaty z rygorem 30 dni', () => {
+  it('powinien wygenerować kompletne formalne wezwanie do zapłaty z rygorem 30 dni bez gwiazdek', () => {
     const report = runAudit(sampleEstimate);
     const letter = generateDemandLetter(report, {
       claimantName: 'Jan Kowalski',
@@ -125,13 +127,15 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
     expect(letter).toContain('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY');
     expect(letter).toContain('FORMALNA REKLAMACJA');
     expect(letter).toContain('SZK/2026/09/88219');
-    expect(letter).toContain('4900.32 PLN brutto');
+    expect(letter).toContain('5146.32 PLN BRUTTO');
     expect(letter).toContain('12 1020 1026 0000 1234 5678 9012');
     expect(letter).toContain('art. 5 ust. 1');
     expect(letter).toContain('art. 8');
-    expect(letter).toContain('30 dni');
+    expect(letter).toContain('30 DNI');
     expect(letter).toContain('Rzecznika Finansowego');
     expect(letter).toContain('Uchwała Sądu Najwyższego z dnia 12 kwietnia 2012 r. (sygn. akt III CZP 80/11)');
     expect(letter).toContain('Rekomendacja 15 KNF');
+    // Rygorystyczna weryfikacja braku gwiazdek w tekście pisma
+    expect(letter).not.toContain('*');
   });
 });

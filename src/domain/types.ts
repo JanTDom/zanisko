@@ -1,6 +1,6 @@
 /**
  * Domena audytu kosztorysów ubezpieczeniowych ClaimCheck.
- * Ścisłe typy i kontrakty danych.
+ * Ścisłe typy i kontrakty danych uwzględniające markę, model, rocznik i segment pojazdu.
  */
 
 export type Voivodeship =
@@ -23,10 +23,14 @@ export type Voivodeship =
 
 export type PartQualityCode = 'O' | 'Q' | 'PC' | 'PJ' | 'P';
 
+export type VehicleSegment = 'POPULAR' | 'PREMIUM' | 'LUXURY';
+
 export interface EstimateHeader {
-  claimNumber: string;         // Numer szkody (np. PL2026/09/12345)
+  claimNumber: string;         // Numer szkody (np. PL/PZU/2026/09/99120)
   insurerName: string;         // Nazwa ubezpieczyciela (np. PZU S.A., Warta S.A.)
-  vehicleMakeModel: string;    // Marka i model (np. Skoda Octavia IV 2.0 TDI)
+  vehicleMakeModel: string;    // Marka i model (np. Toyota Corolla 1.8 Hybrid)
+  vehicleSegment: VehicleSegment; // Segment rynkowy pojazdu (Popular / Premium / Luxury)
+  productionYear: number;      // Rok produkcji pojazdu
   registrationNumber: string;  // Numer rejestracyjny pojazdu
   damageDate: string;          // Data kolizji (YYYY-MM-DD)
   voivodeship: Voivodeship;    // Województwo poszkodowanego
@@ -71,7 +75,8 @@ export type ViolationType =
   | 'UNDERSTATED_LABOR_RATE'
   | 'ILLEGAL_PART_DEPRECIATION'
   | 'UNJUSTIFIED_PART_SUBSTITUTION'
-  | 'PAINT_MATERIAL_DISCOUNT';
+  | 'PAINT_MATERIAL_DISCOUNT'
+  | 'WARRANTY_LOSS_RISK';
 
 export interface AuditViolation {
   type: ViolationType;
@@ -92,6 +97,8 @@ export interface AuditSummary {
   fairAmountGross: number;
   benchmarkLaborRateNet: number;
   appliedLaborRateNet: number;
+  vehicleAgeYears: number;
+  isWarrantyProtected: boolean;
 }
 
 export interface AuditReport {

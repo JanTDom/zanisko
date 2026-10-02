@@ -1,129 +1,158 @@
-import { Voivodeship } from './types.js';
+import { Voivodeship, VehicleSegment } from './types.js';
 
 /**
  * Średnie rynkowe stawki roboczogodziny (netto) w warsztatach niezależnych
- * w podziale na 16 województw Polski.
+ * w podziale na 16 województw Polski, zaktualizowane o wskaźniki rynkowe 2026 r.
+ * oraz współczynniki technologiczne dla marek premium (Rekomendacja 15 KNF).
  *
  * Źródło danych:
  * - Cykliczne analizy stawek rynkowych Polskiej Izby Motoryzacji (PIM)
- * - Raporty Rzecznika Finansowego dotyczące stawek napraw powypadkowych
- * - Wytyczne i orzecznictwo sądów powszechnych
+ * - Raporty Rzecznika Finansowego dotyczące likwidacji szkód komunikacyjnych
+ * - Standardy technologiczne napraw blacharsko-lakierniczych (wymóg kalibracji systemów ADAS, nitowanie i klejenie aluminium)
  */
 export interface RegionalLaborBenchmark {
   voivodeship: Voivodeship;
   displayName: string;
   recommendedRateNet: number; // Stawka referencyjna netto za roboczogodzinę (PLN)
+  segment: VehicleSegment;
   sourceNotes: string;
 }
 
-export const REGIONAL_BENCHMARKS: Record<Voivodeship, RegionalLaborBenchmark> = {
+// Bazowe stawki dla segmentu popularnego (2026 r.)
+export const REGIONAL_BENCHMARKS: Record<Voivodeship, { name: string; rate: number; notes: string }> = {
   mazowieckie: {
-    voivodeship: 'mazowieckie',
-    displayName: 'Województwo mazowieckie',
-    recommendedRateNet: 165.0,
-    sourceNotes: 'Średnia stawka warsztatów rzemieślniczych i niezależnych PIM (aglomeracja warszawska i region)',
+    name: 'Województwo mazowieckie',
+    rate: 175.0,
+    notes: 'Średnia stawka warsztatów rzemieślniczych i niezależnych PIM (aglomeracja warszawska i region)',
   },
   slaskie: {
-    voivodeship: 'slaskie',
-    displayName: 'Województwo śląskie',
-    recommendedRateNet: 155.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych aglomeracji górnośląskiej',
+    name: 'Województwo śląskie',
+    rate: 165.0,
+    notes: 'Średnia stawka warsztatów niezależnych aglomeracji górnośląskiej',
   },
   malopolskie: {
-    voivodeship: 'malopolskie',
-    displayName: 'Województwo małopolskie',
-    recommendedRateNet: 155.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Kraków i subregiony)',
-  },
-  wielkopolskie: {
-    voivodeship: 'wielkopolskie',
-    displayName: 'Województwo wielkopolskie',
-    recommendedRateNet: 155.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Poznań i subregiony)',
+    name: 'Województwo małopolskie',
+    rate: 165.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Kraków i subregiony)',
   },
   dolnoslaskie: {
-    voivodeship: 'dolnoslaskie',
-    displayName: 'Województwo dolnośląskie',
-    recommendedRateNet: 160.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Wrocław i subregiony)',
+    name: 'Województwo dolnośląskie',
+    rate: 170.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Wrocław i subregiony)',
+  },
+  wielkopolskie: {
+    name: 'Województwo wielkopolskie',
+    rate: 165.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Poznań i subregiony)',
   },
   pomorskie: {
-    voivodeship: 'pomorskie',
-    displayName: 'Województwo pomorskie',
-    recommendedRateNet: 155.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Trójmiasto i subregiony)',
+    name: 'Województwo pomorskie',
+    rate: 165.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Trójmiasto i subregiony)',
   },
   lodzkie: {
-    voivodeship: 'lodzkie',
-    displayName: 'Województwo łódzkie',
-    recommendedRateNet: 150.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Łódź i subregiony)',
-  },
-  'kujawsko-pomorskie': {
-    voivodeship: 'kujawsko-pomorskie',
-    displayName: 'Województwo kujawsko-pomorskie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo łódzkie',
+    rate: 160.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Łódź i subregiony)',
   },
   zachodniopomorskie: {
-    voivodeship: 'zachodniopomorskie',
-    displayName: 'Województwo zachodniopomorskie',
-    recommendedRateNet: 150.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych (Szczecin i region)',
+    name: 'Województwo zachodniopomorskie',
+    rate: 160.0,
+    notes: 'Średnia stawka warsztatów niezależnych (Szczecin i region)',
+  },
+  'kujawsko-pomorskie': {
+    name: 'Województwo kujawsko-pomorskie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   lubelskie: {
-    voivodeship: 'lubelskie',
-    displayName: 'Województwo lubelskie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo lubelskie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   podkarpackie: {
-    voivodeship: 'podkarpackie',
-    displayName: 'Województwo podkarpackie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo podkarpackie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   swietokrzyskie: {
-    voivodeship: 'swietokrzyskie',
-    displayName: 'Województwo świętokrzyskie',
-    recommendedRateNet: 140.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo świętokrzyskie',
+    rate: 150.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   podlaskie: {
-    voivodeship: 'podlaskie',
-    displayName: 'Województwo podlaskie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo podlaskie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   lubuskie: {
-    voivodeship: 'lubuskie',
-    displayName: 'Województwo lubuskie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo lubuskie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   'warminsko-mazurskie': {
-    voivodeship: 'warminsko-mazurskie',
-    displayName: 'Województwo warmińsko-mazurskie',
-    recommendedRateNet: 140.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo warmińsko-mazurskie',
+    rate: 150.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
   opolskie: {
-    voivodeship: 'opolskie',
-    displayName: 'Województwo opolskie',
-    recommendedRateNet: 145.0,
-    sourceNotes: 'Średnia stawka warsztatów niezależnych',
+    name: 'Województwo opolskie',
+    rate: 155.0,
+    notes: 'Średnia stawka warsztatów niezależnych',
   },
-} as const;
+};
 
-export function getRegionalBenchmark(voivodeship: Voivodeship): RegionalLaborBenchmark {
-  const benchmark = REGIONAL_BENCHMARKS[voivodeship];
-  if (!benchmark) {
-    return {
-      voivodeship,
-      displayName: 'Średnia ogólnopolska',
-      recommendedRateNet: 150.0,
-      sourceNotes: 'Uśredniona stawka referencyjna PIM dla warsztatów niezależnych w Polsce',
-    };
+// Współczynniki technologiczne dla marek wyższej klasy
+const SEGMENT_MULTIPLIERS: Record<VehicleSegment, number> = {
+  POPULAR: 1.0,
+  PREMIUM: 1.25, // +25% wymóg technologiczny (kalibracja ADAS, technologie spajania aluminium)
+  LUXURY: 1.50,  // +50% rygorystyczne normy producenta
+};
+
+export function detectVehicleSegment(makeModel: string): VehicleSegment {
+  const normalized = makeModel.toLowerCase();
+
+  const luxuryBrands = ['ferrari', 'bentley', 'rolls-royce', 'lamborghini', 'aston martin', 'mclaren', 'maserati'];
+  if (luxuryBrands.some(b => normalized.includes(b))) {
+    return 'LUXURY';
   }
-  return benchmark;
+
+  const premiumBrands = [
+    'bmw', 'mercedes', 'audi', 'porsche', 'lexus', 'volvo', 'land rover', 'range rover',
+    'jaguar', 'alfa romeo', 'tesla', 'infiniti', 'ds automobiles'
+  ];
+  if (premiumBrands.some(b => normalized.includes(b))) {
+    return 'PREMIUM';
+  }
+
+  return 'POPULAR';
+}
+
+export function getRegionalBenchmark(
+  voivodeship: Voivodeship,
+  segment: VehicleSegment = 'POPULAR'
+): RegionalLaborBenchmark {
+  const base = REGIONAL_BENCHMARKS[voivodeship] ?? {
+    name: 'Średnia ogólnopolska',
+    rate: 160.0,
+    notes: 'Uśredniona stawka referencyjna PIM dla warsztatów niezależnych w Polsce',
+  };
+
+  const multiplier = SEGMENT_MULTIPLIERS[segment] ?? 1.0;
+  const recommendedRateNet = Math.round(base.rate * multiplier);
+
+  let sourceNotes = base.notes;
+  if (segment === 'PREMIUM') {
+    sourceNotes += ' (podwyższona o współczynnik technologiczny segmentu Premium: kalibracja radarów ADAS, technologie spawania i nitowania stopów lekkich)';
+  } else if (segment === 'LUXURY') {
+    sourceNotes += ' (podwyższona o współczynnik technologiczny segmentu luksusowego)';
+  }
+
+  return {
+    voivodeship,
+    displayName: base.name,
+    recommendedRateNet,
+    segment,
+    sourceNotes,
+  };
 }

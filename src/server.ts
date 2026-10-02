@@ -5,13 +5,13 @@ import { PDFParse } from 'pdf-parse';
 import { CostEstimateParser } from './parser/pdf-parser.js';
 import { runAudit } from './domain/audit-engine.js';
 import { generateDemandLetter } from './domain/demand-letter.js';
-import { Voivodeship } from './domain/types.js';
+import { Voivodeship, VehicleSegment } from './domain/types.js';
 import { getRegionalBenchmark, REGIONAL_BENCHMARKS } from './domain/regional-rates.js';
+import { extractTextFromImage } from './parser/ocr-service.js';
 
 const parser = new CostEstimateParser();
 
-const SAMPLE_ESTIMATE_TEXT = `
-AUDATEX POLSKA SP. Z O.O.
+const SAMPLE_ESTIMATE_TEXT = `AUDATEX POLSKA SP. Z O.O.
 KALKULACJA NAPRAWY NR: 9812-PL-2026
 Nr szkody: PL/PZU/2026/09/99120
 Zakład ubezpieczeń: Powszechny Zakład Ubezpieczeń S.A.
@@ -41,691 +41,1462 @@ const HTML_PAGE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimCheck — Weryfikator kosztorysów naprawy z OC sprawcy</title>
+  <title>ClaimCheck — Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(18, 24, 38, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f1f5f9;
+      --bg: #07090e;
+      --surface: #0f1420;
+      --surface-elevated: #161d2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --text: #f8fafc;
       --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --accent-loss: #ef4444;
-      --accent-success: #10b981;
-      --accent-fair: #38bdf8;
-      --badge-bg: rgba(59, 130, 246, 0.12);
-      --badge-border: rgba(59, 130, 246, 0.3);
+      --text-dim: #64748b;
+      --accent: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-crimson: #f43f5e;
+      --accent-amber: #f59e0b;
+      --gradient-card: linear-gradient(180deg, rgba(22, 29, 46, 0.7) 0%, rgba(15, 20, 32, 0.9) 100%);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
-      color: var(--text-main);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 100% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+      color: var(--text);
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       line-height: 1.6;
-      padding-bottom: 80px;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 120px;
     }
 
-    header {
-      border-bottom: 1px solid var(--card-border);
-      background: rgba(9, 13, 22, 0.85);
-      backdrop-filter: blur(12px);
+    /* TYPOGRAFIA */
+    h1, h2, h3, h4, .brand-font {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    /* NAWIGACJA */
+    nav {
       position: sticky;
       top: 0;
-      z-index: 50;
-      padding: 16px 24px;
+      z-index: 100;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
     }
-
-    .header-inner {
-      max-width: 1200px;
+    .nav-inner {
+      max-width: 1240px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
-    .brand {
-      font-family: 'Space Grotesk', sans-serif;
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+    }
+    .brand-name {
       font-size: 20px;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
-
     .brand-tag {
       font-size: 11px;
-      font-weight: 600;
       padding: 3px 8px;
-      border-radius: 4px;
-      background: var(--badge-bg);
-      border: 1px solid var(--badge-border);
-      color: #60a5fa;
-      letter-spacing: 0.5px;
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-emerald);
+    }
 
+    /* KONTENER GŁÓWNY */
     .container {
-      max-width: 1100px;
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 40px 24px;
+      padding: 0 24px;
     }
 
+    /* HERO SECTION */
     .hero {
-      text-align: center;
-      margin-bottom: 48px;
+      padding: 70px 0 50px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
     }
-
-    .hero-badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 100px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      color: #f87171;
-      margin-bottom: 20px;
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; padding: 40px 0; }
     }
-
-    h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(32px, 5vw, 48px);
-      font-weight: 700;
-      letter-spacing: -1.2px;
-      line-height: 1.15;
-      margin-bottom: 18px;
-      color: #ffffff;
-    }
-
-    .subtitle {
-      font-size: 17px;
-      color: var(--text-muted);
-      max-width: 760px;
-      margin: 0 auto 32px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-      margin-bottom: 32px;
-    }
-
-    .dropzone-box {
-      border: 2px dashed rgba(255, 255, 255, 0.16);
-      border-radius: 12px;
-      padding: 40px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .dropzone-box:hover, .dropzone-box.dragover {
-      border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.05);
-    }
-
-    .dropzone-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .dropzone-desc {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
-
-    .btn {
+    .hero-label {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      font-family: inherit;
-      font-size: 14px;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+      font-size: 12px;
       font-weight: 600;
-      padding: 12px 24px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-decoration: none;
+      margin-bottom: 20px;
     }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
+    .hero h1 {
+      font-size: clamp(34px, 4.2vw, 54px);
+      margin-bottom: 20px;
+      color: #fff;
     }
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
-    }
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.14);
-    }
-
-    .sample-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 14px;
-      margin-top: 18px;
-      font-size: 13px;
+    .hero-lead {
+      font-size: 17px;
       color: var(--text-muted);
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    select, textarea, input {
-      width: 100%;
-      padding: 10px 14px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: white;
-      font-family: inherit;
-      font-size: 14px;
-    }
-
-    select:focus, textarea:focus, input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    /* Wyniki audytu */
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      line-height: 1.7;
       margin-bottom: 32px;
     }
-
-    .metric-card {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 22px;
+    .hero-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
     }
-
-    .metric-label {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-
-    .metric-val {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 32px;
+    .stat-box .stat-val {
+      font-size: 26px;
       font-weight: 700;
-      letter-spacing: -0.5px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .stat-box .stat-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
     }
 
-    .metric-sub {
-      font-size: 12px;
+    /* HERO IMAGE CARD */
+    .hero-visual-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      background: var(--surface);
+    }
+    .hero-visual-card img {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.95);
+    }
+    .hero-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: linear-gradient(180deg, transparent 0%, rgba(7, 9, 14, 0.95) 80%);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .overlay-tag {
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .overlay-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+    }
+    .overlay-diff {
+      text-align: right;
+    }
+    .diff-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* NARZĘDZIE AUDYTU - KARTA ROBOCZA */
+    .tool-section {
+      margin-top: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .section-header {
+      margin-bottom: 28px;
+    }
+    .section-header h2 {
+      font-size: 26px;
+      color: #fff;
+    }
+    .section-header p {
+      font-size: 15px;
       color: var(--text-muted);
       margin-top: 4px;
     }
 
-    .val-undisputed { color: var(--text-muted); }
-    .val-loss { color: var(--accent-loss); }
-    .val-fair { color: var(--accent-fair); }
-
-    .violation-card {
-      background: rgba(15, 23, 42, 0.6);
-      border-left: 4px solid var(--accent-loss);
-      border-radius: 0 10px 10px 0;
-      padding: 18px 20px;
-      margin-bottom: 14px;
-      border-top: 1px solid var(--card-border);
-      border-right: 1px solid var(--card-border);
-      border-bottom: 1px solid var(--card-border);
+    /* TABS */
+    .input-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: var(--surface-elevated);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
     }
 
+    /* DROP ZONES */
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 44px 24px;
+      text-align: center;
+      background: rgba(22, 29, 46, 0.4);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.05);
+    }
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      color: var(--accent);
+    }
+    .dropzone-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .dropzone-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* PARAMETRY POJAZDU I WOJEWÓDZTWA */
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+      padding: 20px;
+      background: rgba(7, 9, 14, 0.5);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .param-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .param-field select, .param-field input {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .param-field select:focus, .param-field input:focus {
+      border-color: var(--accent);
+    }
+
+    /* PRZYCISKI AKCJI */
+    .action-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      border: none;
+      padding: 14px 26px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(2, 132, 199, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: #1c2438;
+    }
+
+    /* WYNIKI AUDYTU - DWA STANY: TEASER & ODBLOKOWANY */
+    #auditResultsArea {
+      margin-top: 40px;
+      display: none;
+    }
+
+    /* TEASER BANNER (DARMOWY WIDOK) */
+    .teaser-card {
+      background: linear-gradient(180deg, #131a29 0%, #0e1422 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .teaser-glow {
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .teaser-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .teaser-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .discrepancy-scale {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .scale-bar {
+      height: 8px;
+      flex: 1;
+      max-width: 240px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .scale-fill {
+      height: 100%;
+      width: 85%;
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
+
+    /* KARTY KOSZTÓW */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .cost-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .cost-card.highlight {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .cost-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .cost-amount {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .cost-amount.emerald { color: #34d399; }
+    .cost-amount.crimson { color: #f87171; }
+    .cost-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ZABLOKOWANE POZYCJE (BLUR EFFECT) */
+    .locked-section-container {
+      position: relative;
+      margin-top: 24px;
+    }
+    .blur-preview {
+      filter: blur(5px);
+      user-select: none;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .paywall-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 20, 32, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      z-index: 20;
+    }
+    .paywall-overlay h3 {
+      font-size: 22px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .paywall-overlay p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 20px;
+    }
+
+    /* WYKAZ NARUSZEŃ (ODBLOKOWANY) */
+    .violation-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .violation-card.severity-high {
+      border-left-color: var(--accent-crimson);
+    }
     .violation-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
+      align-items: flex-start;
+      margin-bottom: 10px;
     }
-
     .violation-title {
-      font-weight: 700;
       font-size: 16px;
-    }
-
-    .violation-amount {
-      font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
-      color: var(--accent-loss);
-      font-size: 18px;
+      color: #fff;
     }
-
-    .violation-legal {
+    .violation-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f87171;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .violation-basis {
       font-size: 12px;
-      color: #60a5fa;
+      color: var(--accent);
       margin-bottom: 8px;
       font-weight: 600;
     }
-
     .violation-desc {
       font-size: 14px;
-      color: #cbd5e1;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .violation-items {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .violation-items li {
+      margin-left: 18px;
+      margin-top: 4px;
     }
 
-    .violation-items {
-      margin-top: 10px;
-      padding-left: 18px;
+    /* KALENDARIUM 30 DNI */
+    .timeline-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin: 28px 0;
+    }
+    .timeline-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+      position: relative;
+    }
+    .timeline-step {
+      background: rgba(7, 9, 14, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      position: relative;
+    }
+    .timeline-step.critical {
+      border-color: rgba(244, 63, 94, 0.4);
+      background: rgba(244, 63, 94, 0.05);
+    }
+    .timeline-step.success {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .step-day {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .step-desc {
       font-size: 13px;
       color: var(--text-muted);
-    }
-
-    /* Modal / Preview */
-    .letter-preview {
-      background: #0f172a;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 24px;
-      font-family: monospace;
-      font-size: 13px;
-      white-space: pre-wrap;
-      max-height: 480px;
-      overflow-y: auto;
-      margin: 20px 0;
-      color: #e2e8f0;
       line-height: 1.5;
     }
 
-    .hidden { display: none; }
+    /* FORMULARZ I GENERATOR PISMA */
+    .letter-section {
+      margin-top: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .claimant-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .letter-sheet {
+      background: #0b0f19;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 32px;
+      font-family: 'Space Grotesk', monospace, sans-serif;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 500px;
+      overflow-y: auto;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
 
+    /* SEKCJE EDUKACYJNE / ZDJĘCIA W GRIDZIE */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 28px;
+      margin: 60px 0;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .feature-img {
+      height: 220px;
+      width: 100%;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid var(--border);
+    }
+    .feature-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .feature-body h3 {
+      font-size: 19px;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .feature-body p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .feature-tag {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    /* FOOTER */
     footer {
+      margin-top: 80px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
       text-align: center;
       font-size: 13px;
+      color: var(--text-dim);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* LOADER & OCR PROGRESS */
+    .progress-bar-container {
+      margin: 16px 0;
+      display: none;
+    }
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 12px;
       color: var(--text-muted);
-      margin-top: 60px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="header-inner">
-      <div class="brand">
-        ClaimCheck
-        <span class="brand-tag">Audyt KNF</span>
-      </div>
-      <div style="font-size: 13px; color: var(--text-muted);">
-        Tryb przedsądowy: Ustawa o reklamacjach rynku finansowego
+  <!-- NAWIGACJA -->
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="brand-logo">
+        <div class="logo-badge">CC</div>
+        <div>
+          <div class="brand-name">ClaimCheck</div>
+        </div>
+        <span class="brand-tag">Audytor OC 2026</span>
+      </a>
+      <div class="nav-status">
+        <div class="pulse-dot"></div>
+        <span>Baza stawek PIM i KNF: Aktywna (16 województw)</span>
       </div>
     </div>
-  </header>
+  </nav>
 
+  <!-- GŁÓWNA ZAWARTOŚĆ -->
   <div class="container">
-    <div class="hero">
-      <div class="hero-badge">Ponad 70% kosztorysów OC zawiera bezprawne zaniżenia</div>
-      <h1>Odzyskaj zaniżone odszkodowanie z OC sprawcy</h1>
-      <p class="subtitle">
-        Wgraj kosztorys od ubezpieczyciela (Audatex, Eurotax, DAT). W 30 sekund wyliczymy zaniżenie
-        według Rekomendacji KNF i uchwał Sądu Najwyższego oraz wygenerujemy formalne przedsądowe wezwanie do zapłaty.
-      </p>
-    </div>
 
-    <!-- Panel wejściowy -->
-    <div class="card" id="input-card">
-      <div class="form-group" style="max-width: 380px; margin-bottom: 24px;">
-        <label for="voivodeship">Województwo miejsca zamieszkania poszkodowanego:</label>
-        <select id="voivodeship">
-          <option value="mazowieckie">mazowieckie (stawka ref. 165 zł/h)</option>
-          <option value="slaskie">śląskie (stawka ref. 155 zł/h)</option>
-          <option value="malopolskie">małopolskie (stawka ref. 155 zł/h)</option>
-          <option value="wielkopolskie">wielkopolskie (stawka ref. 155 zł/h)</option>
-          <option value="dolnoslaskie">dolnośląskie (stawka ref. 160 zł/h)</option>
-          <option value="pomorskie">pomorskie (stawka ref. 155 zł/h)</option>
-          <option value="lodzkie">łódzkie (stawka ref. 150 zł/h)</option>
-          <option value="kujawsko-pomorskie">kujawsko-pomorskie (stawka ref. 145 zł/h)</option>
-          <option value="zachodniopomorskie">zachodniopomorskie (stawka ref. 150 zł/h)</option>
-          <option value="lubelskie">lubelskie (stawka ref. 145 zł/h)</option>
-          <option value="podkarpackie">podkarpackie (stawka ref. 145 zł/h)</option>
-          <option value="swietokrzyskie">świętokrzyskie (stawka ref. 140 zł/h)</option>
-          <option value="podlaskie">podlaskie (stawka ref. 145 zł/h)</option>
-          <option value="lubuskie">lubuskie (stawka ref. 145 zł/h)</option>
-          <option value="warminsko-mazurskie">warmińsko-mazurskie (stawka ref. 140 zł/h)</option>
-          <option value="opolskie">opolskie (stawka ref. 145 zł/h)</option>
-        </select>
+    <!-- HERO SECTION -->
+    <section class="hero">
+      <div>
+        <div class="hero-label">
+          <span>Niezależna weryfikacja kosztorysów powypadkowych</span>
+        </div>
+        <h1>Odzyskaj należne odszkodowanie z OC sprawcy</h1>
+        <p class="hero-lead">
+          Automatyczny audyt kosztorysów Audatex, Eurotax i DAT. Wykrywamy bezprawne potrącenia amortyzacyjne (uchwała Sądu Najwyższego III CZP 80/11), zaniżone stawki roboczogodziny oraz zamienniki dystrybutorskie naruszające gwarancję pojazdu.
+        </p>
+        <div class="hero-stats-row">
+          <div class="stat-box">
+            <div class="stat-val">3 500+ zł</div>
+            <div class="stat-desc">Średnia kwota zaniżenia kosztorysu</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">100%</div>
+            <div class="stat-desc">Zgodność z orzecznictwem SN i KNF</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">30 dni</div>
+            <div class="stat-desc">Ustawowy termin milczenia ubezpieczyciela</div>
+          </div>
+        </div>
       </div>
 
-      <div class="dropzone-box" id="dropzone">
-        <div class="dropzone-title">Upuść kosztorys PDF lub wklej tekst kalkulacji</div>
-        <div class="dropzone-desc">Obsługujemy kalkulacje Audatex, Eurotax oraz kosztorysy PZU, Warta, Ergo Hestia, Generali itp.</div>
-        <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
-          Wybierz plik PDF
-        </button>
-        <input type="file" id="file-input" accept=".pdf,.txt" style="display: none;">
+      <!-- KARTA WIZUALNA HERO ZE ZDJĘCIEM 1 -->
+      <div class="hero-visual-card">
+        <img src="/images/hero-claim-comparison.jpg" alt="Porównanie kosztorysu ubezpieczyciela i rzeczywistych kosztów naprawy">
+        <div class="hero-card-overlay">
+          <div>
+            <div class="overlay-tag">Przykład rzeczywistego audytu</div>
+            <div class="overlay-title">Weryfikacja szkody Toyota Corolla</div>
+          </div>
+          <div class="overlay-diff">
+            <div class="diff-badge">+8 030 zł</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NARZĘDZIE AUDYTU -->
+    <section class="tool-section" id="skaner">
+      <div class="section-header">
+        <h2>Sprawdź swój kosztorys w 60 sekund</h2>
+        <p>Wgraj oficjalny plik PDF lub fotografię kalkulacji naprawy z ubezpieczalni.</p>
       </div>
 
-      <div class="sample-bar">
-        <span>Przetestuj z przykładowym plikiem:</span>
-        <button type="button" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="loadSample()">
-          Wczytaj przykładowy kosztorys (tekst)
+      <!-- TABS -->
+      <div class="input-tabs">
+        <button class="tab-btn active" id="tabPdfBtn" onclick="switchTab('pdf')">
+          Dokument PDF (Audatex / Eurotax)
         </button>
-        <a href="/przykladowy_kosztorys_pzu.pdf" download="przykladowy_kosztorys_pzu.pdf" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">
-          Pobierz plik PDF do testów (2.6 KB)
+        <button class="tab-btn" id="tabOcrBtn" onclick="switchTab('ocr')">
+          Zdjęcie / Skan (OCR)
+        </button>
+        <button class="tab-btn" id="tabTextBtn" onclick="switchTab('text')">
+          Wklej tekst kalkulacji
+        </button>
+      </div>
+
+      <!-- TAB 1: PLIK PDF -->
+      <div id="tabPdfContent">
+        <div class="dropzone" id="pdfDropzone">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          <div class="dropzone-title">Przeciągnij i upuść plik PDF kosztorysu</div>
+          <div class="dropzone-sub">lub kliknij, aby wybrać dokument z dysku (PDF do 15 MB)</div>
+          <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
+        </div>
+      </div>
+
+      <!-- TAB 2: ZDJĘCIE / SKAN (OCR) -->
+      <div id="tabOcrContent" style="display:none;">
+        <div class="dropzone" id="imageDropzone">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <div class="dropzone-title">Przeciągnij zdjęcie kosztorysu lub skan smartfonem</div>
+          <div class="dropzone-sub">Automatyczny silnik OCR rozpozna tabelę i kwoty (PNG, JPG, JPEG)</div>
+          <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
+        </div>
+      </div>
+
+      <!-- TAB 3: WKLEJ TEKST -->
+      <div id="tabTextContent" style="display:none;">
+        <textarea id="rawTextarea" rows="8" placeholder="Wklej treść kosztorysu z systemu Audatex, Eurotax lub DAT..." style="width: 100%; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 16px; color: #fff; font-family: monospace; font-size: 13px; outline: none;"></textarea>
+      </div>
+
+      <!-- LOADER / POSTĘP PRZETWARZANIA -->
+      <div class="progress-bar-container" id="progressBar">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label">
+          <span id="progressText">Rozpoznawanie tekstu i weryfikacja algorytmiczna...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+
+      <!-- PARAMETRY POJAZDU I REGIONU -->
+      <div class="params-grid">
+        <div class="param-field">
+          <label>Województwo poszkodowanego (Stawki PIM)</label>
+          <select id="voivodeshipSelect">
+            <option value="mazowieckie" selected>Mazowieckie (175 zł/rbh)</option>
+            <option value="dolnoslaskie">Dolnośląskie (170 zł/rbh)</option>
+            <option value="slaskie">Śląskie (165 zł/rbh)</option>
+            <option value="malopolskie">Małopolskie (165 zł/rbh)</option>
+            <option value="wielkopolskie">Wielkopolskie (165 zł/rbh)</option>
+            <option value="pomorskie">Pomorskie (165 zł/rbh)</option>
+            <option value="lodzkie">Łódzkie (160 zł/rbh)</option>
+            <option value="zachodniopomorskie">Zachodniopomorskie (160 zł/rbh)</option>
+            <option value="kujawsko-pomorskie">Kujawsko-pomorskie (155 zł/rbh)</option>
+            <option value="lubelskie">Lubelskie (155 zł/rbh)</option>
+            <option value="podkarpackie">Podkarpackie (155 zł/rbh)</option>
+            <option value="swietokrzyskie">Świętokrzyskie (150 zł/rbh)</option>
+            <option value="podlaskie">Podlaskie (155 zł/rbh)</option>
+            <option value="lubuskie">Lubuskie (155 zł/rbh)</option>
+            <option value="warminsko-mazurskie">Warmińsko-mazurskie (150 zł/rbh)</option>
+            <option value="opolskie">Opolskie (155 zł/rbh)</option>
+          </select>
+        </div>
+        <div class="param-field">
+          <label>Klasa technologiczna pojazdu</label>
+          <select id="segmentSelect">
+            <option value="AUTO" selected>Wykrywaj automatycznie z marki i modelu</option>
+            <option value="POPULAR">Segment popularny (Toyota, Skoda, VW, Ford)</option>
+            <option value="PREMIUM">Segment Premium (+25% ADAS: BMW, Mercedes, Audi, Volvo)</option>
+            <option value="LUXURY">Segment luksusowy (+50%: Porsche, Bentley, Ferrari)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PRZYCISKI AKCJI -->
+      <div class="action-row">
+        <button class="btn-primary" id="startAuditBtn" onclick="runCurrentAudit()">
+          Rozpocznij audyt kosztorysu
+        </button>
+        <button class="btn-secondary" onclick="loadSampleText()">
+          Wczytaj przykładowy kosztorys (Toyota Corolla 2021 PZU)
+        </button>
+        <a class="btn-secondary" href="/przykladowy_kosztorys_pzu.pdf" download>
+          Pobierz plik PDF do testów
         </a>
       </div>
+    </section>
 
-      <div id="manual-text-wrap" style="margin-top: 24px;">
-        <label for="raw-text">Lub wklej treść kosztorysu:</label>
-        <textarea id="raw-text" rows="5" placeholder="Wklej tekst kalkulacji naprawy z ubezpieczalni..."></textarea>
-        <button type="button" class="btn btn-primary" style="margin-top: 12px; width: 100%;" onclick="runAnalysis()">
-          Uruchom audyt kosztorysu
-        </button>
-      </div>
-    </div>
+    <!-- OBSZAR WYNIKÓW AUDYTU -->
+    <div id="auditResultsArea">
 
-    <!-- Wyniki analizy -->
-    <div id="results-card" class="card hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <div>
-          <h2 style="font-size: 24px; font-weight: 700;">Raport audytu kosztorysu</h2>
-          <div id="claim-details" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;"></div>
-        </div>
-        <button class="btn btn-secondary" onclick="resetView()">Wgraj inny kosztorys</button>
-      </div>
-
-      <div class="results-grid">
-        <div class="metric-card">
-          <div class="metric-label">Wypłacona kwota bezsporna</div>
-          <div class="metric-val val-undisputed" id="m-undisputed">0 zł</div>
-          <div class="metric-sub">Tyle ubezpieczyciel przelał na konto</div>
-        </div>
-
-        <div class="metric-card" style="border-color: rgba(239, 68, 68, 0.4);">
-          <div class="metric-label">Wykryte zaniżenie odszkodowania</div>
-          <div class="metric-val val-loss" id="m-loss">+0 zł</div>
-          <div class="metric-sub" id="m-violations-count">0 niezgodności z wytycznymi KNF</div>
-        </div>
-
-        <div class="metric-card" style="border-color: rgba(56, 189, 248, 0.4);">
-          <div class="metric-label">Należne odszkodowanie (KNF / SN)</div>
-          <div class="metric-val val-fair" id="m-fair">0 zł</div>
-          <div class="metric-sub">Rzetelna wartość przywrócenia do stanu sprzed szkody</div>
-        </div>
-      </div>
-
-      <h3 style="font-size: 18px; margin-bottom: 14px;">Wykryte uchybienia i naruszenia przepisów</h3>
-      <div id="violations-list"></div>
-
-      <!-- Krok do zakupu wezwania -->
-      <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid var(--badge-border); border-radius: 12px; padding: 24px; margin-top: 32px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 16px;">
+      <!-- STAN 1: DARMOWY AUDYT WSTĘPNY (TEASER & PAYWALL NA SZCZEGÓŁACH) -->
+      <div id="teaserView" class="teaser-card">
+        <div class="teaser-glow"></div>
+        <div class="teaser-header">
           <div>
-            <h3 style="font-size: 18px; color: #ffffff;">Pobierz formalne Przedsądowe Wezwanie do Zapłaty</h3>
-            <p style="font-size: 13px; color: var(--text-muted); max-width: 600px; margin-top: 4px;">
-              Pismo procesowe w reżimie Ustawy o reklamacjach z sztywnym terminem 30 dni pod rygorem
-              uznania roszczenia w całości z mocy prawa (art. 8 ustawy).
-            </p>
+            <div class="teaser-badge">Audyt wstępny ukończony</div>
+            <h2 id="teaserVehicleTitle" style="font-size: 24px; color: #fff; margin-top: 8px;">Pojazd: Toyota Corolla 1.8 Hybrid (2021)</h2>
+            <div id="teaserClaimMeta" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Szkoda nr: PL/PZU/2026/09/99120 | Ubezpieczyciel: PZU S.A. | Województwo: Mazowieckie
+            </div>
+            <div class="discrepancy-scale">
+              <span style="font-size: 13px; font-weight: 600; color: #f87171;">Wskaźnik zaniżenia: WYSOKI</span>
+              <div class="scale-bar"><div class="scale-fill"></div></div>
+              <span id="teaserViolationsCount" style="font-size: 12px; color: var(--text-dim);">(wykryto 4 kategorie uchybień)</span>
+            </div>
           </div>
-          <button class="btn btn-primary" style="font-size: 16px; padding: 14px 28px;" onclick="openLetterModal()">
-            Pobierz wezwanie (59 zł)
-          </button>
+
+          <div style="text-align: right;">
+            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase;">Szacowane zaniżenie odszkodowania</div>
+            <div id="teaserEstimatedRange" style="font-size: 32px; font-weight: 700; color: #34d399; font-family: 'Space Grotesk', sans-serif;">
+              od 4 200 zł do 5 400 zł
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">kwota możliwa do odzyskania w całości z OC sprawcy</div>
+          </div>
         </div>
+
+        <!-- ZABLOKOWANY PODGLĄD DANYCH SZCZEGÓŁOWYCH -->
+        <div class="locked-section-container">
+          <div class="blur-preview">
+            <div class="cost-grid">
+              <div class="cost-card">
+                <div class="cost-label">Wypłacona kwota bezsporna</div>
+                <div class="cost-amount">3 600,00 zł</div>
+                <div class="cost-sub">Wypłata zaniżona przez ubezpieczyciela</div>
+              </div>
+              <div class="cost-card highlight">
+                <div class="cost-label">Należna dopłata od ubezpieczyciela</div>
+                <div class="cost-amount emerald">••••,•• zł</div>
+                <div class="cost-sub">Suma bezprawnych potrąceń brutto</div>
+              </div>
+              <div class="cost-card">
+                <div class="cost-label">Rzeczywisty koszt rzetelnej naprawy</div>
+                <div class="cost-amount">••••,•• zł</div>
+                <div class="cost-sub">Zgodnie ze stawkami PIM i technologią OEM</div>
+              </div>
+            </div>
+
+            <div class="violation-card">
+              <div class="violation-header">
+                <div class="violation-title">Zaniżenie stawki roboczogodziny (RBH)</div>
+                <div class="violation-amount">••••,•• zł</div>
+              </div>
+              <div class="violation-desc">Zastosowano stawkę dumpingową 70 zł/rbh zamiast rynkowej stawki referencyjnej PIM...</div>
+            </div>
+            <div class="violation-card">
+              <div class="violation-header">
+                <div class="violation-title">Bezprawne potrącenie amortyzacyjne części (SN III CZP 80/11)</div>
+                <div class="violation-amount">••••,•• zł</div>
+              </div>
+              <div class="violation-desc">Obcięto wartość zderzaka i reflektora z uwagi na wiek pojazdu...</div>
+            </div>
+          </div>
+
+          <!-- PAYWALL / ODBLOKOWANIE PEŁNEGO PAKIETU -->
+          <div class="paywall-overlay" id="paywallBox">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h3>Odblokuj pełny audyt dowodowy i gotowe pismo procesowe</h3>
+            <p>
+              Ubezpieczyciel liczy na to, że nie znasz oficjalnych stawek PIM ani uchwały SN III CZP 80/11. Pobierz precyzyjne zestawienie kwot do grosza oraz formalne Przedsądowe Wezwanie do Zapłaty z rygorem 30 dni.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+              <button class="btn-primary" onclick="unlockFullReport()">
+                Odblokuj pełny audyt i pismo — 49 zł
+              </button>
+              <button class="btn-secondary" onclick="unlockFullReport()">
+                Symuluj płatność (Tryb testowy)
+              </button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 10px;">
+              Jednorazowa opłata. Zero prowizji od odzyskanej kwoty (kancelarie pobierają 25-35%).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAN 2: ODBLOKOWANY PEŁNY RAPORT DOWODOWY I GENERATOR PISMA -->
+      <div id="unlockedView" style="display:none;">
+
+        <!-- KARTY PODSUMOWANIA FINANSOWEGO CO DO GROSZA -->
+        <div class="cost-grid">
+          <div class="cost-card">
+            <div class="cost-label">Wypłacona kwota bezsporna</div>
+            <div class="cost-amount" id="unlockedUndisputedGross">0,00 zł</div>
+            <div class="cost-sub" id="unlockedUndisputedNet">Netto: 0,00 zł</div>
+          </div>
+          <div class="cost-card highlight">
+            <div class="cost-label">Kwota roszczenia do dopłaty (Suma strat)</div>
+            <div class="cost-amount emerald" id="unlockedTotalLossGross">0,00 zł</div>
+            <div class="cost-sub" id="unlockedTotalLossNet">Netto: 0,00 zł (z VAT 23%)</div>
+          </div>
+          <div class="cost-card">
+            <div class="cost-label">Rzetelna wartość naprawy powypadkowej</div>
+            <div class="cost-amount" id="unlockedFairGross">0,00 zł</div>
+            <div class="cost-sub" id="unlockedFairNet">Netto: 0,00 zł</div>
+          </div>
+        </div>
+
+        <!-- KALENDARIUM 30 DNI (USTAWOWY RYGOR) -->
+        <div class="timeline-card">
+          <div class="overlay-tag">Procedura odzyskiwania odszkodowania</div>
+          <h3 style="font-size: 20px; color: #fff; margin-top: 4px;">Ustawowe kalendarium reklamacyjne (Ustawa z 5 sierpnia 2015 r.)</h3>
+          <div class="timeline-steps">
+            <div class="timeline-step">
+              <div class="step-day">Dzień 0</div>
+              <div class="step-title">Wysłanie wezwania</div>
+              <div class="step-desc">Złożenie wygenerowanej reklamacji ClaimCheck z audytem różnicowym drogą mailową lub listem poleconym.</div>
+            </div>
+            <div class="timeline-step">
+              <div class="step-day">Dzień 14</div>
+              <div class="step-title">Termin płatności</div>
+              <div class="step-desc">Wyznaczony w wezwaniu termin na bezsporną dopłatę na wskazany rachunek bankowy poszkodowanego.</div>
+            </div>
+            <div class="timeline-step critical">
+              <div class="step-day">Dzień 30</div>
+              <div class="step-title">Rygor milczenia (Art. 8)</div>
+              <div class="step-desc">Brak pisemnej odpowiedzi ubezpieczyciela w terminie 30 dni oznacza uznanie roszczenia w całości z mocy prawa.</div>
+            </div>
+            <div class="timeline-step success">
+              <div class="step-day">Dzień 31+</div>
+              <div class="step-title">Egzekucja lub Rzecznik</div>
+              <div class="step-desc">Wniosek interwencyjny do Rzecznika Finansowego lub skierowanie pozwu z odsetkami ustawowymi za opóźnienie.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PEŁNA LISTA ZARZUTÓW PRAWNO-TECHNOLOGICZNYCH -->
+        <div class="section-header" style="margin-top: 36px;">
+          <h2>Szczegółowy wykaz zaniżeń w Twoim kosztorysie</h2>
+          <p>Dowody gotowe do przedłożenia w postępowaniu reklamacyjnym i sądowym.</p>
+        </div>
+        <div id="violationsList"></div>
+
+        <!-- FORMULARZ WEZWANIA DO ZAPŁATY ZE ZDJĘCIEM 4 -->
+        <div class="letter-section">
+          <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: center; margin-bottom: 24px;">
+            <div>
+              <h2>Generator Przedsądowego Wezwania do Zapłaty</h2>
+              <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
+                Dokument sformatowany zgodnie ze standardem kancelarii radcowskiej. Bez gwiazdek, z pełną argumentacją prawną i numerem Twojego rachunku bankowego.
+              </p>
+            </div>
+            <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
+              <img src="/images/desk-audit-comparison.jpg" alt="Analiza kosztorysu na biurku" style="width: 100%; height: 110px; object-fit: cover;">
+            </div>
+          </div>
+
+          <div class="claimant-form">
+            <div class="param-field">
+              <label>Imię i nazwisko poszkodowanego</label>
+              <input type="text" id="claimantName" value="Jan Kowalski">
+            </div>
+            <div class="param-field">
+              <label>Adres zamieszkania</label>
+              <input type="text" id="claimantAddress" value="ul. Marszałkowska 10/12, 00-001 Warszawa">
+            </div>
+            <div class="param-field">
+              <label>Numer konta bankowego do dopłaty</label>
+              <input type="text" id="claimantIban" value="12 1020 1026 0000 1234 5678 9012">
+            </div>
+          </div>
+
+          <div class="action-row" style="margin-bottom: 20px;">
+            <button class="btn-primary" onclick="generateAndDisplayLetter()">
+              Generuj treść wezwania do zapłaty
+            </button>
+            <button class="btn-secondary" onclick="copyLetterToClipboard()">
+              Kopiuj do schowka
+            </button>
+            <button class="btn-secondary" onclick="downloadLetterTxt()">
+              Pobierz jako dokument (.txt)
+            </button>
+          </div>
+
+          <div class="letter-sheet" id="letterPreview">Kliknij przycisk „Generuj treść wezwania do zapłaty”, aby wyświetlić gotowe pismo procesowe.</div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Modal pisma -->
-    <div id="letter-modal" class="card hidden">
-      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Dane do wygenerowania wezwania do zapłaty</h2>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-        Uzupełnij swoje dane poszkodowanego i numer konta, aby pismo było kompletne i gotowe do wysłania do ubezpieczyciela.
-      </p>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-        <div class="form-group">
-          <label for="claimant-name">Imię i nazwisko / nazwa poszkodowanego:</label>
-          <input type="text" id="claimant-name" value="Jan Kowalski">
-        </div>
-        <div class="form-group">
-          <label for="claimant-address">Adres zamieszkania:</label>
-          <input type="text" id="claimant-address" value="ul. Marszałkowska 10/12, 00-001 Warszawa">
-        </div>
-        <div class="form-group" style="grid-column: span 2;">
-          <label for="bank-account">Numer rachunku bankowego do dopłaty odszkodowania:</label>
-          <input type="text" id="bank-account" value="12 1020 1026 0000 1234 5678 9012">
+    <!-- SEKCJA EDUKACYJNA: 3 FILARY ZANIŻEŃ (ZDJĘCIA 2 I 3) -->
+    <section class="features-grid">
+      <div class="feature-card">
+        <img class="feature-img" src="/images/mechanic-understated-explanation.jpg" alt="Mechanik wyjaśniający zaniżenie kosztorysu">
+        <div class="feature-body">
+          <div class="feature-tag">Uchwała SN III CZP 80/11</div>
+          <h3>Zakaz potrąceń amortyzacyjnych</h3>
+          <p>
+            Towarzystwa ubezpieczeniowe rutynowo obcinają wartość nowych części o 30-60% pod pretekstem wieku auta. Sąd Najwyższy jednoznacznie orzekł, że ubezpieczyciel ma obowiązek wypłacić kwotę odpowiadającą cenie nowych, oryginalnych części bez potrąceń.
+          </p>
         </div>
       </div>
 
-      <button class="btn btn-primary" style="width: 100%; margin-bottom: 20px;" onclick="generateFinalLetter()">
-        Generuj i odblokuj wezwanie przedsądowe
-      </button>
-
-      <div id="letter-output-wrap" class="hidden">
-        <h3 style="font-size: 16px;">Podgląd wygenerowanego dokumentu:</h3>
-        <div class="letter-preview" id="letter-content"></div>
-        <div style="display: flex; gap: 12px;">
-          <button class="btn btn-primary" onclick="copyLetter()">Kopiuj treść pisma</button>
-          <button class="btn btn-secondary" onclick="printLetter()">Drukuj / Zapisz jako PDF</button>
+      <div class="feature-card">
+        <img class="feature-img" src="/images/tech-hud-repair.jpg" alt="Cyfrowy HUD specyfikacji części zamiennych">
+        <div class="feature-body">
+          <div class="feature-tag">Rekomendacje KNF 15 i 16</div>
+          <h3>Realne stawki rynkowe robocizny</h3>
+          <p>
+            Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). ClaimCheck weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.
+          </p>
         </div>
       </div>
-    </div>
+    </section>
 
+    <!-- FOOTER -->
     <footer>
-      ClaimCheck Polska — Niezależny system weryfikacji kalkulacji szkód komunikacyjnych.<br>
-      Wszelkie wyliczenia oparte na Rekomendacjach KNF z dnia 1 listopada 2022 r. oraz uchwale SN III CZP 80/11.
+      <p>ClaimCheck — Niezależny system audytu kosztorysów szkód komunikacyjnych z OC sprawcy.</p>
+      <p style="margin-top: 6px;">
+        Zgodność z orzecznictwem Sądu Najwyższego RP oraz Rekomendacjami Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r.
+      </p>
     </footer>
+
   </div>
 
+  <!-- SKRYPT KLIENTA -->
   <script>
     let currentAuditReport = null;
+    let currentAuditRawText = '';
 
-    function loadSample() {
-      fetch('/api/sample')
-        .then(r => r.text())
-        .then(text => {
-          document.getElementById('raw-text').value = text;
-          document.getElementById('voivodeship').value = 'malopolskie';
-          runAnalysis();
-        });
+    // Obsługa zakładek
+    function switchTab(tab) {
+      document.getElementById('tabPdfBtn').classList.remove('active');
+      document.getElementById('tabOcrBtn').classList.remove('active');
+      document.getElementById('tabTextBtn').classList.remove('active');
+
+      document.getElementById('tabPdfContent').style.display = 'none';
+      document.getElementById('tabOcrContent').style.display = 'none';
+      document.getElementById('tabTextContent').style.display = 'none';
+
+      if (tab === 'pdf') {
+        document.getElementById('tabPdfBtn').classList.add('active');
+        document.getElementById('tabPdfContent').style.display = 'block';
+      } else if (tab === 'ocr') {
+        document.getElementById('tabOcrBtn').classList.add('active');
+        document.getElementById('tabOcrContent').style.display = 'block';
+      } else {
+        document.getElementById('tabTextBtn').classList.add('active');
+        document.getElementById('tabTextContent').style.display = 'block';
+      }
     }
 
-    function runAnalysis() {
-      const text = document.getElementById('raw-text').value;
-      const voivodeship = document.getElementById('voivodeship').value;
+    // Drag and drop dla PDF
+    const pdfDropzone = document.getElementById('pdfDropzone');
+    const pdfFileInput = document.getElementById('pdfFileInput');
+    pdfDropzone.onclick = () => pdfFileInput.click();
+    pdfDropzone.ondragover = (e) => { e.preventDefault(); pdfDropzone.classList.add('dragover'); };
+    pdfDropzone.ondragleave = () => pdfDropzone.classList.remove('dragover');
+    pdfDropzone.ondrop = (e) => {
+      e.preventDefault();
+      pdfDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handlePdfFile(e.dataTransfer.files[0]);
+      }
+    };
+    pdfFileInput.onchange = (e) => {
+      if (e.target.files.length > 0) handlePdfFile(e.target.files[0]);
+    };
 
-      if (!text || text.trim().length < 20) {
-        alert('Proszę wkleić treść kosztorysu lub załadować przykład.');
+    // Drag and drop dla obrazów OCR
+    const imageDropzone = document.getElementById('imageDropzone');
+    const imageFileInput = document.getElementById('imageFileInput');
+    imageDropzone.onclick = () => imageFileInput.click();
+    imageDropzone.ondragover = (e) => { e.preventDefault(); imageDropzone.classList.add('dragover'); };
+    imageDropzone.ondragleave = () => imageDropzone.classList.remove('dragover');
+    imageDropzone.ondrop = (e) => {
+      e.preventDefault();
+      imageDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleImageFile(e.dataTransfer.files[0]);
+      }
+    };
+    imageFileInput.onchange = (e) => {
+      if (e.target.files.length > 0) handleImageFile(e.target.files[0]);
+    };
+
+    function showProgress(text, percent) {
+      const pb = document.getElementById('progressBar');
+      pb.style.display = 'block';
+      document.getElementById('progressText').textContent = text;
+      document.getElementById('progressPercent').textContent = percent + '%';
+      document.getElementById('progressFill').style.width = percent + '%';
+    }
+
+    function hideProgress() {
+      document.getElementById('progressBar').style.display = 'none';
+    }
+
+    // Obsługa wczytania pliku PDF
+    async function handlePdfFile(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('Proszę wybrać plik PDF.');
         return;
       }
-
-      fetch('/api/audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText: text, voivodeship })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) {
-          alert('Błąd audytu: ' + data.error);
-          return;
-        }
-        currentAuditReport = data;
-        renderResults(data);
-      });
-    }
-
-    function renderResults(data) {
-      document.getElementById('input-card').classList.add('hidden');
-      document.getElementById('results-card').classList.remove('hidden');
-
-      const s = data.summary;
-      const h = data.header;
-
-      document.getElementById('claim-details').innerText = 
-        'Szkoda nr: ' + h.claimNumber + ' | Ubezpieczyciel: ' + h.insurerName + ' | Pojazd: ' + h.vehicleMakeModel + ' (' + h.registrationNumber + ')';
-
-      document.getElementById('m-undisputed').innerText = s.undisputedAmountGross.toFixed(2) + ' zł';
-      document.getElementById('m-loss').innerText = '+' + s.totalLossGross.toFixed(2) + ' zł';
-      document.getElementById('m-violations-count').innerText = data.violations.length + ' wykryte naruszenia wytycznych KNF / SN';
-      document.getElementById('m-fair').innerText = s.fairAmountGross.toFixed(2) + ' zł';
-
-      const violationsList = document.getElementById('violations-list');
-      violationsList.innerHTML = '';
-
-      data.violations.forEach(v => {
-        const item = document.createElement('div');
-        item.className = 'violation-card';
-        item.innerHTML = \`
-          <div class="violation-header">
-            <span class="violation-title">\${v.title}</span>
-            <span class="violation-amount">+\${v.lossGross.toFixed(2)} zł brutto</span>
-          </div>
-          <div class="violation-legal">\${v.legalBasis}</div>
-          <div class="violation-desc">\${v.description}</div>
-          \${v.affectedItems && v.affectedItems.length ? \`
-            <ul class="violation-items">
-              \${v.affectedItems.map(it => '<li>' + it + '</li>').join('')}
-            </ul>
-          \` : ''}
-        \`;
-        violationsList.appendChild(item);
-      });
-    }
-
-    function resetView() {
-      document.getElementById('results-card').classList.add('hidden');
-      document.getElementById('letter-modal').classList.add('hidden');
-      document.getElementById('input-card').classList.remove('hidden');
-    }
-
-    function openLetterModal() {
-      document.getElementById('letter-modal').classList.remove('hidden');
-      document.getElementById('letter-modal').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function generateFinalLetter() {
-      if (!currentAuditReport) return;
-
-      const claimantName = document.getElementById('claimant-name').value;
-      const claimantAddress = document.getElementById('claimant-address').value;
-      const bankAccountNumber = document.getElementById('bank-account').value;
-
-      fetch('/api/generate-letter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          report: currentAuditReport,
-          options: { claimantName, claimantAddress, bankAccountNumber }
-        })
-      })
-      .then(r => r.json())
-      .then(res => {
-        document.getElementById('letter-output-wrap').classList.remove('hidden');
-        document.getElementById('letter-content').innerText = res.letter;
-        document.getElementById('letter-output-wrap').scrollIntoView({ behavior: 'smooth' });
-      });
-    }
-
-    function copyLetter() {
-      const text = document.getElementById('letter-content').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Treść wezwania została skopiowana do schowka.');
-      });
-    }
-
-    function printLetter() {
-      const text = document.getElementById('letter-content').innerText;
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write('<pre style="font-family: Arial; white-space: pre-wrap; padding: 20px;">' + text + '</pre>');
-      printWindow.document.close();
-      printWindow.print();
-    }
-
-    // Obsługa przeciągania i wgrywania plików PDF
-    const fileInput = document.getElementById('file-input');
-    const dropzone = document.getElementById('dropzone');
-
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.classList.add('dragover');
-    });
-    dropzone.addEventListener('dragleave', () => {
-      dropzone.classList.remove('dragover');
-    });
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('dragover');
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files && fileInput.files.length > 0) {
-        handleFile(fileInput.files[0]);
-      }
-    });
-
-    function handleFile(file) {
-      const voivodeship = document.getElementById('voivodeship').value;
-      if (file.name.toLowerCase().endsWith('.pdf')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const arrayBuffer = e.target.result;
-          const bytes = new Uint8Array(arrayBuffer);
-          let binary = '';
-          for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          const base64 = btoa(binary);
-
-          fetch('/api/upload-pdf', {
+      showProgress('Wczytywanie i parsowanie kalkulacji PDF...', 40);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        try {
+          showProgress('Silnik audytowy analizuje pozycje kosztorysu...', 75);
+          const res = await fetch('/api/upload-pdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdfBase64: base64, voivodeship })
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.error) {
-              alert('Błąd odczytu pliku PDF: ' + data.error);
-              return;
-            }
-            currentAuditReport = data.auditReport;
-            renderResults(data.auditReport);
-          })
-          .catch(err => alert('Błąd sieciowy: ' + err.message));
-        };
-        reader.readAsArrayBuffer(file);
-      } else {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('raw-text').value = e.target.result;
-          runAnalysis();
-        };
-        reader.readAsText(file);
+            body: JSON.stringify({
+              pdfBase64: base64,
+              voivodeship: document.getElementById('voivodeshipSelect').value,
+            }),
+          });
+          const data = await res.json();
+          hideProgress();
+          if (data.error) {
+            alert('Błąd odczytu PDF: ' + data.error);
+            return;
+          }
+          currentAuditReport = data.auditReport;
+          currentAuditRawText = data.extractedText;
+          renderAuditResults(data.auditReport);
+        } catch (err) {
+          hideProgress();
+          alert('Wystąpił błąd podczas komunikacji z serwerem: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Obsługa OCR zdjęć
+    async function handleImageFile(file) {
+      showProgress('Silnik OCR Tesseract rozpoznaje tekst ze zdjęcia...', 35);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        try {
+          showProgress('Ekstrakcja stawek i tabel naprawczych...', 70);
+          const res = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64: base64,
+              voivodeship: document.getElementById('voivodeshipSelect').value,
+            }),
+          });
+          const data = await res.json();
+          hideProgress();
+          if (data.error) {
+            alert('Błąd przetwarzania obrazu: ' + data.error);
+            return;
+          }
+          currentAuditReport = data.auditReport;
+          currentAuditRawText = data.extractedText;
+          renderAuditResults(data.auditReport);
+        } catch (err) {
+          hideProgress();
+          alert('Błąd OCR: ' + err.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Wczytanie przykładowego tekstu
+    async function loadSampleText() {
+      const res = await fetch('/api/sample');
+      const text = await res.text();
+      document.getElementById('rawTextarea').value = text;
+      switchTab('text');
+      runCurrentAudit();
+    }
+
+    // Uruchomienie bieżącego audytu
+    async function runCurrentAudit() {
+      const rawText = document.getElementById('rawTextarea').value;
+      if (!rawText.trim()) {
+        alert('Wklej tekst kosztorysu lub wgraj plik PDF / zdjęcie.');
+        return;
       }
+      showProgress('Audytowanie kalkulacji wg stawek PIM 2026...', 50);
+      try {
+        const res = await fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rawText,
+            voivodeship: document.getElementById('voivodeshipSelect').value,
+          }),
+        });
+        const report = await res.json();
+        hideProgress();
+        currentAuditReport = report;
+        currentAuditRawText = rawText;
+        renderAuditResults(report);
+      } catch (err) {
+        hideProgress();
+        alert('Błąd audytu: ' + err.message);
+      }
+    }
+
+    // Renderowanie wyników audytu (Najpierw Teaser z kłódkami, aby chronić wartość)
+    function renderAuditResults(report) {
+      document.getElementById('auditResultsArea').style.display = 'block';
+      document.getElementById('teaserView').style.display = 'block';
+      document.getElementById('unlockedView').style.display = 'none';
+
+      const h = report.header;
+      const s = report.summary;
+
+      document.getElementById('teaserVehicleTitle').textContent = 'Pojazd: ' + h.vehicleMakeModel + ' (' + h.productionYear + ')';
+      document.getElementById('teaserClaimMeta').textContent = 
+        'Szkoda nr: ' + h.claimNumber + ' | Ubezpieczyciel: ' + h.insurerName + ' | Rejestracja: ' + h.registrationNumber;
+      document.getElementById('teaserViolationsCount').textContent = 
+        '(wykryto ' + report.violations.length + ' kategorie bezprawnych potrąceń)';
+
+      // Szacowany przedział kwoty (ukrywamy dokładną liczbę, pokazujemy rząd wielkości)
+      const minEstimated = Math.floor((s.totalLossGross * 0.9) / 100) * 100;
+      const maxEstimated = Math.ceil((s.totalLossGross * 1.1) / 100) * 100;
+      document.getElementById('teaserEstimatedRange').textContent = 
+        'od ' + minEstimated.toLocaleString('pl-PL') + ' zł do ' + maxEstimated.toLocaleString('pl-PL') + ' zł';
+
+      // Przewiń płynnie do wyników
+      document.getElementById('auditResultsArea').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Odblokowanie pełnego raportu i pisma (po symulacji płatności lub zakupu)
+    function unlockFullReport() {
+      document.getElementById('teaserView').style.display = 'none';
+      document.getElementById('unlockedView').style.display = 'block';
+
+      const s = currentAuditReport.summary;
+      document.getElementById('unlockedUndisputedGross').textContent = s.undisputedAmountGross.toFixed(2) + ' zł';
+      document.getElementById('unlockedUndisputedNet').textContent = 'Netto: ' + s.undisputedAmountNet.toFixed(2) + ' zł';
+
+      document.getElementById('unlockedTotalLossGross').textContent = '+' + s.totalLossGross.toFixed(2) + ' zł';
+      document.getElementById('unlockedTotalLossNet').textContent = 'Netto: ' + s.totalLossNet.toFixed(2) + ' zł (z VAT 23%)';
+
+      document.getElementById('unlockedFairGross').textContent = s.fairAmountGross.toFixed(2) + ' zł';
+      document.getElementById('unlockedFairNet').textContent = 'Netto: ' + s.fairAmountNet.toFixed(2) + ' zł';
+
+      // Wyrenderuj listę naruszeń
+      const vContainer = document.getElementById('violationsList');
+      vContainer.innerHTML = '';
+      currentAuditReport.violations.forEach((v, i) => {
+        const card = document.createElement('div');
+        card.className = 'violation-card severity-high';
+        
+        let itemsHtml = '';
+        if (v.affectedItems && v.affectedItems.length > 0) {
+          itemsHtml = '<div class="violation-items"><strong>Wykaz zakwestionowanych pozycji:</strong><ul>' + 
+            v.affectedItems.map(it => '<li>' + it + '</li>').join('') + '</ul></div>';
+        }
+
+        const amountText = v.lossGross > 0 ? '+' + v.lossGross.toFixed(2) + ' zł brutto' : 'Naruszenie technologiczne';
+
+        card.innerHTML = 
+          '<div class="violation-header">' +
+            '<div class="violation-title">' + (i + 1) + '. ' + v.title + '</div>' +
+            '<div class="violation-amount">' + amountText + '</div>' +
+          '</div>' +
+          '<div class="violation-basis">Podstawa prawna: ' + v.legalBasis + '</div>' +
+          '<div class="violation-desc">' + v.description + '</div>' +
+          itemsHtml;
+
+        vContainer.appendChild(card);
+      });
+
+      // Wygeneruj od razu pismo procesowe
+      generateAndDisplayLetter();
+
+      // Przewiń do odblokowanego widoku
+      document.getElementById('unlockedView').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Generowanie pisma wezwania do zapłaty (BEZ GWIAZDEK)
+    async function generateAndDisplayLetter() {
+      if (!currentAuditReport) return;
+
+      const claimantName = document.getElementById('claimantName').value;
+      const claimantAddress = document.getElementById('claimantAddress').value;
+      const bankAccountNumber = document.getElementById('claimantIban').value;
+
+      try {
+        const res = await fetch('/api/generate-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            report: currentAuditReport,
+            options: { claimantName, claimantAddress, bankAccountNumber },
+          }),
+        });
+        const data = await res.json();
+        document.getElementById('letterPreview').textContent = data.letter;
+      } catch (err) {
+        alert('Błąd generowania pisma: ' + err.message);
+      }
+    }
+
+    // Kopiowanie pisma
+    function copyLetterToClipboard() {
+      const text = document.getElementById('letterPreview').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Treść wezwania do zapłaty została skopiowana do schowka.');
+      });
+    }
+
+    // Pobieranie pisma jako .txt
+    function downloadLetterTxt() {
+      const text = document.getElementById('letterPreview').textContent;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'wezwanie_do_zaplaty_' + (currentAuditReport ? currentAuditReport.header.claimNumber.replace(/[\/\\]/g, '_') : 'szkoda') + '.txt';
+      a.click();
     }
   </script>
 </body>
@@ -737,14 +1508,34 @@ export function createServer(port = 3000) {
     const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
 
     // GET / - Główna aplikacja
-    if (req.method === 'GET' && url.pathname === '/') {
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      if (req.method === 'HEAD') { res.end(); return; }
       res.end(HTML_PAGE);
       return;
     }
 
+    // GET /images/* - Serwowanie grafik i fotografii użytkownika
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname.startsWith('/images/')) {
+      const imageName = path.basename(url.pathname);
+      const imagePath = path.resolve('public/images', imageName);
+      if (fs.existsSync(imagePath)) {
+        const ext = path.extname(imageName).toLowerCase();
+        const contentType = ext === '.png' ? 'image/png' : 'image/jpeg';
+        const stat = fs.statSync(imagePath);
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Content-Length': stat.size,
+          'Cache-Control': 'public, max-age=86400',
+        });
+        if (req.method === 'HEAD') { res.end(); return; }
+        fs.createReadStream(imagePath).pipe(res);
+        return;
+      }
+    }
+
     // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF
-    if (req.method === 'GET' && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
+    if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
       const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
       if (fs.existsSync(pdfPath)) {
         const stat = fs.statSync(pdfPath);
@@ -753,22 +1544,33 @@ export function createServer(port = 3000) {
           'Content-Length': stat.size,
           'Content-Disposition': 'attachment; filename="przykladowy_kosztorys_pzu.pdf"',
         });
+        if (req.method === 'HEAD') { res.end(); return; }
         fs.createReadStream(pdfPath).pipe(res);
         return;
       }
     }
 
     // GET /api/sample - Przykładowy kosztorys (tekst)
-    if (req.method === 'GET' && url.pathname === '/api/sample') {
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/api/sample') {
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      if (req.method === 'HEAD') { res.end(); return; }
       res.end(SAMPLE_ESTIMATE_TEXT);
       return;
     }
 
     // GET /health - Health check
-    if (req.method === 'GET' && url.pathname === '/health') {
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
+      if (req.method === 'HEAD') { res.end(); return; }
       res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
+      return;
+    }
+
+    // GET /api/benchmarks - Lista stawek referencyjnych dla 16 województw
+    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/api/benchmarks') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      if (req.method === 'HEAD') { res.end(); return; }
+      res.end(JSON.stringify(REGIONAL_BENCHMARKS));
       return;
     }
 
@@ -799,7 +1601,36 @@ export function createServer(port = 3000) {
       return;
     }
 
-    // POST /api/audit - Przetwarzanie kosztorysu i audyt
+    // POST /api/upload-image - Silnik OCR (rozpoznawanie ze zdjęć/skanów i audyt)
+    if (req.method === 'POST' && url.pathname === '/api/upload-image') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const imgBuffer = Buffer.from(payload.imageBase64, 'base64');
+          const voivodeship = (payload.voivodeship ?? 'mazowieckie') as Voivodeship;
+
+          const ocrResult = await extractTextFromImage(imgBuffer);
+          const parsed = parser.parseText(ocrResult.text, voivodeship);
+          const auditReport = runAudit(parsed.estimate);
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            auditReport,
+            extractedText: ocrResult.text,
+            confidence: ocrResult.confidence,
+          }));
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd silnika OCR';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/audit - Przetwarzanie kosztorysu i audyt z tekstu
     if (req.method === 'POST' && url.pathname === '/api/audit') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
