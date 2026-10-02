@@ -1,7 +1,7 @@
+import './polyfills.js';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PDFParse } from 'pdf-parse';
 import { CostEstimateParser } from './parser/pdf-parser.js';
 import { runAudit } from './domain/audit-engine.js';
 import { generateDemandLetter } from './domain/demand-letter.js';
@@ -2152,6 +2152,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           const pdfBuffer = Buffer.from(payload.pdfBase64, 'base64');
           const voivodeship = (payload.voivodeship ?? 'mazowieckie') as Voivodeship;
 
+          const { PDFParse } = await import('pdf-parse');
           const pdfInstance = new PDFParse({ data: new Uint8Array(pdfBuffer) });
           const textResult = await pdfInstance.getText();
 

@@ -1,3 +1,4 @@
+import '../src/polyfills.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { handleRequest } from '../src/server.js';
 
