@@ -259,7 +259,7 @@ Poszkodowany ma pełne prawo rozliczyć szkodę kosztorysowo i żądać pełnej 
 
 III. REKOMENDACJE KOMISJI NADZORU FINANSOWEGO (KNF) Z DNIA 1 LISTOPADA 2022 R.
 - Rekomendacja 15: Zakład ubezpieczeń ma obowiązek kalkulować robociznę według stawek rynku lokalnego poszkodowanego, a nie według sztucznych stawek umownych.
-- Rekomendacja 16: Ubezpieczyciel nie może narzucać części nieoryginalnych (zamienników PJ/P), jeżeli pojazd był serwisowany na częściach oryginalnych, jest na gwarancji lub wymaga zachowania bezpieczeństwa technologicznego.
+- Rekomendacja 18: Ubezpieczyciel nie może narzucać części nieoryginalnych (zamienników PJ/P), jeżeli pojazd był serwisowany na częściach oryginalnych, jest na gwarancji lub wymaga zachowania bezpieczeństwa technologicznego.
 - Rekomendacja 17: Ubezpieczyciel nie może stosować arbitralnych rabatów na materiały lakiernicze i części, chyba że poszkodowany faktycznie może bez żadnych barier nabyć materiały w podanej cenie w punkcie bezpośrednio dostępnym w miejscu zamieszkania.
 
 IV. USTAWOWY RYGOR ODPOWIEDZI NA REKLAMACJĘ (DZ.U. Z 2019 R. POZ. 2279)
@@ -292,7 +292,7 @@ Ubezpieczyciel nie może uzależniać wypłaty pełnego odszkodowania od przedst
 <h2>III. Wiążące Rekomendacje KNF z dnia 1 listopada 2022 r.</h2>
 <ul style="font-size: 9.5pt; line-height: 1.4; padding-left: 18pt;">
   <li><strong>Rekomendacja 15:</strong> Bezwzględny nakaz stosowania stawek rynkowych z rynku lokalnego poszkodowanego.</li>
-  <li><strong>Rekomendacja 16:</strong> Zakaz wymuszania części nieoryginalnych o wątpliwym standardzie bezpieczeństwa (zamienniki PJ/P).</li>
+  <li><strong>Rekomendacja 18:</strong> Zakaz wymuszania części nieoryginalnych o wątpliwym standardzie bezpieczeństwa (zamienniki PJ/P).</li>
   <li><strong>Rekomendacja 17:</strong> Zakaz potrącania fikcyjnych rabatów na lakier i części bez gwarancji dostępności u poszkodowanego.</li>
 </ul>
 

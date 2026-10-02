@@ -107,7 +107,7 @@ Zwróć treść w przejrzystym formacie tekstowym, zawierającym:
             detectedTactics: [
               'Zaniżenie stawki roboczogodziny poniżej stawek rynkowych PIM dla danego regionu',
               'Potrącenie amortyzacyjne z nowych części z naruszeniem uchwały SN III CZP 80/11',
-              'Narzucenie zamienników dystrybutorskich z naruszeniem Rekomendacji 16 KNF',
+              'Narzucenie zamienników dystrybutorskich z naruszeniem Rekomendacji 18 KNF',
             ],
             riskAssessment: 'Wysokie prawdopodobieństwo pełnego odzyskania należności w procedurze 30-dniowej (art. 8 Ustawy o reklamacjach).',
           },

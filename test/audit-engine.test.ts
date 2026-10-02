@@ -88,7 +88,7 @@ describe('ClaimCheck Audit Engine (Deterministyczny Silnik Audytowy)', () => {
     // 2400 zł oryginał - 1200 zł zamiennik = 1200 zł netto
     expect(subViolation?.lossNet).toBe(1200.0);
     expect(subViolation?.lossGross).toBe(1476.0); // 1200 * 1.23
-    expect(subViolation?.legalBasis).toContain('Rekomendacja 16 KNF');
+    expect(subViolation?.legalBasis).toContain('Rekomendacja 18 KNF');
   });
 
   it('powinien wyliczyć bezprawne potrącenie rabatu na materiałach lakierniczych', () => {

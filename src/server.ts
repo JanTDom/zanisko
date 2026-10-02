@@ -1396,7 +1396,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       <div class="feature-card">
         <img class="feature-img" src="/images/tech-hud-repair.jpg" alt="Cyfrowy HUD specyfikacji części zamiennych">
         <div class="feature-body">
-          <div class="feature-tag">Rekomendacje KNF 15 i 16</div>
+          <div class="feature-tag">Rekomendacja 15 KNF</div>
           <h3>Realne stawki rynkowe robocizny</h3>
           <p>
             Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). zanisko.pl weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.

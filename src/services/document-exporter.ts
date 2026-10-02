@@ -30,13 +30,26 @@ export function exportToDoc(htmlBody: string, title = 'Dokument procesowy'): Buf
 body {
   font-family: 'Calibri', 'Times New Roman', Arial, sans-serif;
   font-size: 11pt;
-  line-height: 1.35;
+  line-height: 1.3;
   color: #111;
 }
-h1 { font-size: 15pt; font-weight: bold; text-align: center; margin-top: 18pt; margin-bottom: 12pt; text-transform: uppercase; }
-h2 { font-size: 12pt; font-weight: bold; margin-top: 14pt; margin-bottom: 6pt; border-bottom: 1px solid #444; padding-bottom: 2pt; }
-h3 { font-size: 11pt; font-weight: bold; margin-top: 10pt; margin-bottom: 4pt; }
-p { margin-top: 0; margin-bottom: 8pt; text-align: justify; }
+h1, h2, h3 { font-family: 'Calibri', Arial, sans-serif; }
+h1 { font-size: 14pt; font-weight: bold; text-align: center; margin: 18pt 0 4pt 0; text-transform: uppercase; }
+h2 { font-size: 11.5pt; font-weight: bold; margin: 14pt 0 6pt 0; border-bottom: 1px solid #444; padding-bottom: 2pt; page-break-after: avoid; }
+h3 { font-size: 11pt; font-weight: bold; margin: 10pt 0 3pt 0; page-break-after: avoid; }
+h3.basis { font-size: 11pt; }
+p { margin: 0 0 1pt 0; text-align: left; }
+p.justify { text-align: justify; margin-bottom: 4pt; }
+p.subtitle { text-align: center; font-weight: bold; margin: 0 0 2pt 0; }
+p.date { text-align: right; }
+p.party { font-weight: bold; font-size: 9.5pt; letter-spacing: 0.5pt; color: #333; margin-top: 4pt; }
+p.li { margin-left: 14pt; text-indent: -10pt; }
+p.amount { text-align: center; font-weight: bold; font-size: 14pt; margin: 6pt 0 2pt 0; }
+p.center { text-align: center; }
+p.small { font-size: 9.5pt; color: #444; }
+p.sign { text-align: right; margin-top: 24pt; }
+p.sign.small { margin-top: 0; }
+.blk { margin-bottom: 10pt; }
 table { width: 100%; border-collapse: collapse; margin-top: 8pt; margin-bottom: 14pt; }
 th, td { border: 1px solid #777; padding: 5pt 7pt; font-size: 9.5pt; text-align: left; }
 th { background-color: #f1f5f9; font-weight: bold; }

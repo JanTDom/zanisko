@@ -59,7 +59,7 @@ describe('Document Exporters (DOC, RTF, TXT, PDF) & Attachments', () => {
     expect(att3.number).toBe(3);
     expect(att3.textContent).toContain('III CZP 80/11');
     expect(att3.textContent).toContain('III CZP 32/03');
-    expect(att3.textContent).toContain('Rekomendacja 16');
+    expect(att3.textContent).toContain('Rekomendacja 18');
   });
 
   it('powinien wyeksportować poprawny plik Microsoft Word (.doc)', () => {

@@ -98,7 +98,7 @@ III. PODSTAWA PRAWNA ROSZCZENIA
 3. Obowiązek stosowania realnych stawek lokalnego rynku naprawczego (Rekomendacja 15 KNF):
    Zakład ubezpieczeń ma obowiązek kalkulować robociznę według stawek stosowanych na rynku lokalnym poszkodowanego przez certyfikowane warsztaty posiadające odpowiednie wyposażenie technologiczne, a nie według stawek dumpingowych sieci partnerskich.
 
-4. Wymóg zachowania standardu części oryginalnych i ochrona gwarancji (Rekomendacja 16 KNF):
+4. Wymóg zachowania standardu części oryginalnych i ochrona gwarancji (Rekomendacja 18 KNF):
    W pojeździe o udokumentowanym stanie i historii serwisowej ubezpieczyciel nie może narzucać zamienników najniższej jakości dystrybutorskiej (kategoria PJ/P), a w pojeździe objętym gwarancją fabryczną producenta niedopuszczalne jest naruszanie warunków ochrony gwarancyjnej.
 
 
@@ -128,22 +128,65 @@ Załączniki:
 }
 
 /**
- * Konwertuje tekst wezwania na sformatowany kod HTML do eksportu DOC / PDF.
+ * Konwertuje tekst wezwania na HTML do eksportu DOC.
+ * Każda linia tekstu staje się osobnym akapitem — nigdy nie łączymy linii znacznikiem <br>
+ * wewnątrz akapitu wyjustowanego, bo Word rozciąga wtedy każdą linię na całą szerokość strony.
  */
 export function demandLetterToHtml(text: string): string {
-  const paragraphs = text.split('\n\n');
-  return paragraphs
-    .map(p => {
-      const trimmed = p.trim();
-      if (!trimmed) return '';
-      if (trimmed.startsWith('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY')) {
-        return `<h1 style="text-align: center; font-size: 15pt; margin: 16pt 0 8pt 0;">${trimmed.replace(/\n/g, '<br>')}</h1>`;
+  const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const UPPER = /^[^a-ząćęłńóśźż]*$/; // linia bez małych liter
+  const LABEL = /^(Roszczenie|Podstawa zarzutu|Podstawa prawna|Uzasadnienie|Numer rachunku|Tytuł przelewu|Szczegółowy wykaz pozycji|Dotyczy|Data zdarzenia|Numer szkody[^:]*|Pojazd[^:]*|Numer rejestracyjny)\s*:\s*/i;
+
+  const labelled = (line: string): string => {
+    const m = line.match(LABEL);
+    if (!m) return esc(line);
+    return `<b>${esc(m[0].trim())}</b> ${esc(line.slice(m[0].length))}`;
+  };
+
+  const blocks = text.replace(/\r\n/g, '\n').split(/\n\s*\n/);
+  const out: string[] = [];
+
+  blocks.forEach((block, bi) => {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return;
+
+    // Tytuł pisma
+    if (/PRZEDSĄDOWE WEZWANIE/i.test(lines[0])) {
+      out.push(`<h1>${esc(lines[0])}</h1>`);
+      lines.slice(1).forEach(l => out.push(`<p class="subtitle">${esc(l)}</p>`));
+      return;
+    }
+
+    const html: string[] = [];
+    lines.forEach((line, li) => {
+      if (bi === 0 && li === 0 && /dnia|\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}/.test(line) && line.length < 60) {
+        html.push(`<p class="date">${esc(line)}</p>`);
+      } else if (/^(I|II|III|IV|V|VI|VII|VIII)\.\s+\S/.test(line) && UPPER.test(line)) {
+        html.push(`<h2>${esc(line)}</h2>`);
+      } else if (/^\d+\.\s+\S/.test(line) && UPPER.test(line) && line.length < 140) {
+        html.push(`<h3>${esc(line)}</h3>`);
+      } else if (/^\d+\.\s+.{3,120}:$/.test(line)) {
+        html.push(`<h3 class="basis">${esc(line)}</h3>`);
+      } else if (/^[-–•]\s+/.test(line)) {
+        html.push(`<p class="li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
+      } else if (/^[.…_]{10,}$/.test(line)) {
+        html.push(`<p class="sign">${esc(line)}</p>`);
+      } else if (/^\(własnoręczny podpis/i.test(line)) {
+        html.push(`<p class="sign small">${esc(line)}</p>`);
+      } else if (/^[\d\s.,]+\s*(PLN|zł)\s*(BRUTTO)?$/i.test(line)) {
+        html.push(`<p class="amount">${esc(line)}</p>`);
+      } else if (/^\(słownie/i.test(line)) {
+        html.push(`<p class="center small">${esc(line)}</p>`);
+      } else if (/^[A-ZĄĆĘŁŃÓŚŹŻ() ]{4,}:$/.test(line)) {
+        html.push(`<p class="party">${esc(line)}</p>`);
+      } else if (line.length > 110) {
+        html.push(`<p class="justify">${labelled(line)}</p>`);
+      } else {
+        html.push(`<p>${labelled(line)}</p>`);
       }
-      if (trimmed.startsWith('I. ') || trimmed.startsWith('II. ') || trimmed.startsWith('III. ') || trimmed.startsWith('IV. ')) {
-        const [title, ...rest] = trimmed.split('\n');
-        return `<h2>${title}</h2><p>${rest.join('<br>')}</p>`;
-      }
-      return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
-    })
-    .join('\n');
+    });
+    out.push(`<div class="blk">${html.join('')}</div>`);
+  });
+
+  return out.join('\n');
 }

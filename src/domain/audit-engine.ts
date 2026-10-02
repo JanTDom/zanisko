@@ -103,7 +103,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
     });
   }
 
-  // 3. Audyt Doboru Części i Ryzyka Utraty Gwarancji (Rekomendacja 16 KNF)
+  // 3. Audyt Doboru Części i Ryzyka Utraty Gwarancji (Rekomendacja 18 KNF)
   let totalSubstitutionLossNet = 0;
   const substitutedParts: string[] = [];
 
@@ -127,7 +127,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       type: 'UNJUSTIFIED_PART_SUBSTITUTION',
       title: 'Nieuprawnione narzucenie zamienników nieoryginalnych (kod PJ/P)',
       legalBasis:
-        'Rekomendacja 16 KNF z dnia 1 listopada 2022 r. oraz art. 361 § 2 k.c.',
+        'Rekomendacja 18 KNF z dnia 1 listopada 2022 r. oraz art. 361 § 2 k.c.',
       description:
         `Ubezpieczyciel jednostronnie zastosował w kosztorysie zamienniki o niepotwierdzonym pochodzeniu i jakości (kategoria PJ/P). ` +
         `Poszkodowany ma prawo żądać przywrócenia pojazdu do stanu sprzed szkody na częściach oryginalnych (kategoria O lub Q), ` +
@@ -144,7 +144,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       type: 'WARRANTY_LOSS_RISK',
       title: 'Ryzyko utraty gwarancji fabrycznej producenta pojazdu',
       legalBasis:
-        'Rekomendacja 16 KNF (pkt 16.3) oraz art. 361 k.c.',
+        'Rekomendacja 18 KNF (pkt 18.1) oraz art. 361 k.c.',
       description:
         `Pojazd poszkodowanego (rocznik ${estimate.header.productionYear}, wiek: ${vehicleAgeYears} lat) znajduje się w okresie ochrony gwarancyjnej producenta (${estimate.header.vehicleMakeModel}). ` +
         `Zastosowanie nieautoryzowanych zamienników dystrybutorskich w miejsce części OEM skutkuje utratą gwarancji na powłokę lakierniczą, perforację blach oraz komponenty współpracujące, za co ubezpieczyciel ponosi bezpośrednią odpowiedzialność odszkodowawczą.`,
@@ -165,7 +165,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       type: 'PAINT_MATERIAL_DISCOUNT',
       title: 'Arbitralne potrącenie na materiałach lakierniczych',
       legalBasis:
-        'Rekomendacje KNF dotyczące rzetelności kosztorysów oraz art. 361 § 2 k.c.',
+        'Rekomendacja 17 KNF (pkt 17.3 — zakaz powoływania się na rabaty warsztatów współpracujących) oraz art. 361 § 2 k.c.',
       description:
         `Ubezpieczyciel zastosował nieuzasadniony rabat handlowy na materiałach lakierniczych w wysokości ${estimate.paintMaterials.discountPercent}%. ` +
         `Poszkodowany likwidujący szkodę nie jest zobowiązany do poszukiwania warsztatu udzielającego hipotetycznych upustów na materiałach bazowych i lakierach.`,
