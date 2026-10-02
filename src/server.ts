@@ -883,6 +883,53 @@ const HTML_PAGE = `<!DOCTYPE html>
       margin-bottom: 8px;
     }
 
+    /* SEKCJA: JAK DZIAŁA ZANIŻANIE I CO ZROBIĆ */
+    .guide { margin: 70px 0 20px; scroll-margin-top: 100px; }
+    .guide-lead { font-size: 17px; color: var(--text-muted); max-width: 820px; margin-top: 10px; }
+    .guide h2 { font-size: 32px; color: #fff; }
+    .guide h3.guide-h { font-size: 22px; color: #fff; margin: 48px 0 6px; }
+    .guide-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; max-width: 820px; }
+    .guide-example { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 12px; padding: 22px 24px; margin-top: 24px; font-size: 15px; color: var(--text-muted); }
+    .guide-example strong { color: #fff; }
+    .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+    .guide-card { background: var(--gradient-card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .guide-card .num { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--accent-crimson); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .guide-card h4 { font-size: 17px; color: #fff; margin: 6px 0 8px; }
+    .guide-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
+    .guide-card .law { font-size: 12.5px; color: var(--accent-emerald); border-top: 1px solid var(--border); padding-top: 10px; margin: 0; }
+    .scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .scenario summary { cursor: pointer; list-style: none; padding: 18px 22px; display: flex; gap: 14px; align-items: center; font-weight: 600; color: #fff; font-size: 16px; }
+    .scenario summary::-webkit-details-marker { display: none; }
+    .scenario summary .tag { flex-shrink: 0; font-family: 'Space Grotesk', sans-serif; font-size: 13px; background: rgba(56,189,248,0.12); color: var(--accent); border: 1px solid var(--border-accent); border-radius: 8px; padding: 3px 10px; }
+    .scenario summary::after { content: '+'; margin-left: auto; color: var(--text-dim); font-size: 22px; font-weight: 400; }
+    .scenario[open] summary::after { content: '–'; }
+    .scenario-body { padding: 0 22px 20px 22px; font-size: 15px; color: var(--text-muted); }
+    .scenario-body p { margin-bottom: 10px; }
+    .scenario-body ul { margin: 0 0 10px 20px; }
+    .scenario-body li { margin-bottom: 6px; }
+    .scenario-body strong { color: #fff; }
+    .scenario-body .verdict { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; padding: 12px 14px; color: #d1fae5; margin-top: 8px; }
+    .scenario-body .warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 12px 14px; color: #fde68a; margin-top: 8px; }
+    .steps { list-style: none; counter-reset: s; margin: 0; padding: 0; }
+    .steps > li { counter-increment: s; position: relative; padding: 0 0 26px 62px; border-left: 2px solid var(--border); margin-left: 20px; }
+    .steps > li:last-child { border-left-color: transparent; }
+    .steps > li::before { content: counter(s); position: absolute; left: -21px; top: -4px; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid var(--border-accent); color: var(--accent); font-family: 'Space Grotesk', sans-serif; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .steps h4 { font-size: 17px; color: #fff; margin-bottom: 6px; }
+    .steps p, .steps li li { font-size: 14.5px; color: var(--text-muted); }
+    .steps p { margin-bottom: 8px; }
+    .steps ul { margin: 4px 0 8px 18px; }
+    .fee-table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 13.5px; max-width: 460px; }
+    .fee-table td { border-bottom: 1px solid var(--border); padding: 6px 8px; color: var(--text-muted); }
+    .fee-table td:last-child { text-align: right; color: #fff; font-weight: 600; }
+    .dont-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .dont-list div { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.25); border-radius: 12px; padding: 16px; font-size: 14px; color: var(--text-muted); }
+    .dont-list strong { display: block; color: #fecdd3; margin-bottom: 4px; }
+    .guide-sources { font-size: 12.5px; color: var(--text-dim); margin-top: 40px; border-top: 1px solid var(--border); padding-top: 18px; }
+    .guide-sources a { color: var(--accent); text-decoration: none; }
+    .hero-guide-link { display: inline-block; margin-top: 18px; color: var(--accent); text-decoration: none; font-weight: 600; font-size: 15px; }
+    .hero-guide-link:hover { text-decoration: underline; }
+    @media (max-width: 640px) { .guide h2 { font-size: 26px; } .steps > li { padding-left: 46px; } .input-tabs { flex-wrap: wrap; } }
+
     /* FOOTER */
     footer {
       margin-top: 80px;
@@ -950,6 +997,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         <p class="hero-lead">
           Automatyczny audyt kosztorysów Audatex, Eurotax i DAT. Wykrywamy bezprawne potrącenia amortyzacyjne (uchwała Sądu Najwyższego III CZP 80/11), zaniżone stawki roboczogodziny oraz zamienniki dystrybutorskie naruszające gwarancję pojazdu.
         </p>
+        <a href="#jak-to-dziala" class="hero-guide-link">Jak działa zaniżanie odszkodowania i co możesz zrobić →</a>
         <div class="hero-stats-row">
           <div class="stat-box">
             <div class="stat-val">3 500+ zł</div>
@@ -1402,6 +1450,181 @@ const HTML_PAGE = `<!DOCTYPE html>
             Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). zanisko.pl weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.
           </p>
         </div>
+      </div>
+    </section>
+
+    <!-- SEKCJA: ZANIŻANIE ODSZKODOWANIA — WYJAŚNIENIE I SCENARIUSZE -->
+    <section class="guide" id="jak-to-dziala">
+      <div class="section-header">
+        <h2>Na czym polega zaniżanie odszkodowania z OC — i co możesz z tym zrobić</h2>
+        <p class="guide-lead">
+          Wyjaśniamy bez żargonu: skąd bierze się zbyt niska wypłata, jak sprawdzić, czy dotyczy Ciebie, i jaką drogę wybrać w Twojej konkretnej sytuacji.
+        </p>
+      </div>
+
+      <h3 class="guide-h">1. Jak to działa — w trzech zdaniach</h3>
+      <p class="guide-sub">
+        Gdy ktoś uszkodzi Twoje auto, jego ubezpieczyciel OC musi pokryć koszt przywrócenia samochodu do stanu sprzed wypadku. Najczęściej nie płaci za rzeczywistą naprawę, tylko wylicza ją w programie (Audatex, Eurotax, DAT) — to jest <strong>kosztorys</strong>. W tym kosztorysie ubezpieczyciel sam ustala ceny, a wiele z nich można ustawić niżej, niż wynosi realny koszt naprawy w warsztacie w Twojej okolicy.
+      </p>
+      <div class="guide-example">
+        <strong>Przykład liczbowy (dane przykładowe):</strong> kosztorys zakłada 18 roboczogodzin po 70 zł netto. Warsztaty w Twoim mieście biorą 175 zł netto za godzinę. Różnica to 105 zł × 18 h = <strong>1 890 zł netto</strong>, których w wypłacie brakuje, choć zakres naprawy jest taki sam. Do tego dochodzą zwykle potrącenia na częściach i materiałach.
+      </div>
+
+      <h3 class="guide-h">2. Cztery najczęstsze sposoby zaniżania</h3>
+      <p class="guide-sub">Każdy z nich widać w kosztorysie, jeśli wiesz, gdzie patrzeć. Nasz audyt sprawdza je automatycznie.</p>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <div class="num">Nożyczki nr 1</div>
+          <h4>Zaniżona stawka za roboczogodzinę</h4>
+          <p>Ubezpieczyciel wpisuje stawkę niższą niż ta, którą faktycznie biorą warsztaty w Twojej okolicy. Każda godzina pracy blacharza i lakiernika jest przez to „tańsza” tylko na papierze.</p>
+          <p class="law">Rekomendacja 15 KNF (pkt 15.3): stawka powinna wynikać z cen warsztatów działających na rynku lokalnym.</p>
+        </div>
+        <div class="guide-card">
+          <div class="num">Nożyczki nr 2</div>
+          <h4>Potrącenie „amortyzacji” z części</h4>
+          <p>Nowy zderzak kosztuje 1 850 zł, ale ubezpieczyciel odejmuje np. 40%, bo „auto ma już kilka lat”. Tymczasem do naprawy trzeba kupić część nową — za pełną cenę.</p>
+          <p class="law">Uchwała 7 sędziów SN z 12.04.2012, III CZP 80/11 i Rekomendacja 17 KNF (pkt 17.2): co do zasady bez amortyzacji. Potrącenie jest możliwe tylko, gdy ubezpieczyciel wykaże, że naprawa podniosła wartość całego auta.</p>
+        </div>
+        <div class="guide-card">
+          <div class="num">Nożyczki nr 3</div>
+          <h4>Najtańsze zamienniki zamiast oryginałów</h4>
+          <p>W kosztorysie część oryginalna zostaje zastąpiona tańszym zamiennikiem — nawet jeśli w aucie były oryginały albo samochód jest na gwarancji producenta.</p>
+          <p class="law">Rekomendacja 18 KNF: wartość części ma zapewnić przywrócenie stanu sprzed szkody; pkt 18.1: przy aucie na gwarancji, która wymaga części oryginalnych — tylko części O.</p>
+        </div>
+        <div class="guide-card">
+          <div class="num">Nożyczki nr 4</div>
+          <h4>Rabaty, których nikt Ci nie da</h4>
+          <p>Od ceny części i lakieru odejmowany jest „rabat”, który obowiązuje wyłącznie w warsztatach współpracujących z ubezpieczycielem — nie w warsztacie, który wybierzesz Ty.</p>
+          <p class="law">Rekomendacja 17 KNF (pkt 17.3): ubezpieczyciel nie może powoływać się na rabaty obowiązujące w swoich warsztatach i punktach sprzedaży.</p>
+        </div>
+      </div>
+
+      <h3 class="guide-h">3. Najpierw ustal, w jakiej jesteś sytuacji</h3>
+      <p class="guide-sub">
+        To najważniejszy krok. Od tego, co stało się z autem po wypadku, zależy, <strong>jak liczy się odszkodowanie</strong>. Kliknij swój przypadek.
+      </p>
+
+      <details class="scenario" open>
+        <summary><span class="tag">A</span> Nie naprawiłem auta i nadal je mam</summary>
+        <div class="scenario-body">
+          <p>To sytuacja, w której kosztorys ma największe znaczenie. Należy Ci się kwota odpowiadająca <strong>realnemu kosztowi naprawy</strong> — nawet jeśli auta nie naprawisz albo naprawisz je taniej we własnym zakresie.</p>
+          <ul>
+            <li>Sprawdź kosztorys ubezpieczyciela w naszym audycie — zobaczysz każdą zaniżoną pozycję i jej wartość.</li>
+            <li>Wyślij reklamację z żądaniem dopłaty (gotowe pismo generujemy po audycie).</li>
+            <li><strong>Nie sprzedawaj i nie naprawiaj auta, zanim sprawa się nie wyjaśni</strong> — albo zrób wcześniej pełną dokumentację zdjęciową uszkodzeń i zachowaj kosztorys. Po sprzedaży lub naprawie zmienia się sposób liczenia (patrz B i C).</li>
+          </ul>
+          <div class="verdict">Twoja droga: audyt kosztorysu → reklamacja → (jeśli trzeba) Rzecznik Finansowy → sąd. Szczegóły w punkcie 4.</div>
+        </div>
+      </details>
+
+      <details class="scenario">
+        <summary><span class="tag">B</span> Już naprawiłem auto</summary>
+        <div class="scenario-body">
+          <p>Sąd Najwyższy w uchwale 7 sędziów z 11.09.2024 (III CZP 65/23) uznał, że po naprawie <strong>nie liczy się już hipotetycznego kosztorysu</strong>. Odszkodowanie odpowiada temu, ile naprawa faktycznie i zasadnie kosztowała.</p>
+          <ul>
+            <li>Zbierz faktury i rachunki za naprawę (części, robocizna, lakierowanie).</li>
+            <li>Jeśli faktury są wyższe niż wypłata — żądaj dopłaty różnicy na podstawie faktur.</li>
+            <li>Jeśli naprawa była tańsza niż wypłata — trudno będzie dochodzić więcej.</li>
+          </ul>
+          <div class="warn">Uwaga: w 2025 r. trzyosobowy skład SN (uchwała z 24.09.2025, III CZP 32/24) dopuścił liczenie według kosztorysu także po naprawie. Orzecznictwo jest więc rozbieżne, a uchwała 7 sędziów ma większą wagę. Ta sama uchwała z 2025 r. wskazała, że jeśli zapłaciłeś za naprawę bez VAT, odszkodowanie nie obejmuje VAT.</div>
+        </div>
+      </details>
+
+      <details class="scenario">
+        <summary><span class="tag">C</span> Sprzedałem auto bez naprawy</summary>
+        <div class="scenario-body">
+          <p>Według tej samej uchwały SN III CZP 65/23 po sprzedaży nienaprawionego auta odszkodowanie liczy się zwykle jako <strong>różnicę</strong> między wartością auta przed wypadkiem a ceną, za którą je sprzedałeś (tzw. metoda dyferencyjna).</p>
+          <ul>
+            <li>Przygotuj umowę sprzedaży (cena) i dowody wartości auta przed szkodą (np. wycena, ogłoszenia podobnych aut).</li>
+            <li>Kosztorys ubezpieczyciela ma tu mniejsze znaczenie — liczy się, ile realnie straciłeś na wartości auta.</li>
+          </ul>
+          <div class="verdict">Nasz audyt kosztorysu pomoże pokazać skalę uszkodzeń, ale głównym argumentem będzie różnica w wartości auta.</div>
+        </div>
+      </details>
+
+      <details class="scenario">
+        <summary><span class="tag">D</span> Prowadzę firmę i odliczam VAT</summary>
+        <div class="scenario-body">
+          <p>Jeśli auto jest w firmie i możesz odliczyć VAT od naprawy, odszkodowanie wypłacane jest co do zasady w kwotach <strong>netto</strong> — VAT odzyskujesz w rozliczeniu z urzędem skarbowym, a nie od ubezpieczyciela.</p>
+          <ul>
+            <li>Wszystkie zaniżenia (stawka, amortyzacja, części, rabaty) dotyczą Cię tak samo — tylko liczone są od kwot netto.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="scenario">
+        <summary><span class="tag">E</span> Ubezpieczyciel uznał szkodę całkowitą</summary>
+        <div class="scenario-body">
+          <p>Szkoda całkowita to sytuacja, gdy naprawa jest nieopłacalna. Wtedy ubezpieczyciel wypłaca <strong>wartość auta sprzed wypadku minus wartość wraku</strong>. Spór dotyczy zwykle zaniżonej wartości auta albo zawyżonej wartości wraku — to inne zagadnienie niż kosztorys naprawy.</p>
+          <div class="warn">Nasz audyt sprawdza kosztorysy szkód częściowych (naprawy). Przy szkodzie całkowitej warto sprawdzić, czy próg opłacalności naprawy nie został wyliczony z zaniżonej stawki — wtedy kosztorys naprawy też ma znaczenie.</div>
+        </div>
+      </details>
+
+      <h3 class="guide-h">4. Co robić krok po kroku</h3>
+      <p class="guide-sub">Ścieżka dla najczęstszej sytuacji: wypłata przyszła, ale jest za niska.</p>
+      <ol class="steps">
+        <li>
+          <h4>Weź wypłatę — to nie zamyka sprawy</h4>
+          <p>Przyjęcie przelewu nie oznacza zgody na jego wysokość. Możesz dochodzić dopłaty. <strong>Nie podpisuj jednak ugody ani oświadczenia, że nie masz dalszych roszczeń</strong> — to może zamknąć drogę do dopłaty.</p>
+        </li>
+        <li>
+          <h4>Zdobądź kosztorys na piśmie</h4>
+          <p>Poproś ubezpieczyciela o pełną kalkulację naprawy (PDF z Audatex / Eurotax / DAT). Ubezpieczyciel powinien ją przekazać (Rekomendacja 14 KNF). Bez kosztorysu nie da się wskazać, które pozycje są zaniżone.</p>
+        </li>
+        <li>
+          <h4>Sprawdź kosztorys i wyślij reklamację</h4>
+          <p>Wgraj kosztorys do audytu powyżej. Dostaniesz listę zaniżeń z kwotami i gotowe pismo reklamacyjne. Wyślij je listem poleconym lub przez formularz reklamacyjny ubezpieczyciela i <strong>zachowaj dowód wysłania</strong>.</p>
+          <p>Ubezpieczyciel ma <strong>30 dni</strong> na odpowiedź, a w szczególnie skomplikowanych sprawach — po poinformowaniu Cię o przyczynie — do 60 dni (ustawa o rozpatrywaniu reklamacji, art. 5 i 6). Jeśli nie odpowie w terminie, ustawa (art. 8) każe uznać reklamację za rozpatrzoną zgodnie z Twoją wolą. W praktyce ubezpieczyciele i sądy różnie oceniają skutki tego przepisu — traktuj go jako mocny argument, nie automatyczną wygraną.</p>
+        </li>
+        <li>
+          <h4>Oceń odpowiedź</h4>
+          <ul>
+            <li><strong>Dopłacili całość</strong> — sprawa zamknięta.</li>
+            <li><strong>Dopłacili część</strong> — możesz przyjąć dopłatę i dochodzić reszty dalej.</li>
+            <li><strong>Odmówili albo milczą</strong> — przejdź do kroku 5.</li>
+          </ul>
+        </li>
+        <li>
+          <h4>Rzecznik Finansowy</h4>
+          <p>Po nieuwzględnionej reklamacji możesz złożyć wniosek do Rzecznika Finansowego o <strong>postępowanie interwencyjne</strong> — Rzecznik zwraca się do ubezpieczyciela o ponowne przeanalizowanie sprawy. Jest też <strong>postępowanie polubowne</strong> (próba ugody z udziałem Rzecznika). Szczegóły i formularze: <a href="https://rf.gov.pl" target="_blank" rel="noopener" style="color: var(--accent);">rf.gov.pl</a>.</p>
+        </li>
+        <li>
+          <h4>Sąd</h4>
+          <p>Jeśli nic nie pomoże, pozywasz ubezpieczyciela o dopłatę. Wysokość szkody ustala zwykle biegły. Przegrywający co do zasady zwraca koszty procesu. Opłata od pozwu przy kwotach do 20 000 zł jest stała:</p>
+          <table class="fee-table">
+            <tr><td>do 500 zł</td><td>30 zł</td></tr>
+            <tr><td>500 – 1 500 zł</td><td>100 zł</td></tr>
+            <tr><td>1 500 – 4 000 zł</td><td>200 zł</td></tr>
+            <tr><td>4 000 – 7 500 zł</td><td>400 zł</td></tr>
+            <tr><td>7 500 – 10 000 zł</td><td>500 zł</td></tr>
+            <tr><td>10 000 – 15 000 zł</td><td>750 zł</td></tr>
+            <tr><td>15 000 – 20 000 zł</td><td>1 000 zł</td></tr>
+          </table>
+          <p>Powyżej 20 000 zł opłata wynosi 5% żądanej kwoty (art. 13 ustawy o kosztach sądowych w sprawach cywilnych).</p>
+          <p>Alternatywa: sprzedaż roszczenia firmie odszkodowawczej (cesja). Dostajesz pieniądze od razu, ale zwykle tylko część tego, co mógłbyś odzyskać.</p>
+        </li>
+      </ol>
+
+      <div class="guide-example" style="border-left-color: var(--accent-amber);">
+        <strong>Ile masz czasu?</strong> Roszczenie o naprawienie szkody przedawnia się co do zasady po <strong>3 latach</strong> od dnia, w którym dowiedziałeś się o szkodzie i o tym, kto ma ją naprawić (art. 442<sup>1</sup> § 1 k.c.). Zgłoszenie szkody ubezpieczycielowi przerywa bieg przedawnienia — liczy się on od nowa od dnia, w którym otrzymasz na piśmie decyzję ubezpieczyciela (art. 819 § 4 k.c.). Zachowaj daty zgłoszenia i doręczenia decyzji.
+      </div>
+
+      <h3 class="guide-h">5. Czego nie robić</h3>
+      <div class="dont-list">
+        <div><strong>Nie podpisuj ugody „w ciemno”</strong>Oświadczenie o zrzeczeniu się dalszych roszczeń może zamknąć drogę do dopłaty.</div>
+        <div><strong>Nie wyrzucaj dokumentów</strong>Kosztorys, decyzja, zdjęcia uszkodzeń, faktury i potwierdzenia wysyłki to Twoje dowody.</div>
+        <div><strong>Nie sprzedawaj auta pochopnie</strong>Sprzedaż przed rozliczeniem zmienia sposób liczenia odszkodowania (scenariusz C).</div>
+        <div><strong>Nie czekaj latami</strong>Pilnuj terminu przedawnienia i terminów odpowiedzi na reklamację.</div>
+      </div>
+
+      <div class="guide-sources">
+        Informacje mają charakter ogólny i nie zastępują porady prawnej w konkretnej sprawie. Stan na październik 2026 r. Źródła:
+        <a href="https://www.sn.pl/sites/orzecznictwo/Orzeczenia3/III%20CZP%2065-23.pdf" target="_blank" rel="noopener">uchwała SN III CZP 65/23</a>,
+        <a href="http://www.sn.pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">uchwała SN III CZP 80/11</a>,
+        <a href="https://www.knf.gov.pl/knf/pl/komponenty/img/Rekomendacje_dot_likwidacji_szkod_z_ubezpieczen_komunikacyjnych_78983.pdf" target="_blank" rel="noopener">Rekomendacje KNF dot. likwidacji szkód komunikacyjnych (od 1.11.2022)</a>,
+        <a href="https://rf.gov.pl/komunikat-rzecznika-finansowego-w-sprawie-uchwaly-sadu-najwyzszego-z-dnia-11-wrzesnia-2024-r-sygn-akt-iii-czp-65-23-aktualizacja/" target="_blank" rel="noopener">komunikat Rzecznika Finansowego</a>,
+        <a href="https://rf.gov.pl/wp-content/uploads/2024/04/Edu-info-I-Roboczogodziny.pdf" target="_blank" rel="noopener">RF: roboczogodziny</a>,
+        <a href="https://rf.gov.pl/wp-content/uploads/2022/06/Edu-info-III-Amortyzacja-wartosci-czesci.pdf" target="_blank" rel="noopener">RF: amortyzacja części</a>.
       </div>
     </section>
 
