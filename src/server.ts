@@ -2400,6 +2400,8 @@ export function createServer(port = 3000) {
   return server;
 }
 
+export default handleRequest;
+
 // Uruchomienie serwera jeśli wywołany bezpośrednio
 if (process.argv[1]?.endsWith('server.js') || process.argv[1]?.endsWith('server.ts')) {
   const PORT = Number(process.env.PORT) || 3000;
@@ -2408,3 +2410,4 @@ if (process.argv[1]?.endsWith('server.js') || process.argv[1]?.endsWith('server.
     console.log(`ClaimCheck server running on http://localhost:${PORT}`);
   });
 }
+

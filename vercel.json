@@ -3,6 +3,9 @@
   "functions": {
     "api/index.ts": {
       "includeFiles": "assets/**"
+    },
+    "src/server.ts": {
+      "includeFiles": "assets/**"
     }
   },
   "rewrites": [
