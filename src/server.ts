@@ -2041,9 +2041,8 @@ const HTML_PAGE = `<!DOCTYPE html>
 </html>
 `;
 
-export function createServer(port = 3000) {
-  const server = http.createServer((req, res) => {
-    const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+export function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  const url = new URL(req.url ?? '/', `http://${req.headers.host || 'localhost'}`);
 
     // GET / - Główna aplikacja
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/') {
@@ -2393,8 +2392,10 @@ export function createServer(port = 3000) {
 
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
-  });
+}
 
+export function createServer(port = 3000) {
+  const server = http.createServer(handleRequest);
   return server;
 }
 
