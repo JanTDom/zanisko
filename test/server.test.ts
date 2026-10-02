@@ -20,6 +20,9 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
   });
 
   afterAll(async () => {
+    if (typeof (server as any).closeAllConnections === 'function') {
+      (server as any).closeAllConnections();
+    }
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
     });
@@ -153,7 +156,7 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(data.omittedDamages).toBeDefined();
     expect(data.omittedDamages.length).toBeGreaterThan(0);
     expect(data.totalOmittedValuePln).toBeGreaterThan(0);
-  });
+  }, 25000);
 
   it('POST /api/gemini/enhance-letter powinien zwrócić spersonalizowane wezwanie', async () => {
     const sampleTextRes = await fetch(`${baseUrl}/api/sample`);
@@ -182,5 +185,5 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(data.letter).toContain('PRZEDSĄDOWE WEZWANIE DO ZAPŁATY');
     expect(data.letter).toContain('Piotr Zieliński');
     expect(data.letter).not.toContain('*');
-  });
+  }, 25000);
 });

@@ -10,6 +10,17 @@ import { getRegionalBenchmark, REGIONAL_BENCHMARKS } from './domain/regional-rat
 import { extractTextFromImage } from './parser/ocr-service.js';
 import { GeminiService } from './services/gemini-service.js';
 
+if (typeof (process as unknown as { loadEnvFile?: (path?: string) => void }).loadEnvFile === 'function') {
+  const envPath = path.resolve(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    try {
+      (process as unknown as { loadEnvFile: (path: string) => void }).loadEnvFile(envPath);
+    } catch {
+      // Opcjonalny plik .env
+    }
+  }
+}
+
 const parser = new CostEstimateParser();
 const geminiService = new GeminiService();
 
@@ -1004,7 +1015,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         </div>
         <div class="param-field">
           <label>Klucz Gemini API Key (opcjonalny)</label>
-          <input type="password" id="geminiApiKeyInput" placeholder="Domyślnie: aktywny silnik hybrydowy">
+          <input type="password" id="geminiApiKeyInput" placeholder="${process.env.GEMINI_API_KEY ? 'Klucz serwera aktywny (Gemini 2.5 Flash)' : 'Domyślnie: aktywny silnik hybrydowy'}">
         </div>
       </div>
 
