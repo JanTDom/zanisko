@@ -153,26 +153,41 @@ export class CostEstimateParser {
     for (const line of lines) {
       // Wykrywanie amortyzacji (np. -30%, -40%, -50% lub "urealnienie 40%")
       const depMatch = line.match(/(?:-|urealnienie\s*|amortyzacja\s*)(\d{1,2})\s*%/i);
-      const isPartLine = /(?:część|zderzak|błotnik|reflektor|drzwi|maska|pokrywa|chłodnica|wzmocnienie|wahacz|lusterko|szyba|pas|lampa)/i.test(line);
+      const isPartLine = /(?:część|czesc|zderzak|błotnik|blotnik|reflektor|drzwi|maska|pokrywa|chłodnica|chlodnica|wzmocnienie|wahacz|lusterko|szyba|pas|lampa)/i.test(line);
 
       if (isPartLine) {
         const qualityMatch = line.match(/\b(O|Q|PC|PJ|P)\b/);
         const qualityCode = (qualityMatch ? qualityMatch[1] : 'O') as 'O' | 'Q' | 'PC' | 'PJ' | 'P';
 
-        // Kwota
-        const amountMatch = line.match(/(\d{2,5}(?:[.,]\d{2})?)\s*(?:pln|zł)?/i);
-        const basePrice = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 1000.0;
+        // Kwota: szukamy kwoty bezpośrednio za kodem jakości lub kwoty z walutą zł/PLN
+        let basePrice = 1000.0;
+        const priceAfterQuality = line.match(/\b(?:O|Q|PC|PJ|P)\b\s*(\d+(?:[.,]\d{2})?)/);
+        const priceWithCurrency = line.match(/(\d+(?:[.,]\d{2}))\s*(?:pln|zł|zl)\b/i);
+
+        if (priceAfterQuality) {
+          basePrice = parseFloat(priceAfterQuality[1].replace(',', '.'));
+        } else if (priceWithCurrency) {
+          basePrice = parseFloat(priceWithCurrency[1].replace(',', '.'));
+        }
+
+        // Numer katalogowy (np. 52119-02B50 lub 3G0807217)
+        const catMatch = line.match(/\b([0-9A-Z]{5,}(?:-[0-9A-Z]+)?)\b/);
+        const partNumber = catMatch ? catMatch[1] : 'KAT-' + Math.floor(100000 + Math.random() * 900000);
+
+        // Nazwa części przed numerem katalogowym / kodem jakości
+        const rawName = line.replace(/^[-\s*]+/, '').split(/\b(?:[0-9A-Z]{5,}|O|Q|PC|PJ|P)\b/)[0].trim();
+        const partName = rawName.length > 3 ? rawName : 'Komponent karoseryjny';
 
         const depreciation = depMatch ? parseFloat(depMatch[1]) : 0;
 
         parts.push({
-          partName: line.slice(0, 40).replace(/[0-9\-_.,%]/g, '').trim() || 'Część karoseryjna',
-          partNumber: 'KAT-' + Math.floor(100000 + Math.random() * 900000),
+          partName,
+          partNumber,
           qualityCode,
           basePriceNet: basePrice,
           depreciationPercent: depreciation,
           discountPercent: 0,
-          originalPartEquivalentPriceNet: qualityCode === 'PJ' || qualityCode === 'P' ? basePrice * 1.8 : undefined,
+          originalPartEquivalentPriceNet: qualityCode === 'PJ' || qualityCode === 'P' ? basePrice * 2.4 : undefined,
         });
       }
     }

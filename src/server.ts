@@ -1,4 +1,7 @@
 import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { PDFParse } from 'pdf-parse';
 import { CostEstimateParser } from './parser/pdf-parser.js';
 import { runAudit } from './domain/audit-engine.js';
 import { generateDemandLetter } from './domain/demand-letter.js';
@@ -425,10 +428,13 @@ const HTML_PAGE = `<!DOCTYPE html>
       </div>
 
       <div class="sample-bar">
-        <span>Nie masz pliku pod ręką?</span>
+        <span>Przetestuj z przykładowym plikiem:</span>
         <button type="button" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="loadSample()">
-          Załaduj przykładowy kosztorys Audatex PZU
+          Wczytaj przykładowy kosztorys (tekst)
         </button>
+        <a href="/przykladowy_kosztorys_pzu.pdf" download="przykladowy_kosztorys_pzu.pdf" class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">
+          Pobierz plik PDF do testów (2.6 KB)
+        </a>
       </div>
 
       <div id="manual-text-wrap" style="margin-top: 24px;">
@@ -656,6 +662,71 @@ const HTML_PAGE = `<!DOCTYPE html>
       printWindow.document.close();
       printWindow.print();
     }
+
+    // Obsługa przeciągania i wgrywania plików PDF
+    const fileInput = document.getElementById('file-input');
+    const dropzone = document.getElementById('dropzone');
+
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      const voivodeship = document.getElementById('voivodeship').value;
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const arrayBuffer = e.target.result;
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+
+          fetch('/api/upload-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pdfBase64: base64, voivodeship })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) {
+              alert('Błąd odczytu pliku PDF: ' + data.error);
+              return;
+            }
+            currentAuditReport = data.auditReport;
+            renderResults(data.auditReport);
+          })
+          .catch(err => alert('Błąd sieciowy: ' + err.message));
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('raw-text').value = e.target.result;
+          runAnalysis();
+        };
+        reader.readAsText(file);
+      }
+    }
   </script>
 </body>
 </html>
@@ -672,7 +743,22 @@ export function createServer(port = 3000) {
       return;
     }
 
-    // GET /api/sample - Przykładowy kosztorys
+    // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF
+    if (req.method === 'GET' && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
+      const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
+      if (fs.existsSync(pdfPath)) {
+        const stat = fs.statSync(pdfPath);
+        res.writeHead(200, {
+          'Content-Type': 'application/pdf',
+          'Content-Length': stat.size,
+          'Content-Disposition': 'attachment; filename="przykladowy_kosztorys_pzu.pdf"',
+        });
+        fs.createReadStream(pdfPath).pipe(res);
+        return;
+      }
+    }
+
+    // GET /api/sample - Przykładowy kosztorys (tekst)
     if (req.method === 'GET' && url.pathname === '/api/sample') {
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end(SAMPLE_ESTIMATE_TEXT);
@@ -683,6 +769,33 @@ export function createServer(port = 3000) {
     if (req.method === 'GET' && url.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
+      return;
+    }
+
+    // POST /api/upload-pdf - Odczyt i audyt wgranego pliku PDF
+    if (req.method === 'POST' && url.pathname === '/api/upload-pdf') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const pdfBuffer = Buffer.from(payload.pdfBase64, 'base64');
+          const voivodeship = (payload.voivodeship ?? 'mazowieckie') as Voivodeship;
+
+          const pdfInstance = new PDFParse({ data: new Uint8Array(pdfBuffer) });
+          const textResult = await pdfInstance.getText();
+
+          const parsed = parser.parseText(textResult.text, voivodeship);
+          const auditReport = runAudit(parsed.estimate);
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ auditReport, extractedText: textResult.text }));
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd przetwarzania pliku PDF';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
       return;
     }
 

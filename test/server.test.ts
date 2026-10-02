@@ -96,4 +96,33 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(letterData.letter).toContain('99 1020 0000 1111 2222 3333 4444');
     expect(letterData.letter).toContain('art. 5 ust. 1');
   });
+
+  it('GET /przykladowy_kosztorys_pzu.pdf powinien serwować binarny plik PDF', async () => {
+    const res = await fetch(`${baseUrl}/przykladowy_kosztorys_pzu.pdf`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('application/pdf');
+    const buffer = await res.arrayBuffer();
+    expect(buffer.byteLength).toBeGreaterThan(1500);
+  });
+
+  it('POST /api/upload-pdf powinien sparsować wgrany plik PDF w base64 i zwrócić audyt', async () => {
+    const pdfRes = await fetch(`${baseUrl}/przykladowy_kosztorys_pzu.pdf`);
+    const arrayBuffer = await pdfRes.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+    const uploadRes = await fetch(`${baseUrl}/api/upload-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pdfBase64: base64,
+        voivodeship: 'malopolskie',
+      }),
+    });
+
+    expect(uploadRes.status).toBe(200);
+    const data = await uploadRes.json();
+    expect(data.auditReport).toBeDefined();
+    expect(data.auditReport.header.claimNumber).toBe('PL/PZU/2026/09/99120');
+    expect(data.auditReport.summary.totalLossGross).toBeGreaterThan(1500);
+  });
 });
