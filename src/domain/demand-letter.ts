@@ -1,4 +1,5 @@
 import { AuditReport } from './types.js';
+import { fixPolishTypography, fixPolishTypographyInHtml } from './typography.js';
 
 export interface DemandLetterOptions {
   claimantName: string;
@@ -45,7 +46,7 @@ ${idx + 1}. ${v.title.toUpperCase()}
 `;
   });
 
-  return `${currentDate}
+  const letter = `${currentDate}
 
 WZYWAJĄCY (POSZKODOWANY):
 ${options.claimantName}
@@ -77,7 +78,7 @@ ${s.totalLossGross.toFixed(2)} PLN BRUTTO
 
 Kwotę powyższą należy uiścić w nieprzekraczalnym terminie 14 dni od dnia doręczenia niniejszego wezwania na rachunek bankowy poszkodowanego:
 Numer rachunku: ${options.bankAccountNumber}
-Tytuł przelewu: Dopłata do odszkodowania - szkoda ${h.claimNumber}
+Tytuł przelewu: Dopłata do odszkodowania – szkoda ${h.claimNumber}
 
 Jednocześnie wskazuję, że dotychczas wypłacona kwota w wysokości ${s.undisputedAmountGross.toFixed(2)} PLN brutto (${s.undisputedAmountNet.toFixed(2)} PLN netto) została przyjęta wyłącznie jako kwota bezsporna w rozumieniu art. 817 § 2 k.c. i nie zaspokaja roszczenia restytucyjnego wynikającego z art. 361 § 2 k.c. i art. 363 § 1 k.c. Pełna, rzetelna wartość naprawy wynosi ${s.fairAmountGross.toFixed(2)} PLN brutto (${s.fairAmountNet.toFixed(2)} PLN netto).
 
@@ -123,14 +124,13 @@ Załączniki:
 1. Załącznik nr 1: Kalkulacja korygująca i audyt różnicowy kosztorysu (zanisko.pl).
 2. Załącznik nr 2: Wyciąg ze stawek rynkowych roboczogodziny Polskiej Izby Motoryzacji (PIM 2026).
 3. Załącznik nr 3: Zestawienie orzecznictwa Sądu Najwyższego RP (uchwała SN III CZP 80/11) oraz Rekomendacji KNF.
-4. Załącznik nr 4: Kopia kalkulacji ubezpieczyciela będącej przedmiotem wezwania.
 `;
+  return letter.replace(/—/g, '–');
 }
 
 /**
  * Konwertuje tekst wezwania na HTML do eksportu DOC.
- * Każda linia tekstu staje się osobnym akapitem — nigdy nie łączymy linii znacznikiem <br>
- * wewnątrz akapitu wyjustowanego, bo Word rozciąga wtedy każdą linię na całą szerokość strony.
+ * Każda linia tekstu staje się osobnym akapitem z eleganckimi wcięciami list i akapitów.
  */
 export function demandLetterToHtml(text: string): string {
   const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -147,26 +147,35 @@ export function demandLetterToHtml(text: string): string {
   const out: string[] = [];
 
   blocks.forEach((block, bi) => {
-    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-    if (!lines.length) return;
+    const rawLines = block.split('\n').filter(l => l.trim().length > 0);
+    if (!rawLines.length) return;
 
     // Tytuł pisma
-    if (/PRZEDSĄDOWE WEZWANIE/i.test(lines[0])) {
-      out.push(`<h1>${esc(lines[0])}</h1>`);
-      lines.slice(1).forEach(l => out.push(`<p class="subtitle">${esc(l)}</p>`));
+    if (/PRZEDSĄDOWE WEZWANIE/i.test(rawLines[0].trim())) {
+      out.push(`<h1>${esc(rawLines[0].trim())}</h1>`);
+      rawLines.slice(1).forEach(l => out.push(`<p class="subtitle">${esc(l.trim())}</p>`));
       return;
     }
 
     const html: string[] = [];
-    lines.forEach((line, li) => {
+    rawLines.forEach((rawLine, li) => {
+      const line = rawLine.trim();
+      const isIndented = /^\s{2,}/.test(rawLine);
+
       if (bi === 0 && li === 0 && /dnia|\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}/.test(line) && line.length < 60) {
         html.push(`<p class="date">${esc(line)}</p>`);
       } else if (/^(I|II|III|IV|V|VI|VII|VIII)\.\s+\S/.test(line) && UPPER.test(line)) {
         html.push(`<h2>${esc(line)}</h2>`);
+      } else if (/^\d+\.\s+[A-ZĄĆĘŁŃÓŚŹŻ( ]+$/.test(line)) {
+        html.push(`<h3 class="num-item">${esc(line)}</h3>`);
       } else if (/^\d+\.\s+\S/.test(line) && UPPER.test(line) && line.length < 140) {
         html.push(`<h3>${esc(line)}</h3>`);
       } else if (/^\d+\.\s+.{3,120}:$/.test(line)) {
         html.push(`<h3 class="basis">${esc(line)}</h3>`);
+      } else if (isIndented && /^[-–•]\s+/.test(line)) {
+        html.push(`<p class="sub-li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
+      } else if (isIndented && LABEL.test(line)) {
+        html.push(`<p class="item-prop">${labelled(line)}</p>`);
       } else if (/^[-–•]\s+/.test(line)) {
         html.push(`<p class="li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
       } else if (/^[.…_]{10,}$/.test(line)) {
@@ -188,5 +197,5 @@ export function demandLetterToHtml(text: string): string {
     out.push(`<div class="blk">${html.join('')}</div>`);
   });
 
-  return out.join('\n');
+  return fixPolishTypographyInHtml(out.join('\n'));
 }

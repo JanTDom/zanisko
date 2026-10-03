@@ -187,12 +187,52 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     expect(data.letter).not.toContain('*');
   }, 45000);
 
-  it('GET /favicon.ico powinien serwować plik ikony', async () => {
-    const res = await fetch(`${baseUrl}/favicon.ico`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('image/x-icon');
-    const buffer = await res.arrayBuffer();
-    expect(buffer.byteLength).toBeGreaterThan(100);
+  it('GET /favicon.ico, /favicon.svg, /apple-touch-icon i manifest powinny serwować ikony w poprawnych formatach', async () => {
+    // 1. Favicon .ico
+    const icoRes = await fetch(`${baseUrl}/favicon.ico`);
+    expect(icoRes.status).toBe(200);
+    expect(icoRes.headers.get('content-type')).toBe('image/x-icon');
+    const icoBuffer = await icoRes.arrayBuffer();
+    expect(icoBuffer.byteLength).toBeGreaterThan(1000);
+
+    // 2. Favicon .svg dla Safari i Chrome
+    const svgRes = await fetch(`${baseUrl}/favicon.svg`);
+    expect(svgRes.status).toBe(200);
+    expect(svgRes.headers.get('content-type')).toBe('image/svg+xml');
+    const svgText = await svgRes.text();
+    expect(svgText).toContain('<svg');
+    expect(svgText).toContain('viewBox="0 0 512 512"');
+
+    // 3. Apple Touch Icon dla Safari iOS/macOS
+    const appleRes = await fetch(`${baseUrl}/apple-touch-icon.png`);
+    expect(appleRes.status).toBe(200);
+    expect(appleRes.headers.get('content-type')).toBe('image/png');
+    const appleBuffer = await appleRes.arrayBuffer();
+    expect(appleBuffer.byteLength).toBeGreaterThan(500);
+
+    // 4. Apple Touch Icon precomposed
+    const applePreRes = await fetch(`${baseUrl}/apple-touch-icon-precomposed.png`);
+    expect(applePreRes.status).toBe(200);
+    expect(applePreRes.headers.get('content-type')).toBe('image/png');
+
+    // 5. PWA Webmanifest
+    const manifestRes = await fetch(`${baseUrl}/site.webmanifest`);
+    expect(manifestRes.status).toBe(200);
+    expect(manifestRes.headers.get('content-type')).toBe('application/manifest+json');
+    const manifest = await manifestRes.json();
+    expect(manifest.name).toContain('zanisko.pl');
+
+    // 6. Favicon SVG z /images/
+    const imgSvgRes = await fetch(`${baseUrl}/images/favicon.svg`);
+    expect(imgSvgRes.status).toBe(200);
+    expect(imgSvgRes.headers.get('content-type')).toBe('image/svg+xml');
+
+    // 7. Weryfikacja tagów w nagłówku HTML
+    const pageRes = await fetch(`${baseUrl}/`);
+    const pageHtml = await pageRes.text();
+    expect(pageHtml).toContain('<link rel="icon" href="/favicon.ico" sizes="any">');
+    expect(pageHtml).toContain('<link rel="icon" type="image/svg+xml" href="/favicon.svg">');
+    expect(pageHtml).toContain('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">');
   });
 
   it('POST /api/attachments/generate powinien wygenerować zestaw 3 załączników dowodowych', async () => {
@@ -240,6 +280,107 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
       const buffer = await res.arrayBuffer();
       expect(buffer.byteLength).toBeGreaterThan(20);
     }
+  });
+
+  it('POST /api/export-document powinien wygenerować poprawny plik DOCX (OpenXML)', async () => {
+    const res = await fetch(`${baseUrl}/api/export-document`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: 'PRZEDSĄDOWE WEZWANIE DO ZAPŁATY: 1200 zł\n\nPodstawa prawna: uchwała SN III CZP 80/11.',
+        format: 'docx',
+        title: 'Wezwanie DOCX',
+        filename: 'wezwanie_docx',
+      }),
+    });
+    expect(res.status).toBe(200);
+    const disposition = res.headers.get('content-disposition');
+    expect(disposition).toContain('attachment; filename="wezwanie_docx.docx"');
+    const buffer = await res.arrayBuffer();
+    expect(buffer.byteLength).toBeGreaterThan(1000);
+    const magic = Buffer.from(buffer).subarray(0, 4);
+    expect(magic.toString('hex')).toBe('504b0304'); // Sygnatura PK\x03\x04 pliku ZIP/DOCX
+  });
+
+  it('POST /api/export-bundle powinien wygenerować kompletny pakiet procesowy w formatach DOC, PDF, RTF i TXT', async () => {
+    const sampleTextRes = await fetch(`${baseUrl}/api/sample`);
+    const sampleText = await sampleTextRes.text();
+
+    const auditRes = await fetch(`${baseUrl}/api/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText: sampleText, voivodeship: 'mazowieckie' }),
+    });
+    const report = await auditRes.json();
+
+    const formats = ['doc', 'pdf', 'rtf', 'txt', 'docx'] as const;
+    for (const format of formats) {
+      const res = await fetch(`${baseUrl}/api/export-bundle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report,
+          format,
+          filename: 'pakiet_testowy',
+          title: 'Kompletny pakiet procesowy',
+        }),
+      });
+      expect(res.status).toBe(200);
+      const disposition = res.headers.get('content-disposition');
+      expect(disposition).toContain(`attachment; filename="pakiet_testowy.${format}"`);
+      const buffer = await res.arrayBuffer();
+      expect(buffer.byteLength).toBeGreaterThan(100);
+    }
+  });
+
+  it('POST /api/export-bundle z pustym letterText nie może zwrócić pustego pliku', async () => {
+    const sampleTextRes = await fetch(`${baseUrl}/api/sample`);
+    const sampleText = await sampleTextRes.text();
+
+    const auditRes = await fetch(`${baseUrl}/api/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText: sampleText, voivodeship: 'mazowieckie' }),
+    });
+    const report = await auditRes.json();
+
+    const res = await fetch(`${baseUrl}/api/export-bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report,
+        letterText: '', // Celowo pusty ciąg
+        format: 'docx',
+        filename: 'pakiet_bezpieczny',
+      }),
+    });
+    expect(res.status).toBe(200);
+    const buffer = await res.arrayBuffer();
+    // Kompletny pakiet DOCX ze wszystkimi załącznikami i wygenerowanym pismem musi mieć > 4000 bajtów
+    expect(buffer.byteLength).toBeGreaterThan(4000);
+  });
+
+  it('GET /regulamin, /polityka-prywatnosci i /kontakt powinny serwować strony wymagane przez Przelewy24', async () => {
+    const regRes = await fetch(`${baseUrl}/regulamin.html`);
+    expect(regRes.status).toBe(200);
+    const regText = await regRes.text();
+    expect(regText).toContain('Regulamin');
+    expect(regText).toContain('Multinewsroom Jan Domaniewski');
+    expect(regText).toContain('525-218-92-41');
+    expect(regText).toContain('PayPro S.A.');
+
+    const privRes = await fetch(`${baseUrl}/polityka-prywatnosci`);
+    expect(privRes.status).toBe(200);
+    const privText = await privRes.text();
+    expect(privText).toContain('Polityka prywatności');
+    expect(privText).toContain('RODO');
+
+    const contactRes = await fetch(`${baseUrl}/kontakt`);
+    expect(contactRes.status).toBe(200);
+    const contactText = await contactRes.text();
+    expect(contactText).toContain('Kontakt i reklamacje');
+    expect(contactText).toContain('kontakt@zanisko.pl');
+    expect(contactText).toContain('14 dni');
   });
 });
 

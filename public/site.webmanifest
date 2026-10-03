@@ -1,0 +1,20 @@
+{
+  "name": "zanisko.pl – Niezależny audytor kosztorysów OC",
+  "short_name": "zanisko.pl",
+  "description": "Niezależna weryfikacja kosztorysów powypadkowych z OC sprawcy",
+  "icons": [
+    {
+      "src": "/images/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#07090e",
+  "background_color": "#07090e",
+  "display": "standalone"
+}

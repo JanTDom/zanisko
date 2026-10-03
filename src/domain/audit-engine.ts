@@ -165,7 +165,7 @@ export function runAudit(estimate: CostEstimate): AuditReport {
       type: 'PAINT_MATERIAL_DISCOUNT',
       title: 'Arbitralne potrącenie na materiałach lakierniczych',
       legalBasis:
-        'Rekomendacja 17 KNF (pkt 17.3 — zakaz powoływania się na rabaty warsztatów współpracujących) oraz art. 361 § 2 k.c.',
+        'Rekomendacja 17 KNF (pkt 17.3 – zakaz powoływania się na rabaty warsztatów współpracujących) oraz art. 361 § 2 k.c.',
       description:
         `Ubezpieczyciel zastosował nieuzasadniony rabat handlowy na materiałach lakierniczych w wysokości ${estimate.paintMaterials.discountPercent}%. ` +
         `Poszkodowany likwidujący szkodę nie jest zobowiązany do poszukiwania warsztatu udzielającego hipotetycznych upustów na materiałach bazowych i lakierach.`,

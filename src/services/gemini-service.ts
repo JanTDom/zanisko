@@ -269,18 +269,17 @@ Wzbogać argumentację prawną pisma, podkreślając nieuczciwość praktyk likw
 BARDZO WAŻNE REGUŁY FORMATOWANIA:
 1. ZAKAZ UŻYWANIA JAKICHKOLWIEK GWIAZDEK (*) ANI DWÓCH GWIAZDEK (**). Zero formatowania markdownowego z gwiazdkami!
 2. Używaj czystego tekstu, nagłówków z rzymską numeracją (I., II., III.), wielkich liter dla tytułów oraz myślników (- ) dla wyliczeń.
-3. Zachowaj dokładne kwoty roszczenia (${params.report.summary.totalLossGross.toFixed(2)} PLN brutto) oraz numer rachunku bankowego (${params.bankAccountNumber}).`;
+3. Zachowaj dokładne kwoty roszczenia (${params.report.summary.totalLossGross.toFixed(2)} PLN brutto) oraz numer rachunku bankowego (${params.bankAccountNumber}).
+4. ABSOLUTNY ZAKAZ HALUCYNACJI: Nie wymyślaj żadnych nieistniejących przepisów prawa, orzeczeń ani faktów. Powołuj się wyłącznie na podane w piśmie przepisy: art. 361 § 2 k.c., art. 363 § 1 k.c., uchwałę SN III CZP 80/11, Rekomendacje KNF z 1.11.2022 r. oraz art. 5 i 8 Ustawy o rozpatrywaniu reklamacji.
+5. Zamiast myślnika em-dash (—) używaj wyłącznie en-dash (–).`;
 
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
         });
 
-        if (response.text && !response.text.includes('*')) {
-          return response.text;
-        } else if (response.text) {
-          // Oczyszczenie z gwiazdek w razie gdyby model je dodał
-          return response.text.replace(/\*/g, '');
+        if (response.text) {
+          return response.text.replace(/\*/g, '').replace(/—/g, '–');
         }
       } catch (err) {
         console.warn('Błąd personalizacji Gemini, zwracam standardowe wezwanie:', err);

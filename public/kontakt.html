@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kontakt – zanisko.pl</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --surface: #0f1420;
+      --surface-elevated: #161d2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #38bdf8;
+      --accent-emerald: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    .nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      color: var(--text);
+      text-decoration: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .nav-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .container {
+      max-width: 760px;
+      margin: 48px auto 0;
+      padding: 0 24px;
+    }
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .lead {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    dl {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px 20px;
+      font-size: 15px;
+    }
+    dt {
+      color: var(--text-dim);
+      font-weight: 500;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    dd {
+      color: var(--text);
+      font-weight: 500;
+    }
+    dd a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    dd a:hover {
+      text-decoration: underline;
+    }
+    .info-box {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 24px;
+    }
+    .info-box h3 {
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .p24-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    footer {
+      max-width: 760px;
+      margin: 48px auto 0;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    @media (max-width: 560px) {
+      dl { grid-template-columns: 1fr; gap: 8px; }
+      dt { margin-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand">
+        <span class="brand-badge">Z</span>
+        <span>zanisko.pl</span>
+      </a>
+      <a href="/" class="nav-link">← Powrót do audytora</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="kicker">Dane identyfikacyjne i kontakt</div>
+    <h1>Kontakt i reklamacje – zanisko.pl</h1>
+    <p class="lead">W sprawach technicznych, zapytań dotyczących audytów, obsługi reklamacji oraz faktur zapraszamy do kontaktu drogą elektroniczną.</p>
+
+    <div class="card">
+      <dl>
+        <dt>Właściciel</dt>
+        <dd>Multinewsroom Jan Domaniewski</dd>
+
+        <dt>Forma prawna</dt>
+        <dd>Jednoosobowa działalność gospodarcza</dd>
+
+        <dt>Adres siedziby</dt>
+        <dd>ul. Barcicka 44, 01-839 Warszawa, Polska</dd>
+
+        <dt>NIP</dt>
+        <dd>525-218-92-41</dd>
+
+        <dt>REGON</dt>
+        <dd>147154574</dd>
+
+        <dt>Adres e-mail</dt>
+        <dd><a href="mailto:kontakt@zanisko.pl">kontakt@zanisko.pl</a></dd>
+
+        <dt>Serwis WWW</dt>
+        <dd><a href="https://zanisko.pl">https://zanisko.pl</a></dd>
+      </dl>
+    </div>
+
+    <div class="info-box">
+      <h3>Obsługa klienta i reklamacji</h3>
+      <p>
+        Wszelkie zapytania oraz reklamacje dotyczące świadczonych usług cyfrowych przyjmujemy pod adresem <a href="mailto:kontakt@zanisko.pl" style="color:var(--accent);">kontakt@zanisko.pl</a>. Odpowiedzi udzielamy w dni robocze, zwykle w ciągu 24–48 godzin. Reklamacje konsumenckie rozpatrywane są w ustawowym terminie do 14 dni zgodnie z postanowieniami <a href="/regulamin.html" style="color:var(--accent);">Regulaminu</a>.
+      </p>
+      <div class="p24-badge">
+        <span>Operator płatności: PayPro S.A. (Przelewy24)</span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>© 2026 zanisko.pl · Wszelkie prawa zastrzeżone</div>
+    <div style="display:flex; gap:16px;">
+      <a href="/regulamin.html">Regulamin</a>
+      <a href="/polityka-prywatnosci.html">Polityka prywatności</a>
+      <a href="/kontakt.html">Kontakt</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regulamin świadczenia usług – zanisko.pl</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --surface: #0f1420;
+      --surface-elevated: #161d2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #38bdf8;
+      --accent-emerald: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    .nav {
+      border-bottom: 1px solid var(--border);
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      color: var(--text);
+      text-decoration: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .nav-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .container {
+      max-width: 820px;
+      margin: 48px auto 0;
+      padding: 0 24px;
+    }
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+    .date-badge {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 36px;
+    }
+    h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      margin: 36px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+    ol, ul {
+      padding-left: 24px;
+      margin-bottom: 18px;
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    strong, b {
+      color: #fff;
+      font-weight: 600;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .highlight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    footer {
+      max-width: 820px;
+      margin: 56px auto 0;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand">
+        <span class="brand-badge">Z</span>
+        <span>zanisko.pl</span>
+      </a>
+      <a href="/" class="nav-link">← Powrót do audytora</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="kicker">Dokument prawny serwisu</div>
+    <h1>Regulamin świadczenia usług cyfrowych</h1>
+    <div class="date-badge">Wersja 1.0 · Obowiązuje od 1 października 2026 r.</div>
+
+    <h2>§1. Postanowienia ogólne i dane sprzedawcy</h2>
+    <ol>
+      <li>Niniejszy Regulamin określa zasady i warunki techniczne świadczenia usług drogą elektroniczną oraz sprzedaży usług cyfrowych za pośrednictwem serwisu internetowego dostępnego pod adresem <strong>https://zanisko.pl</strong> (dalej: „Serwis”).</li>
+      <li>Właścicielem Serwisu i Usługodawcą jest <strong>Multinewsroom Jan Domaniewski</strong> prowadzący jednoosobową działalność gospodarczą pod adresem: <strong>ul. Barcicka 44, 01-839 Warszawa</strong>, NIP: <strong>525-218-92-41</strong>, REGON: <strong>147154574</strong> (dalej: „Usługodawca”).</li>
+      <li>Kontakt z Usługodawcą jest możliwy za pośrednictwem poczty elektronicznej pod adresem: <a href="mailto:kontakt@zanisko.pl">kontakt@zanisko.pl</a>.</li>
+      <li>Każdy Użytkownik zobowiązany jest do zapoznania się z Regulaminem przed rozpoczęciem korzystania z Serwisu. Korzystanie z odpłatnych usług Serwisu wymaga uprzedniej akceptacji postanowień Regulaminu.</li>
+    </ol>
+
+    <h2>§2. Przedmiot i charakter usług cyfrowych</h2>
+    <ol>
+      <li>Serwis zanisko.pl świadczy usługi cyfrowe polegające na:
+        <ul>
+          <li>automatycznym audycie i analizie różnicowej kalkulacji naprawy szkód komunikacyjnych (kosztorysów systemów Audatex, Eurotax, DAT) pod kątem zaniżeń stawek robocizny, potrąceń amortyzacyjnych oraz zamienników;</li>
+          <li>generowaniu formalnego Przedsądowego Wezwania do Zapłaty w procedurze 30-dniowej reklamacji rynku finansowego (zgodnie z art. 3 i 5 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego);</li>
+          <li>generowaniu kompletnego pakietu procesowego obejmującego Wezwanie oraz 3 Załączniki dowodowe (kalkulację korygującą, wyciąg ze stawek Polskiej Izby Motoryzacji oraz kompendium orzecznictwa SN i KNF) w formatach DOCX, PDF, RTF i TXT.</li>
+        </ul>
+      </li>
+      <li>Serwis dostarcza narzędzie analityczno-techniczne. Wyliczenia opierają się na obiektywnych stawkach referencyjnych Polskiej Izby Motoryzacji (PIM) oraz Rekomendacjach KNF. Usługa nie stanowi indywidualnej pomocy prawnej adwokata ani radcy prawnego w konkretnej sprawie sądowej, lecz dostarcza gotową dokumentację dowodową do samodzielnego wykorzystania przez poszkodowanego.</li>
+    </ol>
+
+    <h2>§3. Cennik i opłaty</h2>
+    <ol>
+      <li>Wstępny audyt kalkulacji oraz podgląd wykrytych kategorii zaniżeń (wersja demonstracyjna / teaser) są udostępniane <strong>bezpłatnie</strong>.</li>
+      <li>Dostęp do pełnego audytu różnicowego, spersonalizowanego wezwania do zapłaty oraz kompletnego pakietu procesowego w formatach do edycji (DOCX, PDF, RTF, TXT) jest usługą płatną.
+        <ul>
+          <li>Cena standardowa pełnego pakietu wynosi: <strong>49,00 PLN brutto</strong> (cena zawiera podatek VAT 23%).</li>
+          <li>W okresie pilotażowym i promocyjnym Usługodawca może udostępniać pełny pakiet <strong>bezpłatnie (0,00 PLN)</strong> w ramach wersji beta. Informacja o aktualnej cenie jest zawsze wyraźnie prezentowana Użytkownikowi przed odblokowaniem dokumentów.</li>
+        </ul>
+      </li>
+      <li>Wszystkie ceny podawane w Serwisie są cenami brutto w złotych polskich (PLN). Usługodawca nie pobiera żadnych ukrytych opłat ani opłat subskrypcyjnych (zakup jest jednorazowy).</li>
+    </ol>
+
+    <h2>§4. Operator płatności i metody płatności</h2>
+    <div class="highlight-card">
+      <p><strong>Płatności internetowe w Serwisie obsługuje operator:</strong></p>
+      <p><strong>PayPro Spółka Akcyjna (Przelewy24)</strong> z siedzibą w Poznaniu przy ul. Pastelowej 8 (60-198 Poznań), wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań – Nowe Miasto i Wilda w Poznaniu, VIII Wydział Gospodarczy KRS pod numerem KRS <strong>0000347935</strong>, NIP: <strong>779-236-98-87</strong>, REGON: <strong>301345068</strong>, kapitał zakładowy: 5 476 300,00 zł, wpisana do rejestru krajowych instytucji płatniczych prowadzonego przez KNF pod numerem UKNF IP24/2014.</p>
+    </div>
+    <ol>
+      <li>Dostępne metody płatności elektronicznych w Serwisie:
+        <ul>
+          <li><strong>BLIK</strong> (szybka płatność kodem z aplikacji bankowej);</li>
+          <li><strong>Szybki przelew internetowy</strong> (pay-by-link z większości polskich banków);</li>
+          <li><strong>Karty płatnicze</strong> (Visa, Visa Electron, Mastercard, MasterCard Electronic, Maestro).</li>
+        </ul>
+      </li>
+      <li>Transakcja zostaje zrealizowana w bezpiecznym środowisku szyfrowanym SSL/TLS operatora PayPro S.A. Serwis nie przechowuje ani nie ma dostępu do danych kart płatniczych ani danych logowania do bankowości elektronicznej.</li>
+      <li>Umowa o dostarczenie usługi cyfrowej zostaje zawarta z chwilą potwierdzenia dokonania płatności przez operatora Przelewy24. Dostarczenie usługi następuje <strong>niezwłocznie po zaksięgowaniu płatności</strong> poprzez natychmiastowe odblokowanie raportu i umożliwienie pobrania plików dokumentów.</li>
+    </ol>
+
+    <h2>§5. Wymagania techniczne</h2>
+    <ol>
+      <li>Do korzystania z Serwisu niezbędne są:
+        <ul>
+          <li>urządzenie z dostępem do sieci Internet (komputer, tablet, smartfon);</li>
+          <li>zainstalowana aktualna przeglądarka internetowa (np. Google Chrome, Mozilla Firefox, Apple Safari, Microsoft Edge) z włączoną obsługą JavaScript oraz plików cookies;</li>
+          <li>program lub aplikacja umożliwiająca otwieranie plików w formacie PDF (np. Adobe Acrobat Reader) lub Microsoft Word / OpenXML (format DOCX/DOC).</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h2>§6. Prawo odstąpienia od umowy (Konsumenci)</h2>
+    <ol>
+      <li>Zgodnie z art. 27 ustawy z dnia 30 maja 2014 r. o prawach konsumenta, konsumentowi przysługuje co do zasady prawo do odstąpienia od umowy zawartej na odległość w terminie 14 dni bez podawania przyczyny.</li>
+      <li><strong>Utrata prawa do odstąpienia:</strong> Usługa świadczona przez Serwis polega na natychmiastowym dostarczeniu treści cyfrowych i wykonaniu zautomatyzowanego audytu oraz wygenerowaniu pism procesowych. Stosownie do art. 38 ust. 1 pkt 13 ustawy o prawach konsumenta, prawo odstąpienia od umowy nie przysługuje w przypadku umów o dostarczanie treści cyfrowych niedostarczanych na nośniku materialnym, za które konsument jest zobowiązany do zapłaty ceny, jeżeli Usługodawca rozpoczął świadczenie za wyraźną i uprzednią zgodą konsumenta, który został poinformowany przed rozpoczęciem świadczenia, że po jego spełnieniu utraci prawo odstąpienia od umowy, i przyjął to do wiadomości.</li>
+      <li>Zgoda, o której mowa w ust. 2, jest wyrażana przez Użytkownika przed dokonaniem płatności poprzez zaznaczenie odpowiedniego oświadczenia lub zatwierdzenie zamówienia.</li>
+    </ol>
+
+    <h2>§7. Procedura reklamacji</h2>
+    <ol>
+      <li>Użytkownik ma prawo do złożenia reklamacji dotyczącej działania Serwisu, procesu generowania dokumentów lub obsługi transakcji.</li>
+      <li>Reklamację należy przesłać pocztą elektroniczną na adres: <a href="mailto:kontakt@zanisko.pl">kontakt@zanisko.pl</a>.</li>
+      <li>Zgłoszenie reklamacyjne powinno zawierać: dane identyfikujące Użytkownika (imię, adres e-mail użyty przy zamówieniu), numer szkody lub identyfikator transakcji oraz dokładny opis zgłaszanych zastrzeżeń.</li>
+      <li>Usługodawca rozpatrzy reklamację i udzieli odpowiedzi w terminie <strong>14 dni roboczych</strong> od dnia jej doręczenia drogą elektroniczną na adres e-mail zgłaszającego.</li>
+      <li>Konsument posiada możliwość skorzystania z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia roszczeń, w tym za pośrednictwem europejskiej platformy internetowego rozstrzygania sporów (ODR) dostępnej pod adresem: <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a>.</li>
+    </ol>
+
+    <h2>§8. Ochrona danych osobowych</h2>
+    <ol>
+      <li>Administratorem danych osobowych Użytkowników jest Usługodawca (Multinewsroom Jan Domaniewski).</li>
+      <li>Szczegółowe zasady przetwarzania danych osobowych, wykorzystywania plików cookies, prawa przysługujące Użytkownikom na gruncie RODO oraz informacje o odbiorcach danych (w tym operatorze płatności PayPro S.A.) określa <a href="/polityka-prywatnosci.html">Polityka prywatności</a>, stanowiąca integralną część niniejszego Regulaminu.</li>
+    </ol>
+
+    <h2>§9. Postanowienia końcowe</h2>
+    <ol>
+      <li>W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają właściwe przepisy prawa polskiego, w szczególności Kodeksu cywilnego, Ustawy o prawach konsumenta oraz Ustawy o świadczeniu usług drogą elektroniczną.</li>
+      <li>Regulamin jest dostępny nieodpłatnie dla każdego Użytkownika pod adresem <a href="/regulamin.html">https://zanisko.pl/regulamin.html</a> w sposób umożliwiający jego pozyskanie, odtwarzanie i utrwalanie.</li>
+    </ol>
+  </main>
+
+  <footer>
+    <div>© 2026 zanisko.pl · Multinewsroom Jan Domaniewski · NIP: 525-218-92-41</div>
+    <div style="display:flex; gap:16px;">
+      <a href="/regulamin.html">Regulamin</a>
+      <a href="/polityka-prywatnosci.html">Polityka prywatności</a>
+      <a href="/kontakt.html">Kontakt</a>
+    </div>
+  </footer>
+</body>
+</html>

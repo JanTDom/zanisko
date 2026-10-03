@@ -10,7 +10,16 @@ import { getRegionalBenchmark, REGIONAL_BENCHMARKS } from './domain/regional-rat
 import { extractTextFromImage } from './parser/ocr-service.js';
 import { GeminiService } from './services/gemini-service.js';
 import { generateAttachment1Audit, generateAttachment2PimRates, generateAttachment3LegalBasis } from './domain/attachments.js';
-import { exportToDoc, exportToRtf, exportToTxt, exportToPdf } from './services/document-exporter.js';
+import {
+  exportToDoc,
+  exportBundleToDoc,
+  exportToRtf,
+  exportToTxt,
+  exportToPdf,
+  exportDemandLetterToDocx,
+  exportAttachmentToDocx,
+  exportBundleToDocx,
+} from './services/document-exporter.js';
 import { demandLetterToHtml } from './domain/demand-letter.js';
 
 if (typeof (process as unknown as { loadEnvFile?: (path?: string) => void }).loadEnvFile === 'function') {
@@ -57,11 +66,13 @@ const HTML_PAGE = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>zanisko.pl — Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon-192.png">
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/images/favicon-192.png">
+  <title>zanisko.pl – Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -93,6 +104,9 @@ const HTML_PAGE = `<!DOCTYPE html>
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       padding-bottom: 120px;
+      text-wrap: pretty;
+      orphans: 2;
+      widows: 2;
     }
 
     /* TYPOGRAFIA */
@@ -101,6 +115,10 @@ const HTML_PAGE = `<!DOCTYPE html>
       font-weight: 700;
       letter-spacing: -0.03em;
       line-height: 1.2;
+      text-wrap: balance;
+    }
+    p, li {
+      text-wrap: pretty;
     }
 
     /* NAWIGACJA */
@@ -427,42 +445,74 @@ const HTML_PAGE = `<!DOCTYPE html>
       margin-top: 20px;
     }
     .btn-primary {
+      position: relative;
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: #fff;
-      border: none;
+      border: 1px solid rgba(56, 189, 248, 0.4);
       padding: 14px 26px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 20px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+      user-select: none;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      transform: rotate(25deg);
+      transition: all 0.65s ease;
+      pointer-events: none;
     }
     .btn-primary:hover {
-      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-      transform: translateY(-1px);
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      transform: translateY(-2.5px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.5), 0 0 16px rgba(56, 189, 248, 0.4);
+      border-color: rgba(56, 189, 248, 0.8);
+    }
+    .btn-primary:hover::after {
+      left: 140%;
+    }
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3);
     }
     .btn-secondary {
       background: var(--surface-elevated);
       color: var(--text);
       border: 1px solid var(--border);
       padding: 14px 22px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      user-select: none;
     }
     .btn-secondary:hover {
-      border-color: rgba(255, 255, 255, 0.25);
-      background: #1c2438;
+      border-color: rgba(56, 189, 248, 0.45);
+      background: #1c263c;
+      color: #fff;
+      transform: translateY(-2px) scale(1.015);
+      box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.4), 0 0 14px rgba(56, 189, 248, 0.2);
+    }
+    .btn-secondary:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 
     /* TOAST ALERT */
@@ -819,8 +869,8 @@ const HTML_PAGE = `<!DOCTYPE html>
     .att-btn {
       font-size: 11.5px;
       font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 7px 13px;
+      border-radius: 8px;
       background: var(--surface-elevated);
       border: 1px solid var(--border);
       color: #e2e8f0;
@@ -828,12 +878,18 @@ const HTML_PAGE = `<!DOCTYPE html>
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
     }
     .att-btn:hover {
       border-color: var(--accent);
       color: #fff;
       background: rgba(56, 189, 248, 0.15);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+    }
+    .att-btn:active {
+      transform: translateY(0.5px) scale(0.98);
     }
 
     /* SEKCJE EDUKACYJNE / ZDJĘCIA W GRIDZIE */
@@ -941,30 +997,123 @@ const HTML_PAGE = `<!DOCTYPE html>
     }
     footer a { color: var(--accent); text-decoration: none; }
 
-    /* LOADER & OCR PROGRESS */
+    /* LOADER 3D - KOŁO SAMOCHODU 3D & PROGRESS */
     .progress-bar-container {
-      margin: 16px 0;
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 9, 14, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeInOverlay 0.25s ease-out;
+    }
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .progress-modal-card {
+      background: linear-gradient(180deg, rgba(22, 29, 46, 0.96) 0%, rgba(15, 20, 32, 0.98) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 24px;
+      padding: 36px 32px 30px;
+      width: 90%;
+      max-width: 440px;
+      text-align: center;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.15);
+      animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalScaleIn {
+      from { transform: scale(0.9) translateY(20px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .wheel-3d-wrapper {
+      perspective: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .wheel-3d-stage {
+      width: 120px;
+      height: 120px;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(14deg) rotateY(-18deg);
+      filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.7));
+    }
+    .spinning-wheel-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      animation: wheelSpin 0.7s linear infinite;
+      transform-origin: 60px 60px;
+    }
+    @keyframes wheelSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .static-caliper-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .wheel-3d-shadow {
+      width: 105px;
+      height: 14px;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(56, 189, 248, 0.2) 50%, transparent 80%);
+      border-radius: 50%;
+      margin-top: 8px;
+      filter: blur(2px);
+      animation: shadowPulse 0.7s ease-in-out infinite alternate;
+    }
+    @keyframes shadowPulse {
+      from { transform: scaleX(0.95); opacity: 0.75; }
+      to { transform: scaleX(1.08); opacity: 1; }
+    }
+    .progress-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
     }
     .progress-track {
       width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
       overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
     .progress-fill {
       height: 100%;
       width: 0%;
-      background: var(--accent);
-      transition: width 0.3s ease;
+      background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #34d399 100%);
+      border-radius: 999px;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
     }
     .progress-label {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-muted);
-      margin-top: 6px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -977,9 +1126,16 @@ const HTML_PAGE = `<!DOCTYPE html>
         <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 56px; width: auto; object-fit: contain;">
         <span class="brand-tag">Audytor OC 2026</span>
       </a>
-      <div class="nav-status">
-        <div class="pulse-dot"></div>
-        <span>Baza stawek PIM & KNF 2026 (16 województw)</span>
+      <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div class="nav-status">
+          <div class="pulse-dot"></div>
+          <span>Baza stawek PIM &amp; KNF 2026 (16 województw)</span>
+        </div>
+        <div class="nav-links" style="display: flex; gap: 14px; font-size: 13px; font-weight: 500;">
+          <a href="/regulamin.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Regulamin</a>
+          <a href="/polityka-prywatnosci.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Prywatność</a>
+          <a href="/kontakt.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Kontakt i reklamacje</a>
+        </div>
       </div>
     </div>
   </nav>
@@ -1088,14 +1244,113 @@ const HTML_PAGE = `<!DOCTYPE html>
         <textarea id="rawTextarea" rows="8" placeholder="Wklej treść kosztorysu z systemu Audatex, Eurotax lub DAT..." style="width: 100%; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 16px; color: #fff; font-family: monospace; font-size: 13px; outline: none;"></textarea>
       </div>
 
-      <!-- LOADER / POSTĘP PRZETWARZANIA -->
+      <!-- LOADER / 3D WHEEL SPINNER MODAL -->
       <div class="progress-bar-container" id="progressBar">
-        <div class="progress-track">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-label">
-          <span id="progressText">Rozpoznawanie tekstu i weryfikacja algorytmiczna...</span>
-          <span id="progressPercent">0%</span>
+        <div class="progress-modal-card">
+          <div class="wheel-3d-wrapper">
+            <div class="wheel-3d-stage">
+              <!-- Spinning Wheel & Disc -->
+              <svg class="spinning-wheel-svg" viewBox="0 0 120 120" width="120" height="120">
+                <defs>
+                  <radialGradient id="tireGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="60%" stop-color="#14171d"/>
+                    <stop offset="90%" stop-color="#232730"/>
+                    <stop offset="100%" stop-color="#0f1115"/>
+                  </radialGradient>
+                  <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#94a3b8"/>
+                    <stop offset="25%" stop-color="#f8fafc"/>
+                    <stop offset="50%" stop-color="#475569"/>
+                    <stop offset="75%" stop-color="#cbd5e1"/>
+                    <stop offset="100%" stop-color="#1e293b"/>
+                  </linearGradient>
+                  <linearGradient id="spokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#e2e8f0"/>
+                    <stop offset="50%" stop-color="#64748b"/>
+                    <stop offset="100%" stop-color="#38bdf8"/>
+                  </linearGradient>
+                  <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="40%" stop-color="#475569"/>
+                    <stop offset="75%" stop-color="#334155"/>
+                    <stop offset="100%" stop-color="#1e293b"/>
+                  </radialGradient>
+                  <radialGradient id="hubGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#0284c7"/>
+                    <stop offset="100%" stop-color="#0f172a"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- 1. Opona zewnętrzna z nacięciami bieżnika -->
+                <circle cx="60" cy="60" r="56" fill="url(#tireGrad)" stroke="#0b0d11" stroke-width="3"/>
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#2c323f" stroke-width="2.5" stroke-dasharray="3, 5.5"/>
+                <circle cx="60" cy="60" r="49" fill="none" stroke="#181c24" stroke-width="1.5"/>
+
+                <!-- 2. Perforowana tarcza hamulcowa -->
+                <circle cx="60" cy="60" r="38" fill="url(#discGrad)" stroke="#64748b" stroke-width="1"/>
+                <circle cx="60" cy="60" r="32" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2, 4"/>
+                <circle cx="60" cy="60" r="26" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2.5, 5"/>
+
+                <!-- 3. Rant alufelgi -->
+                <circle cx="60" cy="60" r="41" fill="none" stroke="url(#rimGrad)" stroke-width="2.5"/>
+
+                <!-- 4. Ramiona alufelgi (5 podwójnych ramion) -->
+                <g id="wheelSpokes">
+                  <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
+                  <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
+                  <g transform="rotate(72 60 60)">
+                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
+                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
+                  </g>
+                  <g transform="rotate(144 60 60)">
+                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
+                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
+                  </g>
+                  <g transform="rotate(216 60 60)">
+                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
+                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
+                  </g>
+                  <g transform="rotate(288 60 60)">
+                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
+                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
+                  </g>
+                </g>
+
+                <!-- 5. Piasta centralna i śruby mocujące -->
+                <circle cx="60" cy="60" r="14" fill="url(#rimGrad)" stroke="#38bdf8" stroke-width="1"/>
+                <circle cx="60" cy="60" r="9" fill="url(#hubGrad)" stroke="#0284c7" stroke-width="1"/>
+                <circle cx="60" cy="49" r="1.5" fill="#f8fafc"/>
+                <circle cx="70.5" cy="56.5" r="1.5" fill="#f8fafc"/>
+                <circle cx="66.5" cy="68.5" r="1.5" fill="#f8fafc"/>
+                <circle cx="53.5" cy="68.5" r="1.5" fill="#f8fafc"/>
+                <circle cx="49.5" cy="56.5" r="1.5" fill="#f8fafc"/>
+                <text x="60" y="63" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="'Space Grotesk', sans-serif">Z</text>
+              </svg>
+
+              <!-- Static Sport Brake Caliper (Brembo red) -->
+              <svg class="static-caliper-svg" viewBox="0 0 120 120" width="120" height="120">
+                <defs>
+                  <linearGradient id="caliperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ef4444"/>
+                    <stop offset="60%" stop-color="#dc2626"/>
+                    <stop offset="100%" stop-color="#991b1b"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 28 42 C 26 49 26 58 28 66 L 37 63 C 35 57 35 51 37 45 Z" fill="url(#caliperGrad)" stroke="#f87171" stroke-width="1.2"/>
+                <circle cx="32" cy="48" r="1.5" fill="#fff" opacity="0.8"/>
+                <circle cx="32" cy="60" r="1.5" fill="#fff" opacity="0.8"/>
+              </svg>
+            </div>
+            <div class="wheel-3d-shadow"></div>
+          </div>
+
+          <h3 class="progress-title">Przetwarzanie kalkulacji</h3>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-label">
+            <span id="progressText">Rozpoznawanie tekstu i weryfikacja algorytmiczna...</span>
+            <span id="progressPercent">0%</span>
+          </div>
         </div>
       </div>
 
@@ -1225,16 +1480,41 @@ const HTML_PAGE = `<!DOCTYPE html>
             <p>
               Ubezpieczyciel liczy na to, że nie znasz oficjalnych stawek PIM ani uchwały SN III CZP 80/11. Pobierz precyzyjne zestawienie kwot do grosza oraz formalne Przedsądowe Wezwanie do Zapłaty z rygorem 30 dni.
             </p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+            <div style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 6px 0 2px 0;">
+              <span style="color: #38bdf8;">49,00 zł</span> brutto <span style="font-size: 13px; font-weight: 500; color: #10b981; margin-left: 6px;">(Wersja beta: 0 zł)</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+              Cena zawiera 23% VAT. Treści cyfrowe (raport i pliki procesowe) dostarczane natychmiast po zatwierdzeniu.
+            </div>
+
+            <!-- ZGODA KONSUMENCKA / WYŁĄCZENIE ODSTĄPIENIA (ART. 38 PKT 13 USTAWY O PRAWACH KONSUMENTA) -->
+            <div style="max-width: 580px; margin: 0 auto 12px auto; text-align: left; font-size: 11px; line-height: 1.45; color: var(--text-muted); background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;">
+              <label style="display: flex; gap: 8px; align-items: flex-start; cursor: pointer;">
+                <input type="checkbox" id="p24ConsentCheck" checked style="margin-top: 2px; accent-color: #38bdf8;">
+                <span>Zgadzam się na natychmiastowe rozpoczęcie świadczenia usługi i dostarczenie treści cyfrowych przed upływem 14-dniowego terminu do odstąpienia od umowy i przyjmuję do wiadomości utratę prawa do odstąpienia od umowy z chwilą ich pełnego dostarczenia. Akceptuję <a href="/regulamin.html" target="_blank" style="color: #38bdf8; text-decoration: underline;">Regulamin</a> oraz <a href="/polityka-prywatnosci.html" target="_blank" style="color: #38bdf8; text-decoration: underline;">Politykę prywatności</a>.</span>
+              </label>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
               <button class="btn-primary" onclick="unlockFullReport()">
-                Odblokuj pełny audyt i pismo — 49 zł
+                Odblokuj raport i dokumenty – 49 zł
               </button>
               <button class="btn-secondary" onclick="unlockFullReport()">
-                Symuluj płatność (Tryb testowy)
+                Tryb testowy (bezpłatny dostęp)
               </button>
             </div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 10px;">
-              Jednorazowa opłata. Zero prowizji od odzyskanej kwoty (kancelarie pobierają 25-35%).
+
+            <!-- METODY PŁATNOŚCI I OPERATOR -->
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted);">
+              <span>Bezpieczne płatności obsługuje <strong>PayPro S.A. (Przelewy24)</strong>:</span>
+              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">BLIK</span>
+              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Visa</span>
+              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Mastercard</span>
+              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Przelew online</span>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
+              Sprzedawca: Multinewsroom Jan Domaniewski &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; e-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-dim); text-decoration: underline;">kontakt@zanisko.pl</a>
             </div>
           </div>
         </div>
@@ -1327,8 +1607,8 @@ const HTML_PAGE = `<!DOCTYPE html>
           </div>
 
           <div class="action-row" style="margin-bottom: 20px;">
-            <button class="btn-primary" onclick="downloadLetter('doc')">
-              Pobierz DOC (Word)
+            <button class="btn-primary" onclick="downloadLetter('docx')">
+              Pobierz Word (DOCX)
             </button>
             <button class="btn-primary" onclick="downloadLetter('pdf')">
               Pobierz PDF
@@ -1342,8 +1622,8 @@ const HTML_PAGE = `<!DOCTYPE html>
             <button class="btn-secondary" onclick="copyLetterToClipboard()">
               Kopiuj treść
             </button>
-            <button class="btn-secondary" onclick="generateAndDisplayLetter()">
-              Odśwież pismo
+            <button class="btn-secondary" onclick="enhanceLetterWithAi()">
+              Wzbogać z AI (Gemini)
             </button>
           </div>
 
@@ -1369,7 +1649,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                   Szczegółowy audyt różnicowy: stawki rynkowe, potrącenia amortyzacyjne, narzucone zamienniki oraz rabaty lakiernicze z wyliczeniem pełnego roszczenia.
                 </p>
                 <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'docx')">Word (DOCX)</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment1', 'pdf')">PDF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment1', 'rtf')">RTF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment1', 'txt')">TXT</button>
@@ -1386,7 +1666,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                   Urzędowa tabela stawek referencyjnych Polskiej Izby Motoryzacji dla 16 województw z uwzględnieniem Rekomendacji 15 KNF oraz segmentów pojazdów.
                 </p>
                 <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'docx')">Word (DOCX)</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment2', 'pdf')">PDF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment2', 'rtf')">RTF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment2', 'txt')">TXT</button>
@@ -1403,7 +1683,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                   Zestawienie tez prawnych: zakaz potrąceń amortyzacyjnych (uchwała SN III CZP 80/11), brak wymogu faktur (SN III CZP 32/03) oraz rygor 30 dni milczenia.
                 </p>
                 <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'doc')">DOC (Word)</button>
+                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'docx')">Word (DOCX)</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment3', 'pdf')">PDF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment3', 'rtf')">RTF</button>
                   <button class="att-btn" onclick="downloadAttachment('attachment3', 'txt')">TXT</button>
@@ -1415,11 +1695,13 @@ const HTML_PAGE = `<!DOCTYPE html>
             <div style="margin-top: 24px; padding: 22px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
               <div>
                 <div style="font-weight: 700; font-size: 16px; color: #fff;">Kompletny pakiet procesowy</div>
-                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pobierz Wezwanie do Zapłaty wraz ze wszystkimi Załącznikami (1, 2 i 3) scalone w jeden plik.</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pobierz Wezwanie do Zapłaty wraz ze wszystkimi Załącznikami (1, 2 i 3) scalone w jeden plik z podziałem na strony.</div>
               </div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-primary" onclick="downloadBundle('doc')">Pobierz pakiet DOC (Word)</button>
+                <button class="btn-primary" onclick="downloadBundle('docx')">Pobierz pakiet Word (DOCX)</button>
                 <button class="btn-primary" onclick="downloadBundle('pdf')">Pobierz pakiet PDF</button>
+                <button class="btn-secondary" onclick="downloadBundle('rtf')">Pobierz pakiet RTF</button>
+                <button class="btn-secondary" onclick="downloadBundle('txt')">Pobierz pakiet TXT</button>
               </div>
             </div>
           </div>
@@ -1453,101 +1735,101 @@ const HTML_PAGE = `<!DOCTYPE html>
       </div>
     </section>
 
-    <!-- SEKCJA: ZANIŻANIE ODSZKODOWANIA — WYJAŚNIENIE I SCENARIUSZE -->
+    <!-- SEKCJA: ZANIŻANIE ODSZKODOWANIA – WYJAŚNIENIE I SCENARIUSZE -->
     <section class="guide" id="jak-to-dziala">
       <div class="section-header">
-        <h2>Na czym polega zaniżanie odszkodowania z OC — i co możesz z tym zrobić</h2>
+        <h2>Na czym polega zaniżanie odszkodowania z&nbsp;OC – i&nbsp;co możesz z&nbsp;tym zrobić</h2>
         <p class="guide-lead">
-          Wyjaśniamy bez żargonu: skąd bierze się zbyt niska wypłata, jak sprawdzić, czy dotyczy Ciebie, i jaką drogę wybrać w Twojej konkretnej sytuacji.
+          Wyjaśniamy bez żargonu: skąd bierze się zbyt niska wypłata, jak sprawdzić, czy dotyczy Ciebie, i&nbsp;jaką drogę wybrać w&nbsp;Twojej konkretnej sytuacji.
         </p>
       </div>
 
-      <h3 class="guide-h">1. Jak to działa — w trzech zdaniach</h3>
+      <h3 class="guide-h">1. Jak to działa – w&nbsp;trzech zdaniach</h3>
       <p class="guide-sub">
-        Gdy ktoś uszkodzi Twoje auto, jego ubezpieczyciel OC musi pokryć koszt przywrócenia samochodu do stanu sprzed wypadku. Najczęściej nie płaci za rzeczywistą naprawę, tylko wylicza ją w programie (Audatex, Eurotax, DAT) — to jest <strong>kosztorys</strong>. W tym kosztorysie ubezpieczyciel sam ustala ceny, a wiele z nich można ustawić niżej, niż wynosi realny koszt naprawy w warsztacie w Twojej okolicy.
+        Gdy ktoś uszkodzi Twoje auto, jego ubezpieczyciel OC musi pokryć koszt przywrócenia samochodu do&nbsp;stanu sprzed wypadku. Najczęściej nie płaci za&nbsp;rzeczywistą naprawę, tylko wylicza ją w&nbsp;programie (Audatex, Eurotax, DAT) – to jest <strong>kosztorys</strong>. W&nbsp;tym kosztorysie ubezpieczyciel sam ustala ceny, a&nbsp;wiele z&nbsp;nich można ustawić niżej, niż wynosi realny koszt naprawy w&nbsp;warsztacie w&nbsp;Twojej okolicy.
       </p>
       <div class="guide-example">
-        <strong>Przykład liczbowy (dane przykładowe):</strong> kosztorys zakłada 18 roboczogodzin po 70 zł netto. Warsztaty w Twoim mieście biorą 175 zł netto za godzinę. Różnica to 105 zł × 18 h = <strong>1 890 zł netto</strong>, których w wypłacie brakuje, choć zakres naprawy jest taki sam. Do tego dochodzą zwykle potrącenia na częściach i materiałach.
+        <strong>Przykład liczbowy (dane przykładowe):</strong> kosztorys zakłada 18&nbsp;roboczogodzin po&nbsp;70&nbsp;zł netto. Warsztaty w&nbsp;Twoim mieście biorą 175&nbsp;zł netto za&nbsp;godzinę. Różnica to 105&nbsp;zł × 18&nbsp;h = <strong>1&nbsp;890&nbsp;zł netto</strong>, których w&nbsp;wypłacie brakuje, choć zakres naprawy jest taki sam. Do&nbsp;tego dochodzą zwykle potrącenia na&nbsp;częściach i&nbsp;materiałach.
       </div>
 
       <h3 class="guide-h">2. Cztery najczęstsze sposoby zaniżania</h3>
-      <p class="guide-sub">Każdy z nich widać w kosztorysie, jeśli wiesz, gdzie patrzeć. Nasz audyt sprawdza je automatycznie.</p>
+      <p class="guide-sub">Każdy z&nbsp;nich widać w&nbsp;kosztorysie, jeśli wiesz, gdzie patrzeć. Nasz audyt sprawdza je automatycznie.</p>
       <div class="guide-grid">
         <div class="guide-card">
           <div class="num">Nożyczki nr 1</div>
-          <h4>Zaniżona stawka za roboczogodzinę</h4>
-          <p>Ubezpieczyciel wpisuje stawkę niższą niż ta, którą faktycznie biorą warsztaty w Twojej okolicy. Każda godzina pracy blacharza i lakiernika jest przez to „tańsza” tylko na papierze.</p>
-          <p class="law">Rekomendacja 15 KNF (pkt 15.3): stawka powinna wynikać z cen warsztatów działających na rynku lokalnym.</p>
+          <h4>Zaniżona stawka za&nbsp;roboczogodzinę</h4>
+          <p>Ubezpieczyciel wpisuje stawkę niższą niż ta, którą faktycznie biorą warsztaty w&nbsp;Twojej okolicy. Każda godzina pracy blacharza i&nbsp;lakiernika jest przez to „tańsza” tylko na&nbsp;papierze.</p>
+          <p class="law">Rekomendacja 15 KNF (pkt&nbsp;15.3): stawka powinna wynikać z&nbsp;cen warsztatów działających na&nbsp;rynku lokalnym.</p>
         </div>
         <div class="guide-card">
           <div class="num">Nożyczki nr 2</div>
-          <h4>Potrącenie „amortyzacji” z części</h4>
-          <p>Nowy zderzak kosztuje 1 850 zł, ale ubezpieczyciel odejmuje np. 40%, bo „auto ma już kilka lat”. Tymczasem do naprawy trzeba kupić część nową — za pełną cenę.</p>
-          <p class="law">Uchwała 7 sędziów SN z 12.04.2012, III CZP 80/11 i Rekomendacja 17 KNF (pkt 17.2): co do zasady bez amortyzacji. Potrącenie jest możliwe tylko, gdy ubezpieczyciel wykaże, że naprawa podniosła wartość całego auta.</p>
+          <h4>Potrącenie „amortyzacji” z&nbsp;części</h4>
+          <p>Nowy zderzak kosztuje 1&nbsp;850&nbsp;zł, ale ubezpieczyciel odejmuje np.&nbsp;40%, bo „auto ma już kilka lat”. Tymczasem do&nbsp;naprawy trzeba kupić część nową – za&nbsp;pełną cenę.</p>
+          <p class="law">Uchwała 7 sędziów SN z&nbsp;12.04.2012, III CZP 80/11 i&nbsp;Rekomendacja 17 KNF (pkt&nbsp;17.2): co do&nbsp;zasady bez amortyzacji. Potrącenie jest możliwe tylko, gdy ubezpieczyciel wykaże, że&nbsp;naprawa podniosła wartość całego auta.</p>
         </div>
         <div class="guide-card">
           <div class="num">Nożyczki nr 3</div>
           <h4>Najtańsze zamienniki zamiast oryginałów</h4>
-          <p>W kosztorysie część oryginalna zostaje zastąpiona tańszym zamiennikiem — nawet jeśli w aucie były oryginały albo samochód jest na gwarancji producenta.</p>
-          <p class="law">Rekomendacja 18 KNF: wartość części ma zapewnić przywrócenie stanu sprzed szkody; pkt 18.1: przy aucie na gwarancji, która wymaga części oryginalnych — tylko części O.</p>
+          <p>W&nbsp;kosztorysie część oryginalna zostaje zastąpiona tańszym zamiennikiem – nawet jeśli w&nbsp;aucie były oryginały albo samochód jest na&nbsp;gwarancji producenta.</p>
+          <p class="law">Rekomendacja 18 KNF: wartość części ma zapewnić przywrócenie stanu sprzed szkody; pkt&nbsp;18.1: przy aucie na&nbsp;gwarancji, która wymaga części oryginalnych – tylko części O.</p>
         </div>
         <div class="guide-card">
           <div class="num">Nożyczki nr 4</div>
           <h4>Rabaty, których nikt Ci nie da</h4>
-          <p>Od ceny części i lakieru odejmowany jest „rabat”, który obowiązuje wyłącznie w warsztatach współpracujących z ubezpieczycielem — nie w warsztacie, który wybierzesz Ty.</p>
-          <p class="law">Rekomendacja 17 KNF (pkt 17.3): ubezpieczyciel nie może powoływać się na rabaty obowiązujące w swoich warsztatach i punktach sprzedaży.</p>
+          <p>Od&nbsp;ceny części i&nbsp;lakieru odejmowany jest „rabat”, który obowiązuje wyłącznie w&nbsp;warsztatach współpracujących z&nbsp;ubezpieczycielem – nie w&nbsp;warsztacie, który wybierzesz Ty.</p>
+          <p class="law">Rekomendacja 17 KNF (pkt&nbsp;17.3): ubezpieczyciel nie może powoływać się na&nbsp;rabaty obowiązujące w&nbsp;swoich warsztatach i&nbsp;punktach sprzedaży.</p>
         </div>
       </div>
 
-      <h3 class="guide-h">3. Najpierw ustal, w jakiej jesteś sytuacji</h3>
+      <h3 class="guide-h">3. Najpierw ustal, w&nbsp;jakiej jesteś sytuacji</h3>
       <p class="guide-sub">
-        To najważniejszy krok. Od tego, co stało się z autem po wypadku, zależy, <strong>jak liczy się odszkodowanie</strong>. Kliknij swój przypadek.
+        To najważniejszy krok. Od&nbsp;tego, co stało się z&nbsp;autem po&nbsp;wypadku, zależy, <strong>jak liczy się odszkodowanie</strong>. Kliknij swój przypadek.
       </p>
 
       <details class="scenario" open>
-        <summary><span class="tag">A</span> Nie naprawiłem auta i nadal je mam</summary>
+        <summary><span class="tag">A</span> Nie naprawiłem auta i&nbsp;nadal je mam</summary>
         <div class="scenario-body">
-          <p>To sytuacja, w której kosztorys ma największe znaczenie. Należy Ci się kwota odpowiadająca <strong>realnemu kosztowi naprawy</strong> — nawet jeśli auta nie naprawisz albo naprawisz je taniej we własnym zakresie.</p>
+          <p>To sytuacja, w&nbsp;której kosztorys ma największe znaczenie. Należy Ci się kwota odpowiadająca <strong>realnemu kosztowi naprawy</strong> – nawet jeśli auta nie naprawisz albo naprawisz je taniej we&nbsp;własnym zakresie.</p>
           <ul>
-            <li>Sprawdź kosztorys ubezpieczyciela w naszym audycie — zobaczysz każdą zaniżoną pozycję i jej wartość.</li>
-            <li>Wyślij reklamację z żądaniem dopłaty (gotowe pismo generujemy po audycie).</li>
-            <li><strong>Nie sprzedawaj i nie naprawiaj auta, zanim sprawa się nie wyjaśni</strong> — albo zrób wcześniej pełną dokumentację zdjęciową uszkodzeń i zachowaj kosztorys. Po sprzedaży lub naprawie zmienia się sposób liczenia (patrz B i C).</li>
+            <li>Sprawdź kosztorys ubezpieczyciela w&nbsp;naszym audycie – zobaczysz każdą zaniżoną pozycję i&nbsp;jej wartość.</li>
+            <li>Wyślij reklamację z&nbsp;żądaniem dopłaty (gotowe pismo generujemy po&nbsp;audycie).</li>
+            <li><strong>Nie sprzedawaj i&nbsp;nie naprawiaj auta, zanim sprawa się nie wyjaśni</strong> – albo zrób wcześniej pełną dokumentację zdjęciową uszkodzeń i&nbsp;zachowaj kosztorys. Po&nbsp;sprzedaży lub naprawie zmienia się sposób liczenia (patrz B i&nbsp;C).</li>
           </ul>
-          <div class="verdict">Twoja droga: audyt kosztorysu → reklamacja → (jeśli trzeba) Rzecznik Finansowy → sąd. Szczegóły w punkcie 4.</div>
+          <div class="verdict">Twoja droga: audyt kosztorysu → reklamacja → (jeśli trzeba) Rzecznik Finansowy → sąd. Szczegóły w&nbsp;punkcie 4.</div>
         </div>
       </details>
 
       <details class="scenario">
         <summary><span class="tag">B</span> Już naprawiłem auto</summary>
         <div class="scenario-body">
-          <p>Sąd Najwyższy w uchwale 7 sędziów z 11.09.2024 (III CZP 65/23) uznał, że po naprawie <strong>nie liczy się już hipotetycznego kosztorysu</strong>. Odszkodowanie odpowiada temu, ile naprawa faktycznie i zasadnie kosztowała.</p>
+          <p>Sąd Najwyższy w&nbsp;uchwale 7 sędziów z&nbsp;11.09.2024 (III CZP 65/23) uznał, że&nbsp;po naprawie <strong>nie liczy się już hipotetycznego kosztorysu</strong>. Odszkodowanie odpowiada temu, ile naprawa faktycznie i&nbsp;zasadnie kosztowała.</p>
           <ul>
-            <li>Zbierz faktury i rachunki za naprawę (części, robocizna, lakierowanie).</li>
-            <li>Jeśli faktury są wyższe niż wypłata — żądaj dopłaty różnicy na podstawie faktur.</li>
-            <li>Jeśli naprawa była tańsza niż wypłata — trudno będzie dochodzić więcej.</li>
+            <li>Zbierz faktury i&nbsp;rachunki za&nbsp;naprawę (części, robocizna, lakierowanie).</li>
+            <li>Jeśli faktury są wyższe niż wypłata – żądaj dopłaty różnicy na&nbsp;podstawie faktur.</li>
+            <li>Jeśli naprawa była tańsza niż wypłata – trudno będzie dochodzić więcej.</li>
           </ul>
-          <div class="warn">Uwaga: w 2025 r. trzyosobowy skład SN (uchwała z 24.09.2025, III CZP 32/24) dopuścił liczenie według kosztorysu także po naprawie. Orzecznictwo jest więc rozbieżne, a uchwała 7 sędziów ma większą wagę. Ta sama uchwała z 2025 r. wskazała, że jeśli zapłaciłeś za naprawę bez VAT, odszkodowanie nie obejmuje VAT.</div>
+          <div class="warn">Uwaga: w&nbsp;2025&nbsp;r. trzyosobowy skład SN (uchwała z&nbsp;24.09.2025, III CZP 32/24) dopuścił liczenie według kosztorysu także po&nbsp;naprawie. Orzecznictwo jest więc rozbieżne, a&nbsp;uchwała 7 sędziów ma większą wagę. Ta sama uchwała z&nbsp;2025&nbsp;r. wskazała, że&nbsp;jeśli zapłaciłeś za&nbsp;naprawę bez VAT, odszkodowanie nie obejmuje VAT.</div>
         </div>
       </details>
 
       <details class="scenario">
         <summary><span class="tag">C</span> Sprzedałem auto bez naprawy</summary>
         <div class="scenario-body">
-          <p>Według tej samej uchwały SN III CZP 65/23 po sprzedaży nienaprawionego auta odszkodowanie liczy się zwykle jako <strong>różnicę</strong> między wartością auta przed wypadkiem a ceną, za którą je sprzedałeś (tzw. metoda dyferencyjna).</p>
+          <p>Według tej samej uchwały SN III CZP 65/23 po&nbsp;sprzedaży nienaprawionego auta odszkodowanie liczy się zwykle jako <strong>różnicę</strong> między wartością auta przed wypadkiem a&nbsp;ceną, za&nbsp;którą je sprzedałeś (tzw. metoda dyferencyjna).</p>
           <ul>
-            <li>Przygotuj umowę sprzedaży (cena) i dowody wartości auta przed szkodą (np. wycena, ogłoszenia podobnych aut).</li>
-            <li>Kosztorys ubezpieczyciela ma tu mniejsze znaczenie — liczy się, ile realnie straciłeś na wartości auta.</li>
+            <li>Przygotuj umowę sprzedaży (cena) i&nbsp;dowody wartości auta przed szkodą (np.&nbsp;wycena, ogłoszenia podobnych aut).</li>
+            <li>Kosztorys ubezpieczyciela ma tu mniejsze znaczenie – liczy się, ile realnie straciłeś na&nbsp;wartości auta.</li>
           </ul>
-          <div class="verdict">Nasz audyt kosztorysu pomoże pokazać skalę uszkodzeń, ale głównym argumentem będzie różnica w wartości auta.</div>
+          <div class="verdict">Nasz audyt kosztorysu pomoże pokazać skalę uszkodzeń, ale głównym argumentem będzie różnica w&nbsp;wartości auta.</div>
         </div>
       </details>
 
       <details class="scenario">
-        <summary><span class="tag">D</span> Prowadzę firmę i odliczam VAT</summary>
+        <summary><span class="tag">D</span> Prowadzę firmę i&nbsp;odliczam VAT</summary>
         <div class="scenario-body">
-          <p>Jeśli auto jest w firmie i możesz odliczyć VAT od naprawy, odszkodowanie wypłacane jest co do zasady w kwotach <strong>netto</strong> — VAT odzyskujesz w rozliczeniu z urzędem skarbowym, a nie od ubezpieczyciela.</p>
+          <p>Jeśli auto jest w&nbsp;firmie i&nbsp;możesz odliczyć VAT od&nbsp;naprawy, odszkodowanie wypłacane jest co do&nbsp;zasady w&nbsp;kwotach <strong>netto</strong> – VAT odzyskujesz w&nbsp;rozliczeniu z&nbsp;urzędem skarbowym, a&nbsp;nie od&nbsp;ubezpieczyciela.</p>
           <ul>
-            <li>Wszystkie zaniżenia (stawka, amortyzacja, części, rabaty) dotyczą Cię tak samo — tylko liczone są od kwot netto.</li>
+            <li>Wszystkie zaniżenia (stawka, amortyzacja, części, rabaty) dotyczą Cię tak samo – tylko liczone są od&nbsp;kwot netto.</li>
           </ul>
         </div>
       </details>
@@ -1555,70 +1837,70 @@ const HTML_PAGE = `<!DOCTYPE html>
       <details class="scenario">
         <summary><span class="tag">E</span> Ubezpieczyciel uznał szkodę całkowitą</summary>
         <div class="scenario-body">
-          <p>Szkoda całkowita to sytuacja, gdy naprawa jest nieopłacalna. Wtedy ubezpieczyciel wypłaca <strong>wartość auta sprzed wypadku minus wartość wraku</strong>. Spór dotyczy zwykle zaniżonej wartości auta albo zawyżonej wartości wraku — to inne zagadnienie niż kosztorys naprawy.</p>
-          <div class="warn">Nasz audyt sprawdza kosztorysy szkód częściowych (naprawy). Przy szkodzie całkowitej warto sprawdzić, czy próg opłacalności naprawy nie został wyliczony z zaniżonej stawki — wtedy kosztorys naprawy też ma znaczenie.</div>
+          <p>Szkoda całkowita to sytuacja, gdy naprawa jest nieopłacalna. Wtedy ubezpieczyciel wypłaca <strong>wartość auta sprzed wypadku minus wartość wraku</strong>. Spór dotyczy zwykle zaniżonej wartości auta albo zawyżonej wartości wraku – to inne zagadnienie niż kosztorys naprawy.</p>
+          <div class="warn">Nasz audyt sprawdza kosztorysy szkód częściowych (naprawy). Przy szkodzie całkowitej warto sprawdzić, czy próg opłacalności naprawy nie został wyliczony z&nbsp;zaniżonej stawki – wtedy kosztorys naprawy też ma znaczenie.</div>
         </div>
       </details>
 
-      <h3 class="guide-h">4. Co robić krok po kroku</h3>
-      <p class="guide-sub">Ścieżka dla najczęstszej sytuacji: wypłata przyszła, ale jest za niska.</p>
+      <h3 class="guide-h">4. Co robić krok po&nbsp;kroku</h3>
+      <p class="guide-sub">Ścieżka dla najczęstszej sytuacji: wypłata przyszła, ale jest za&nbsp;niska.</p>
       <ol class="steps">
         <li>
-          <h4>Weź wypłatę — to nie zamyka sprawy</h4>
-          <p>Przyjęcie przelewu nie oznacza zgody na jego wysokość. Możesz dochodzić dopłaty. <strong>Nie podpisuj jednak ugody ani oświadczenia, że nie masz dalszych roszczeń</strong> — to może zamknąć drogę do dopłaty.</p>
+          <h4>Weź wypłatę – to nie zamyka sprawy</h4>
+          <p>Przyjęcie przelewu nie oznacza zgody na&nbsp;jego wysokość. Możesz dochodzić dopłaty. <strong>Nie podpisuj jednak ugody ani oświadczenia, że&nbsp;nie masz dalszych roszczeń</strong> – to może zamknąć drogę do&nbsp;dopłaty.</p>
         </li>
         <li>
-          <h4>Zdobądź kosztorys na piśmie</h4>
-          <p>Poproś ubezpieczyciela o pełną kalkulację naprawy (PDF z Audatex / Eurotax / DAT). Ubezpieczyciel powinien ją przekazać (Rekomendacja 14 KNF). Bez kosztorysu nie da się wskazać, które pozycje są zaniżone.</p>
+          <h4>Zdobądź kosztorys na&nbsp;piśmie</h4>
+          <p>Poproś ubezpieczyciela o&nbsp;pełną kalkulację naprawy (PDF z&nbsp;Audatex / Eurotax / DAT). Ubezpieczyciel powinien ją przekazać (Rekomendacja 14 KNF). Bez kosztorysu nie da się wskazać, które pozycje są zaniżone.</p>
         </li>
         <li>
-          <h4>Sprawdź kosztorys i wyślij reklamację</h4>
-          <p>Wgraj kosztorys do audytu powyżej. Dostaniesz listę zaniżeń z kwotami i gotowe pismo reklamacyjne. Wyślij je listem poleconym lub przez formularz reklamacyjny ubezpieczyciela i <strong>zachowaj dowód wysłania</strong>.</p>
-          <p>Ubezpieczyciel ma <strong>30 dni</strong> na odpowiedź, a w szczególnie skomplikowanych sprawach — po poinformowaniu Cię o przyczynie — do 60 dni (ustawa o rozpatrywaniu reklamacji, art. 5 i 6). Jeśli nie odpowie w terminie, ustawa (art. 8) każe uznać reklamację za rozpatrzoną zgodnie z Twoją wolą. W praktyce ubezpieczyciele i sądy różnie oceniają skutki tego przepisu — traktuj go jako mocny argument, nie automatyczną wygraną.</p>
+          <h4>Sprawdź kosztorys i&nbsp;wyślij reklamację</h4>
+          <p>Wgraj kosztorys do&nbsp;audytu powyżej. Dostaniesz listę zaniżeń z&nbsp;kwotami i&nbsp;gotowe pismo reklamacyjne. Wyślij je listem poleconym lub przez formularz reklamacyjny ubezpieczyciela i&nbsp;<strong>zachowaj dowód wysłania</strong>.</p>
+          <p>Ubezpieczyciel ma <strong>30&nbsp;dni</strong> na&nbsp;odpowiedź, a&nbsp;w&nbsp;szczególnie skomplikowanych sprawach – po&nbsp;poinformowaniu Cię o&nbsp;przyczynie – do&nbsp;60&nbsp;dni (ustawa o&nbsp;rozpatrywaniu reklamacji, art.&nbsp;5 i&nbsp;6). Jeśli nie odpowie w&nbsp;terminie, ustawa (art.&nbsp;8) każe uznać reklamację za&nbsp;rozpatrzoną zgodnie z&nbsp;Twoją wolą. W&nbsp;praktyce ubezpieczyciele i&nbsp;sądy różnie oceniają skutki tego przepisu – traktuj go jako mocny argument, nie automatyczną wygraną.</p>
         </li>
         <li>
           <h4>Oceń odpowiedź</h4>
           <ul>
-            <li><strong>Dopłacili całość</strong> — sprawa zamknięta.</li>
-            <li><strong>Dopłacili część</strong> — możesz przyjąć dopłatę i dochodzić reszty dalej.</li>
-            <li><strong>Odmówili albo milczą</strong> — przejdź do kroku 5.</li>
+            <li><strong>Dopłacili całość</strong> – sprawa zamknięta.</li>
+            <li><strong>Dopłacili część</strong> – możesz przyjąć dopłatę i&nbsp;dochodzić reszty dalej.</li>
+            <li><strong>Odmówili albo milczą</strong> – przejdź do&nbsp;kroku 5.</li>
           </ul>
         </li>
         <li>
           <h4>Rzecznik Finansowy</h4>
-          <p>Po nieuwzględnionej reklamacji możesz złożyć wniosek do Rzecznika Finansowego o <strong>postępowanie interwencyjne</strong> — Rzecznik zwraca się do ubezpieczyciela o ponowne przeanalizowanie sprawy. Jest też <strong>postępowanie polubowne</strong> (próba ugody z udziałem Rzecznika). Szczegóły i formularze: <a href="https://rf.gov.pl" target="_blank" rel="noopener" style="color: var(--accent);">rf.gov.pl</a>.</p>
+          <p>Po&nbsp;nieuwzględnionej reklamacji możesz złożyć wniosek do&nbsp;Rzecznika Finansowego o&nbsp;<strong>postępowanie interwencyjne</strong> – Rzecznik zwraca się do&nbsp;ubezpieczyciela o&nbsp;ponowne przeanalizowanie sprawy. Jest też <strong>postępowanie polubowne</strong> (próba ugody z&nbsp;udziałem Rzecznika). Szczegóły i&nbsp;formularze: <a href="https://rf.gov.pl" target="_blank" rel="noopener" style="color: var(--accent);">rf.gov.pl</a>.</p>
         </li>
         <li>
           <h4>Sąd</h4>
-          <p>Jeśli nic nie pomoże, pozywasz ubezpieczyciela o dopłatę. Wysokość szkody ustala zwykle biegły. Przegrywający co do zasady zwraca koszty procesu. Opłata od pozwu przy kwotach do 20 000 zł jest stała:</p>
+          <p>Jeśli nic nie pomoże, pozywasz ubezpieczyciela o&nbsp;dopłatę. Wysokość szkody ustala zwykle biegły. Przegrywający co do&nbsp;zasady zwraca koszty procesu. Opłata od&nbsp;pozwu przy kwotach do&nbsp;20&nbsp;000&nbsp;zł jest stała:</p>
           <table class="fee-table">
-            <tr><td>do 500 zł</td><td>30 zł</td></tr>
-            <tr><td>500 – 1 500 zł</td><td>100 zł</td></tr>
-            <tr><td>1 500 – 4 000 zł</td><td>200 zł</td></tr>
-            <tr><td>4 000 – 7 500 zł</td><td>400 zł</td></tr>
-            <tr><td>7 500 – 10 000 zł</td><td>500 zł</td></tr>
-            <tr><td>10 000 – 15 000 zł</td><td>750 zł</td></tr>
-            <tr><td>15 000 – 20 000 zł</td><td>1 000 zł</td></tr>
+            <tr><td>do 500&nbsp;zł</td><td>30&nbsp;zł</td></tr>
+            <tr><td>500 – 1&nbsp;500&nbsp;zł</td><td>100&nbsp;zł</td></tr>
+            <tr><td>1&nbsp;500 – 4&nbsp;000&nbsp;zł</td><td>200&nbsp;zł</td></tr>
+            <tr><td>4&nbsp;000 – 7&nbsp;500&nbsp;zł</td><td>400&nbsp;zł</td></tr>
+            <tr><td>7&nbsp;500 – 10&nbsp;000&nbsp;zł</td><td>500&nbsp;zł</td></tr>
+            <tr><td>10&nbsp;000 – 15&nbsp;000&nbsp;zł</td><td>750&nbsp;zł</td></tr>
+            <tr><td>15&nbsp;000 – 20&nbsp;000&nbsp;zł</td><td>1&nbsp;000&nbsp;zł</td></tr>
           </table>
-          <p>Powyżej 20 000 zł opłata wynosi 5% żądanej kwoty (art. 13 ustawy o kosztach sądowych w sprawach cywilnych).</p>
-          <p>Alternatywa: sprzedaż roszczenia firmie odszkodowawczej (cesja). Dostajesz pieniądze od razu, ale zwykle tylko część tego, co mógłbyś odzyskać.</p>
+          <p>Powyżej 20&nbsp;000&nbsp;zł opłata wynosi 5% żądanej kwoty (art.&nbsp;13 ustawy o&nbsp;kosztach sądowych w&nbsp;sprawach cywilnych).</p>
+          <p>Alternatywa: sprzedaż roszczenia firmie odszkodowawczej (cesja). Dostajesz pieniądze od&nbsp;razu, ale zwykle tylko część tego, co mógłbyś odzyskać.</p>
         </li>
       </ol>
 
       <div class="guide-example" style="border-left-color: var(--accent-amber);">
-        <strong>Ile masz czasu?</strong> Roszczenie o naprawienie szkody przedawnia się co do zasady po <strong>3 latach</strong> od dnia, w którym dowiedziałeś się o szkodzie i o tym, kto ma ją naprawić (art. 442<sup>1</sup> § 1 k.c.). Zgłoszenie szkody ubezpieczycielowi przerywa bieg przedawnienia — liczy się on od nowa od dnia, w którym otrzymasz na piśmie decyzję ubezpieczyciela (art. 819 § 4 k.c.). Zachowaj daty zgłoszenia i doręczenia decyzji.
+        <strong>Ile masz czasu?</strong> Roszczenie o&nbsp;naprawienie szkody przedawnia się co do&nbsp;zasady po&nbsp;<strong>3&nbsp;latach</strong> od&nbsp;dnia, w&nbsp;którym dowiedziałeś się o&nbsp;szkodzie i&nbsp;o&nbsp;tym, kto ma ją naprawić (art.&nbsp;442<sup>1</sup> § 1 k.c.). Zgłoszenie szkody ubezpieczycielowi przerywa bieg przedawnienia – liczy się on od&nbsp;nowa od&nbsp;dnia, w&nbsp;którym otrzymasz na&nbsp;piśmie decyzję ubezpieczyciela (art.&nbsp;819 § 4 k.c.). Zachowaj daty zgłoszenia i&nbsp;doręczenia decyzji.
       </div>
 
       <h3 class="guide-h">5. Czego nie robić</h3>
       <div class="dont-list">
-        <div><strong>Nie podpisuj ugody „w ciemno”</strong>Oświadczenie o zrzeczeniu się dalszych roszczeń może zamknąć drogę do dopłaty.</div>
-        <div><strong>Nie wyrzucaj dokumentów</strong>Kosztorys, decyzja, zdjęcia uszkodzeń, faktury i potwierdzenia wysyłki to Twoje dowody.</div>
+        <div><strong>Nie podpisuj ugody „w ciemno”</strong>Oświadczenie o&nbsp;zrzeczeniu się dalszych roszczeń może zamknąć drogę do&nbsp;dopłaty.</div>
+        <div><strong>Nie wyrzucaj dokumentów</strong>Kosztorys, decyzja, zdjęcia uszkodzeń, faktury i&nbsp;potwierdzenia wysyłki to Twoje dowody.</div>
         <div><strong>Nie sprzedawaj auta pochopnie</strong>Sprzedaż przed rozliczeniem zmienia sposób liczenia odszkodowania (scenariusz C).</div>
-        <div><strong>Nie czekaj latami</strong>Pilnuj terminu przedawnienia i terminów odpowiedzi na reklamację.</div>
+        <div><strong>Nie czekaj latami</strong>Pilnuj terminu przedawnienia i&nbsp;terminów odpowiedzi na&nbsp;reklamację.</div>
       </div>
 
       <div class="guide-sources">
-        Informacje mają charakter ogólny i nie zastępują porady prawnej w konkretnej sprawie. Stan na październik 2026 r. Źródła:
+        Informacje mają charakter ogólny i&nbsp;nie zastępują porady prawnej w&nbsp;konkretnej sprawie. Stan na&nbsp;październik 2026&nbsp;r. Źródła:
         <a href="https://www.sn.pl/sites/orzecznictwo/Orzeczenia3/III%20CZP%2065-23.pdf" target="_blank" rel="noopener">uchwała SN III CZP 65/23</a>,
         <a href="http://www.sn.pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">uchwała SN III CZP 80/11</a>,
         <a href="https://www.knf.gov.pl/knf/pl/komponenty/img/Rekomendacje_dot_likwidacji_szkod_z_ubezpieczen_komunikacyjnych_78983.pdf" target="_blank" rel="noopener">Rekomendacje KNF dot. likwidacji szkód komunikacyjnych (od 1.11.2022)</a>,
@@ -1630,10 +1912,38 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     <!-- FOOTER -->
     <footer>
-      <p>zanisko.pl — Niezależny system audytu kosztorysów szkód komunikacyjnych z OC sprawcy.</p>
-      <p style="margin-top: 6px;">
-        Zgodność z orzecznictwem Sądu Najwyższego RP oraz Rekomendacjami Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r.
-      </p>
+      <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
+          <div style="max-width: 520px;">
+            <div style="font-weight: 700; color: #fff; font-size: 16px;">zanisko.pl – Niezależny audytor kosztorysów z OC sprawcy</div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.6;">
+              System automatycznej weryfikacji kalkulacji napraw powypadkowych oparty o orzecznictwo Sądu Najwyższego RP (uchwały III CZP 80/11, III CZP 32/03, III CZP 65/23) oraz Rekomendacje Komisji Nadzoru Finansowego (KNF).
+            </p>
+          </div>
+          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
+            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Informacje prawne i pomoc</div>
+            <div><a href="/regulamin.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Regulamin serwisu</a></div>
+            <div><a href="/polityka-prywatnosci.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Polityka prywatności i cookies</a></div>
+            <div><a href="/kontakt.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Kontakt i procedura reklamacyjna (14 dni)</a></div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-dim);">
+          <div>
+            <strong>Sprzedawca:</strong> Multinewsroom Jan Domaniewski &bull; ul. Barcicka 44, 01-839 Warszawa &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; E-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-muted); text-decoration: underline;">kontakt@zanisko.pl</a>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">BLIK</span>
+            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Visa</span>
+            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Mastercard</span>
+            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Przelewy24</span>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-dim); line-height: 1.5;">
+          Operatorem płatności jest PayPro S.A. z siedzibą w Poznaniu, ul. Pastelowa 8, 60-198 Poznań, wpisana do rejestru przedsiębiorców KRS pod numerem 0000347935, NIP 779-236-98-87, REGON 301345068, krajowa instytucja płatnicza nadzorowana przez Komisję Nadzoru Finansowego (KNF). Reklamacje dotyczące usług są rozpatrywane w terminie do 14 dni.
+        </div>
+      </div>
     </footer>
 
   </div>
@@ -1722,7 +2032,7 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     function showProgress(text, percent) {
       const pb = document.getElementById('progressBar');
-      pb.style.display = 'block';
+      pb.style.display = 'flex';
       document.getElementById('progressText').textContent = text;
       document.getElementById('progressPercent').textContent = percent + '%';
       document.getElementById('progressFill').style.width = percent + '%';
@@ -1977,15 +2287,33 @@ const HTML_PAGE = `<!DOCTYPE html>
     let currentLetterText = '';
 
     // Generowanie pisma wezwania do zapłaty (od razu w pełni spersonalizowane)
-    async function generateAndDisplayLetter() {
+    async function generateAndDisplayLetter(options = {}) {
       if (!currentAuditReport) return;
 
-      const claimantName = document.getElementById('claimantName').value;
-      const claimantAddress = document.getElementById('claimantAddress').value;
-      const bankAccountNumber = document.getElementById('claimantIban').value;
-      const customApiKey = '';
+      const claimantName = document.getElementById('claimantName')?.value || 'Jan Kowalski';
+      const claimantAddress = document.getElementById('claimantAddress')?.value || 'ul. Marszałkowska 10/12, 00-001 Warszawa';
+      const bankAccountNumber = document.getElementById('claimantIban')?.value || '12 1020 1026 0000 1234 5678 9012';
+      const previewEl = document.getElementById('letterPreview');
 
-      document.getElementById('letterPreview').textContent = 'Trwa generowanie spersonalizowanego wezwania do zapłaty...';
+      // Animowany obracający się spinner koła wewnątrz podglądu pisma
+      previewEl.innerHTML = 
+        '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 48px 20px; text-align: center; gap: 16px;">' +
+          '<div class="wheel-3d-stage" style="width: 80px; height: 80px; margin: 0 auto;">' +
+            '<svg class="spinning-wheel-svg" viewBox="0 0 120 120" width="80" height="80">' +
+              '<circle cx="60" cy="60" r="56" fill="url(#tireGrad)" stroke="#0b0d11" stroke-width="3"/>' +
+              '<circle cx="60" cy="60" r="54" fill="none" stroke="#2c323f" stroke-width="2.5" stroke-dasharray="3, 5.5"/>' +
+              '<circle cx="60" cy="60" r="38" fill="url(#discGrad)" stroke="#64748b" stroke-width="1"/>' +
+              '<circle cx="60" cy="60" r="41" fill="none" stroke="url(#rimGrad)" stroke-width="2.5"/>' +
+              '<line x1="60" y1="20" x2="60" y2="100" stroke="url(#spokeGrad)" stroke-width="3.5" stroke-linecap="round"/>' +
+              '<line x1="20" y1="60" x2="100" y2="60" stroke="url(#spokeGrad)" stroke-width="3.5" stroke-linecap="round"/>' +
+              '<circle cx="60" cy="60" r="14" fill="url(#hubGrad)" stroke="#38bdf8" stroke-width="1.5"/>' +
+            '</svg>' +
+          '</div>' +
+          '<div style="font-size: 16px; font-weight: 700; color: #38bdf8;">Trwa redagowanie spersonalizowanego wezwania do zapłaty...</div>' +
+          '<div style="font-size: 13px; color: var(--text-muted); max-width: 480px;">' +
+            'Weryfikacja orzecznictwa Sądu Najwyższego (uchwały III CZP 80/11 i III CZP 32/03), stawek rynkowych PIM 2026 oraz wytycznych KNF w toku.' +
+          '</div>' +
+        '</div>';
 
       try {
         const res = await fetch('/api/generate-letter', {
@@ -1994,40 +2322,58 @@ const HTML_PAGE = `<!DOCTYPE html>
           body: JSON.stringify({
             report: currentAuditReport,
             options: { claimantName, claimantAddress, bankAccountNumber },
-            useAi: true,
-            customApiKey,
+            useAi: Boolean(options.useAi),
           }),
         });
         const data = await res.json();
         currentLetterText = data.letter;
-        document.getElementById('letterPreview').textContent = data.letter;
+        previewEl.textContent = data.letter;
         showToast('Wezwanie do zapłaty zostało wygenerowane.');
       } catch (err) {
-        alert('Błąd generowania pisma: ' + err.message);
+        previewEl.textContent = 'Błąd generowania pisma: ' + err.message;
       }
     }
 
-    // Pobieranie wezwania w wybranym formacie (DOC, PDF, RTF, TXT)
-    async function downloadLetter(format) {
-      if (!currentLetterText) {
-        await generateAndDisplayLetter();
+    async function enhanceLetterWithAi() {
+      showProgress('Trwa analiza orzecznictwa i redagowanie argumentacji przez Gemini...', 45);
+      try {
+        await generateAndDisplayLetter({ useAi: true });
+      } finally {
+        hideProgress();
       }
-      const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber)
-        ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_')
-        : 'szkoda';
-      const filename = 'wezwanie_do_zaplaty_' + claimSafe;
-      await exportDocument({
-        text: currentLetterText,
-        title: 'PRZEDSĄDOWE WEZWANIE DO ZAPŁATY - SZKODA ' + (currentAuditReport ? currentAuditReport.header.claimNumber : ''),
-        format: format,
-        filename: filename,
-      });
+    }
+
+    // Pobieranie wezwania w wybranym formacie (DOCX, PDF, RTF, TXT)
+    async function downloadLetter(format) {
+      if (!currentAuditReport) return;
+      showProgress('Przygotowywanie wezwania (' + format.toUpperCase() + ')...', 45);
+      try {
+        const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber)
+          ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_')
+          : 'szkoda';
+        const filename = 'wezwanie_do_zaplaty_' + claimSafe;
+        await exportDocument({
+          text: currentLetterText || '',
+          report: currentAuditReport,
+          options: {
+            claimantName: document.getElementById('claimantName')?.value || 'Jan Kowalski',
+            claimantAddress: document.getElementById('claimantAddress')?.value || 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+            bankAccountNumber: document.getElementById('claimantIban')?.value || '12 1020 1026 0000 1234 5678 9012',
+          },
+          title: 'PRZEDSĄDOWE WEZWANIE DO ZAPŁATY - SZKODA ' + (currentAuditReport ? currentAuditReport.header.claimNumber : ''),
+          format: format,
+          filename: filename,
+        });
+      } catch (err) {
+        hideProgress();
+        alert('Błąd pobierania wezwania: ' + err.message);
+      }
     }
 
     // Pobieranie załącznika (attachment1, attachment2, attachment3) w wybranym formacie
     async function downloadAttachment(attachmentId, format) {
       if (!currentAuditReport) return;
-      showProgress('Przygotowywanie załącznika do pobrania...', 40);
+      showProgress('Przygotowywanie załącznika ' + format.toUpperCase() + '...', 40);
       try {
         const res = await fetch('/api/attachments/generate', {
           method: 'POST',
@@ -2035,7 +2381,6 @@ const HTML_PAGE = `<!DOCTYPE html>
           body: JSON.stringify({ report: currentAuditReport }),
         });
         const data = await res.json();
-        hideProgress();
         const att = data.attachments.find(a => a.id === attachmentId);
         if (!att) throw new Error('Nie odnaleziono załącznika');
 
@@ -2044,6 +2389,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         await exportDocument({
           text: att.textContent,
           html: att.htmlContent,
+          attachment: att,
           title: att.title,
           format: format,
           filename: filename,
@@ -2057,37 +2403,44 @@ const HTML_PAGE = `<!DOCTYPE html>
     // Pobieranie kompletnego pakietu procesowego (Wezwanie + Załączniki w jednym pliku)
     async function downloadBundle(format) {
       if (!currentAuditReport) return;
-      if (!currentLetterText) {
-        await generateAndDisplayLetter();
-      }
-      showProgress('Generowanie kompletnego pakietu procesowego...', 40);
+      showProgress('Generowanie kompletnego pakietu (' + format.toUpperCase() + ')...', 40);
       try {
-        const res = await fetch('/api/attachments/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ report: currentAuditReport }),
-        });
-        const data = await res.json();
-        hideProgress();
-
-        let bundleText = currentLetterText + '\\n\\n' + '='.repeat(60) + '\\n\\n';
-        let bundleHtml = '<div style="page-break-after: always;">' + currentLetterText.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>') + '</div>';
-
-        data.attachments.forEach((att) => {
-          bundleText += '\\n\\n' + '='.repeat(60) + '\\n' + att.title + '\\n' + '='.repeat(60) + '\\n\\n' + att.textContent + '\\n';
-          bundleHtml += '<div style="page-break-before: always; margin-top: 30pt;">' + att.htmlContent + '</div>';
-        });
-
         const claimSafe = currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_');
         const filename = 'kompletny_pakiet_procesowy_' + claimSafe;
 
-        await exportDocument({
-          text: bundleText,
-          html: bundleHtml,
-          title: 'KOMPLETNY PAKIET PROCESOWY - SZKODA ' + currentAuditReport.header.claimNumber,
-          format: format,
-          filename: filename,
+        const res = await fetch('/api/export-bundle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            report: currentAuditReport,
+            letterText: currentLetterText || '',
+            options: {
+              claimantName: document.getElementById('claimantName')?.value || 'Jan Kowalski',
+              claimantAddress: document.getElementById('claimantAddress')?.value || 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+              bankAccountNumber: document.getElementById('claimantIban')?.value || '12 1020 1026 0000 1234 5678 9012',
+            },
+            format: format,
+            filename: filename,
+            title: 'KOMPLETNY PAKIET PROCESOWY – SZKODA ' + currentAuditReport.header.claimNumber,
+          }),
         });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Błąd serwera ' + res.status);
+        }
+
+        const blob = await res.blob();
+        hideProgress();
+
+        const ext = (format === 'docx' || format === 'doc') ? '.docx' : (format === 'pdf' ? '.pdf' : (format === 'rtf' ? '.rtf' : '.txt'));
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Pobrano kompletny pakiet procesowy (' + format.toUpperCase() + ').');
       } catch (err) {
         hideProgress();
         alert('Błąd generowania pakietu: ' + err.message);
@@ -2103,11 +2456,14 @@ const HTML_PAGE = `<!DOCTYPE html>
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(params),
         });
-        if (!res.ok) throw new Error('Serwer zwrócił kod błędu ' + res.status);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Serwer zwrócił kod błędu ' + res.status);
+        }
         const blob = await res.blob();
         hideProgress();
 
-        const ext = params.format === 'doc' ? '.doc' : params.format === 'pdf' ? '.pdf' : params.format === 'rtf' ? '.rtf' : '.txt';
+        const ext = (params.format === 'docx' || params.format === 'doc') ? '.docx' : params.format === 'pdf' ? '.pdf' : params.format === 'rtf' ? '.rtf' : '.txt';
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = params.filename + ext;
@@ -2150,6 +2506,30 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
       return;
     }
 
+    // GET /regulamin, /regulamin.html, /polityka-prywatnosci, /polityka-prywatnosci.html, /kontakt, /kontakt.html - Wymogi prawne Przelewy24 (PayPro S.A.)
+    const LEGAL_PAGES: Record<string, string> = {
+      '/regulamin': 'public/regulamin.html',
+      '/regulamin.html': 'public/regulamin.html',
+      '/polityka-prywatnosci': 'public/polityka-prywatnosci.html',
+      '/polityka-prywatnosci.html': 'public/polityka-prywatnosci.html',
+      '/kontakt': 'public/kontakt.html',
+      '/kontakt.html': 'public/kontakt.html',
+    };
+
+    if ((req.method === 'GET' || req.method === 'HEAD') && LEGAL_PAGES[url.pathname]) {
+      const pageFile = path.resolve(LEGAL_PAGES[url.pathname]);
+      if (fs.existsSync(pageFile)) {
+        const content = fs.readFileSync(pageFile, 'utf-8');
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+        });
+        if (req.method === 'HEAD') { res.end(); return; }
+        res.end(content);
+        return;
+      }
+    }
+
     // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF z wymuszonym nagłówkiem attachment
     if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
       const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
@@ -2179,23 +2559,33 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
       return;
     }
 
-    // GET /favicon.ico - Bezpośrednie serwowanie ikony favicon
-    if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname === '/favicon.ico') {
-      const faviconPath = path.resolve('public/favicon.ico');
-      if (fs.existsSync(faviconPath)) {
-        const stat = fs.statSync(faviconPath);
+    // GET /favicon.ico, /favicon.svg, /favicon.png, /apple-touch-icon*.png, /site.webmanifest - Zasoby główne dla Safari i Chrome
+    const ROOT_STATIC_ASSETS: Record<string, { file: string; type: string }> = {
+      '/favicon.ico': { file: 'public/favicon.ico', type: 'image/x-icon' },
+      '/favicon.svg': { file: 'public/favicon.svg', type: 'image/svg+xml' },
+      '/favicon.png': { file: 'public/favicon.png', type: 'image/png' },
+      '/apple-touch-icon.png': { file: 'public/apple-touch-icon.png', type: 'image/png' },
+      '/apple-touch-icon-precomposed.png': { file: 'public/apple-touch-icon-precomposed.png', type: 'image/png' },
+      '/site.webmanifest': { file: 'public/site.webmanifest', type: 'application/manifest+json' },
+    };
+
+    if ((req.method === 'GET' || req.method === 'HEAD') && ROOT_STATIC_ASSETS[url.pathname]) {
+      const asset = ROOT_STATIC_ASSETS[url.pathname];
+      const assetPath = path.resolve(asset.file);
+      if (fs.existsSync(assetPath)) {
+        const stat = fs.statSync(assetPath);
         res.writeHead(200, {
-          'Content-Type': 'image/x-icon',
+          'Content-Type': asset.type,
           'Content-Length': stat.size,
           'Cache-Control': 'public, max-age=86400',
         });
         if (req.method === 'HEAD') { res.end(); return; }
-        fs.createReadStream(faviconPath).pipe(res);
+        fs.createReadStream(assetPath).pipe(res);
         return;
       }
     }
 
-    // GET /images/* - Serwowanie grafik i fotografii użytkownika
+    // GET /images/* - Serwowanie grafik, ikon i fotografii użytkownika
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname.startsWith('/images/')) {
       const imageName = path.basename(url.pathname);
       const imagePath = path.resolve('public/images', imageName);
@@ -2203,7 +2593,10 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
         const ext = path.extname(imageName).toLowerCase();
         let contentType = 'image/jpeg';
         if (ext === '.png') contentType = 'image/png';
-        if (ext === '.ico') contentType = 'image/x-icon';
+        else if (ext === '.svg') contentType = 'image/svg+xml';
+        else if (ext === '.ico') contentType = 'image/x-icon';
+        else if (ext === '.webp') contentType = 'image/webp';
+        else if (ext === '.webmanifest') contentType = 'application/manifest+json';
         const stat = fs.statSync(imagePath);
         res.writeHead(200, {
           'Content-Type': contentType,
@@ -2438,7 +2831,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
       return;
     }
 
-    // POST /api/export-document - Uniwersalny eksport dokumentów procesowych (DOC, RTF, TXT, PDF)
+    // POST /api/export-document - Uniwersalny eksport dokumentów procesowych (DOCX, DOC, RTF, TXT, PDF)
     if (req.method === 'POST' && url.pathname === '/api/export-document') {
       let body = '';
       req.on('data', chunk => { body += chunk; });
@@ -2447,7 +2840,14 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           const payload = JSON.parse(body);
           const format = String(payload.format || 'txt').toLowerCase();
           const title = payload.title || 'Dokument procesowy';
-          const text = payload.text || '';
+          let text = payload.text || '';
+          if (!text.trim() && payload.report) {
+            text = generateDemandLetter(payload.report, payload.options || {
+              claimantName: 'Poszkodowany',
+              claimantAddress: 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+              bankAccountNumber: '12 1020 1026 0000 1234 5678 9012',
+            });
+          }
           const html = payload.html || demandLetterToHtml(text);
           const filename = payload.filename || 'dokument';
 
@@ -2456,9 +2856,24 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           let ext: string;
 
           switch (format) {
+            case 'docx':
+              if (payload.attachment) {
+                buffer = exportAttachmentToDocx(payload.attachment);
+              } else {
+                buffer = exportDemandLetterToDocx(text, title);
+              }
+              contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+              ext = '.docx';
+              break;
             case 'doc':
-              buffer = exportToDoc(html, title);
-              contentType = 'application/msword; charset=utf-8';
+              if (payload.attachment) {
+                buffer = exportAttachmentToDocx(payload.attachment);
+              } else if (text) {
+                buffer = exportDemandLetterToDocx(text, title);
+              } else {
+                buffer = exportToDoc(html, title);
+              }
+              contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
               ext = '.doc';
               break;
             case 'rtf':
@@ -2487,6 +2902,82 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           res.end(buffer);
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : 'Błąd eksportu dokumentu';
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+      return;
+    }
+
+    // POST /api/export-bundle - Kompletny pakiet procesowy (Wezwanie + Załączniki w jednym spójnym dokumencie)
+    if (req.method === 'POST' && url.pathname === '/api/export-bundle') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const payload = JSON.parse(body);
+          const format = String(payload.format || 'docx').toLowerCase();
+          const report = payload.report as AuditReport;
+          const defaultOptions = {
+            claimantName: 'Poszkodowany',
+            claimantAddress: 'ul. Marszałkowska 10/12, 00-001 Warszawa',
+            bankAccountNumber: '12 1020 1026 0000 1234 5678 9012',
+          };
+
+          if (!report) {
+            throw new Error('Brak raportu audytowego do wygenerowania pakietu');
+          }
+
+          let letterText = payload.letterText || '';
+          if (!letterText.trim()) {
+            letterText = generateDemandLetter(report, payload.options || defaultOptions);
+          }
+
+          const filename = payload.filename || 'kompletny_pakiet_procesowy';
+          const title = payload.title || 'Kompletny pakiet procesowy';
+
+          const att1 = generateAttachment1Audit(report);
+          const att2 = generateAttachment2PimRates(report.header.voivodeship, report.header.vehicleSegment);
+          const att3 = generateAttachment3LegalBasis();
+          const attachments = [att1, att2, att3];
+
+          let buffer: Buffer;
+          let contentType: string;
+          let ext: string;
+
+          if (format === 'docx' || format === 'doc') {
+            buffer = exportBundleToDocx(letterText, attachments, title);
+            contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            ext = format === 'doc' ? '.doc' : '.docx';
+          } else {
+            let bundleText = letterText;
+            for (const att of attachments) {
+              bundleText += '\n\n\f\n\n' + '='.repeat(60) + '\n' + att.title + '\n' + '='.repeat(60) + '\n\n' + att.textContent;
+            }
+
+            if (format === 'pdf') {
+              buffer = await exportToPdf(bundleText, title);
+              contentType = 'application/pdf';
+              ext = '.pdf';
+            } else if (format === 'rtf') {
+              buffer = exportToRtf(bundleText);
+              contentType = 'application/rtf; charset=utf-8';
+              ext = '.rtf';
+            } else {
+              buffer = exportToTxt(bundleText);
+              contentType = 'text/plain; charset=utf-8';
+              ext = '.txt';
+            }
+          }
+
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'Content-Length': buffer.length,
+            'Content-Disposition': `attachment; filename="${filename}${ext}"`,
+          });
+          res.end(buffer);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Błąd generowania pakietu procesowego';
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: message }));
         }

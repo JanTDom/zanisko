@@ -1,5 +1,6 @@
 import { AuditReport, Voivodeship, VehicleSegment } from './types.js';
 import { REGIONAL_BENCHMARKS } from './regional-rates.js';
+import { fixPolishTypography, fixPolishTypographyInHtml } from './typography.js';
 
 export interface AttachmentData {
   id: 'attachment1' | 'attachment2' | 'attachment3';
@@ -135,10 +136,10 @@ Niniejsza kalkulacja różnicowa stanowi integralny załącznik do wezwania do z
   return {
     id: 'attachment1',
     number: 1,
-    title: 'Załącznik nr 1 — Szczegółowa kalkulacja korygująca i audyt kosztorysu',
+    title: 'Załącznik nr 1 – Szczegółowa kalkulacja korygująca i audyt kosztorysu',
     subtitle: 'Wykaz uchybień formalnych i wyliczenie pełnej kompensacji szkody',
-    textContent,
-    htmlContent,
+    textContent: textContent.replace(/—/g, '–'),
+    htmlContent: fixPolishTypographyInHtml(htmlContent),
   };
 }
 
@@ -227,10 +228,10 @@ Pojazdy nowsze oraz klasy Premium wymagają po naprawie blacharsko-lakierniczej 
   return {
     id: 'attachment2',
     number: 2,
-    title: 'Załącznik nr 2 — Wyciąg ze stawek rynkowych robocizny PIM 2026',
+    title: 'Załącznik nr 2 – Wyciąg ze stawek rynkowych robocizny PIM 2026',
     subtitle: 'Urzędowe zestawienie stawek roboczogodziny dla 16 województw w oparciu o Rekomendację 15 KNF',
-    textContent,
-    htmlContent,
+    textContent: textContent.replace(/—/g, '–'),
+    htmlContent: fixPolishTypographyInHtml(htmlContent),
   };
 }
 
@@ -273,7 +274,7 @@ Art. 8: Niedotrzymanie terminu 30 dni skutkuje prawnym uznaniem reklamacji zgodn
   <div style="font-size: 9pt; text-align: right; color: #777; margin-top: 8pt;">Stan prawny na: ${currentDate} | Opracowanie prawne zanisko.pl</div>
 </div>
 
-<h2>I. Uchwała 7 Sędziów Sądu Najwyższego — III CZP 80/11</h2>
+<h2>I. Uchwała 7 Sędziów Sądu Najwyższego – III CZP 80/11</h2>
 <div style="background: #f8fafc; border-left: 4px solid #0284c7; padding: 8pt 12pt; margin-bottom: 12pt; font-style: italic;">
 „Zakład ubezpieczeń zobowiązany jest na podstawie umowy ubezpieczenia odpowiedzialności cywilnej posiadaczy pojazdów mechanicznych do wypłaty odszkodowania obejmującego celowe i ekonomicznie uzasadnione koszty nowych części i materiałów służących do naprawy uszkodzonego pojazdu. Jeżeli ubezpieczyciel wykaże, że prowadzi to do wzrostu wartości pojazdu, odszkodowanie może ulec obniżeniu o kwotę odpowiadającą temu wzrostowi”.
 </div>
@@ -281,7 +282,7 @@ Art. 8: Niedotrzymanie terminu 30 dni skutkuje prawnym uznaniem reklamacji zgodn
 Ciężar dowodu wykazania, że wymiana części doprowadziła do wzrostu wartości handlowej pojazdu spoczywa na ubezpieczycielu (art. 6 k.c.). Rutynowe obcinanie wartości części o wskaźnik amortyzacji stanowi delikt odszkodowawczy.
 </p>
 
-<h2>II. Uchwała Sądu Najwyższego — III CZP 32/03</h2>
+<h2>II. Uchwała Sądu Najwyższego – III CZP 32/03</h2>
 <div style="background: #f8fafc; border-left: 4px solid #0f766e; padding: 8pt 12pt; margin-bottom: 12pt; font-style: italic;">
 „Obowiązek naprawienia szkody przez wypłatę odpowiedniej sumy pieniężnej powstaje z chwilą wyrządzenia szkody i nie jest uzależniony od tego, czy poszkodowany dokonał naprawy rzeczy i czy w ogóle zamierza ją naprawić”.
 </div>
@@ -305,9 +306,9 @@ Zgodnie z art. 8 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji prz
   return {
     id: 'attachment3',
     number: 3,
-    title: 'Załącznik nr 3 — Zestawienie orzecznictwa Sądu Najwyższego i Rekomendacji KNF',
+    title: 'Załącznik nr 3 – Zestawienie orzecznictwa Sądu Najwyższego i Rekomendacji KNF',
     subtitle: 'Kluczowe tezy prawne: zakaz amortyzacji (III CZP 80/11), brak wymogu faktur (III CZP 32/03) oraz Rekomendacje KNF',
-    textContent,
-    htmlContent,
+    textContent: textContent.replace(/—/g, '–'),
+    htmlContent: fixPolishTypographyInHtml(htmlContent),
   };
 }
