@@ -1544,7 +1544,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             </div>
 
             <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
-              Sprzedawca: Multinewsroom Jan Domaniewski &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; e-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-dim); text-decoration: underline;">kontakt@zanisko.pl</a>
+              Sprzedawca: Multinewsroom &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; e-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-dim); text-decoration: underline;">kontakt@zanisko.pl</a>
             </div>
           </div>
         </div>
@@ -1960,7 +1960,7 @@ const HTML_PAGE = `<!DOCTYPE html>
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-dim);">
           <div>
-            <strong>Sprzedawca:</strong> Multinewsroom Jan Domaniewski &bull; ul. Barcicka 44, 01-839 Warszawa &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; E-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-muted); text-decoration: underline;">kontakt@zanisko.pl</a>
+            <strong>Sprzedawca:</strong> Multinewsroom &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; E-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-muted); text-decoration: underline;">kontakt@zanisko.pl</a>
           </div>
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">BLIK</span>

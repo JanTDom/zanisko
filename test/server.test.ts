@@ -380,7 +380,7 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
     const contactRes = await fetch(`${baseUrl}/kontakt`);
     expect(contactRes.status).toBe(200);
     const contactText = await contactRes.text();
-    expect(contactText).toContain('Kontakt i reklamacje');
+    expect(contactText).toContain('Kontakt');
     expect(contactText).toContain('kontakt@zanisko.pl');
     expect(contactText).toContain('14 dni');
   });

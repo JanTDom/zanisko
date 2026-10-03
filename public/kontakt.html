@@ -97,34 +97,32 @@
       margin-bottom: 16px;
       letter-spacing: -0.02em;
     }
-    .lead {
-      color: var(--text-muted);
-      font-size: 16px;
-      margin-bottom: 32px;
-    }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 32px;
-      margin-bottom: 24px;
+      margin-top: 14px;
+      margin-bottom: 20px;
     }
     dl {
       display: grid;
       grid-template-columns: 140px 1fr;
-      gap: 16px 20px;
+      gap: 14px 20px;
       font-size: 15px;
     }
     dt {
-      color: var(--text-dim);
-      font-weight: 500;
-      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
+      padding-top: 2px;
+      white-space: nowrap;
     }
     dd {
       color: var(--text);
-      font-weight: 500;
+      font-weight: 400;
     }
     dd a {
       color: var(--accent);
@@ -133,33 +131,95 @@
     dd a:hover {
       text-decoration: underline;
     }
-    .info-box {
+    .note {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+    .note a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .note a:hover {
+      text-decoration: underline;
+    }
+    .p24-card {
       background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 14px;
+      padding: 32px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .p24-card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .p24-lead {
       font-size: 14px;
       color: var(--text-muted);
-      margin-top: 24px;
+      line-height: 1.65;
+      margin-bottom: 24px;
     }
-    .info-box h3 {
+    .p24-lead strong {
       color: #fff;
-      font-size: 15px;
-      margin-bottom: 8px;
-      font-family: 'Space Grotesk', sans-serif;
     }
-    .p24-badge {
-      display: inline-flex;
-      align-items: center;
+    .p24-badges {
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      padding: 4px 10px;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 6px;
+      margin-bottom: 24px;
+    }
+    .p24-pill {
       font-size: 12px;
-      color: var(--accent);
       font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--accent);
+    }
+    .p24-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+    @media (max-width: 640px) {
+      .p24-grid { grid-template-columns: 1fr; }
+      dl { grid-template-columns: 1fr; gap: 6px; }
+      dt { padding-top: 10px; }
+    }
+    .p24-block {
+      background: rgba(7, 9, 14, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+    .p24-block h3 {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .p24-block ul {
+      padding-left: 18px;
       margin-top: 8px;
+    }
+    .p24-block li {
+      margin-bottom: 8px;
+      line-height: 1.55;
+    }
+    .p24-block li strong {
+      color: #fff;
     }
     footer {
       max-width: 760px;
@@ -175,10 +235,6 @@
     }
     footer a { color: var(--text-muted); text-decoration: none; }
     footer a:hover { color: var(--accent); }
-    @media (max-width: 560px) {
-      dl { grid-template-columns: 1fr; gap: 8px; }
-      dt { margin-top: 12px; }
-    }
   </style>
 </head>
 <body>
@@ -193,48 +249,64 @@
   </nav>
 
   <main class="container">
-    <div class="kicker">Dane identyfikacyjne i kontakt</div>
-    <h1>Kontakt i reklamacje – zanisko.pl</h1>
-    <p class="lead">W sprawach technicznych, zapytań dotyczących audytów, obsługi reklamacji oraz faktur zapraszamy do kontaktu drogą elektroniczną.</p>
+    <div class="kicker">Dane kontaktowe</div>
+    <h1>Kontakt</h1>
 
     <div class="card">
       <dl>
-        <dt>Właściciel</dt>
-        <dd>Multinewsroom Jan Domaniewski</dd>
-
-        <dt>Forma prawna</dt>
-        <dd>Jednoosobowa działalność gospodarcza</dd>
-
-        <dt>Adres siedziby</dt>
-        <dd>ul. Barcicka 44, 01-839 Warszawa, Polska</dd>
-
-        <dt>NIP</dt>
-        <dd>525-218-92-41</dd>
-
-        <dt>REGON</dt>
-        <dd>147154574</dd>
-
-        <dt>Adres e-mail</dt>
-        <dd><a href="mailto:kontakt@zanisko.pl">kontakt@zanisko.pl</a></dd>
-
-        <dt>Serwis WWW</dt>
-        <dd><a href="https://zanisko.pl">https://zanisko.pl</a></dd>
+        <dt>Firma</dt><dd>Multinewsroom</dd>
+        <dt>NIP</dt><dd>525-218-92-41</dd>
+        <dt>REGON</dt><dd>147154574</dd>
+        <dt>E-mail</dt><dd><a href="mailto:kontakt@zanisko.pl">kontakt@zanisko.pl</a></dd>
+        <dt>Serwis</dt><dd><a href="https://zanisko.pl">www.zanisko.pl</a></dd>
       </dl>
     </div>
 
-    <div class="info-box">
-      <h3>Obsługa klienta i reklamacji</h3>
-      <p>
-        Wszelkie zapytania oraz reklamacje dotyczące świadczonych usług cyfrowych przyjmujemy pod adresem <a href="mailto:kontakt@zanisko.pl" style="color:var(--accent);">kontakt@zanisko.pl</a>. Odpowiedzi udzielamy w dni robocze, zwykle w ciągu 24–48 godzin. Reklamacje konsumenckie rozpatrywane są w ustawowym terminie do 14 dni zgodnie z postanowieniami <a href="/regulamin.html" style="color:var(--accent);">Regulaminu</a>.
+    <p class="note">
+      Na&nbsp;wiadomości e-mail odpowiadamy w&nbsp;dni robocze, zwykle w&nbsp;ciągu 24&nbsp;godzin. Reklamacje rozpatrujemy zgodnie z&nbsp;<a href="/regulamin.html">Regulaminem</a> (§7). Zasady przetwarzania danych osobowych opisuje <a href="/polityka-prywatnosci.html">Polityka prywatności</a>.
+    </p>
+
+    <div class="p24-card">
+      <h2>Płatności online i operator Przelewy24</h2>
+      <p class="p24-lead">
+        Operatorem płatności online w serwisie zanisko.pl jest <strong>PayPro Spółka Akcyjna</strong> z siedzibą w Poznaniu przy ul. Pastelowej 8 (60-198 Poznań), wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez Sąd Rejonowy Poznań – Nowe Miasto i Wilda w Poznaniu, VIII Wydział Gospodarczy KRS pod numerem KRS <strong>0000347935</strong>, NIP: <strong>779-236-98-87</strong>, REGON: <strong>301345068</strong>, kapitał zakładowy: 5 476 300,00 zł wpłacony w całości, wpisana do rejestru krajowych instytucji płatniczych prowadzonego przez Komisję Nadzoru Finansowego (KNF) pod numerem <strong>UKNF IP24/2014</strong> (operator serwisu Przelewy24).
       </p>
-      <div class="p24-badge">
-        <span>Operator płatności: PayPro S.A. (Przelewy24)</span>
+
+      <div class="p24-badges">
+        <span class="p24-pill">BLIK</span>
+        <span class="p24-pill">Szybki przelew (Pay-by-link)</span>
+        <span class="p24-pill">Visa / Mastercard</span>
+        <span class="p24-pill">Apple Pay / Google Pay</span>
+        <span class="p24-pill">Certyfikat SSL 256-bit</span>
+        <span class="p24-pill">3D-Secure</span>
+      </div>
+
+      <div class="p24-grid">
+        <div class="p24-block">
+          <h3>Dostępne formy płatności</h3>
+          <ul>
+            <li><strong>BLIK:</strong> natychmiastowa i bezpieczna płatność kodem z aplikacji mobilnej banku.</li>
+            <li><strong>Szybki przelew internetowy:</strong> automatyczne przekierowanie do bankowości elektronicznej większości polskich banków.</li>
+            <li><strong>Karty płatnicze:</strong> Visa, Visa Electron, Mastercard, MasterCard Electronic, Maestro z autoryzacją 3D-Secure.</li>
+            <li><strong>Portfele cyfrowe:</strong> Apple Pay oraz Google Pay.</li>
+          </ul>
+        </div>
+
+        <div class="p24-block">
+          <h3>Realizacja i reklamacje transakcji</h3>
+          <ul>
+            <li><strong>Natychmiastowe wykonanie usługi:</strong> Dostęp do pełnego audytu kosztorysu oraz generowania pakietu dokumentów (DOCX, PDF, RTF) jest odblokowywany automatycznie w przeglądarce bezpośrednio po potwierdzeniu wpłaty przez system Przelewy24.</li>
+            <li><strong>Waluta i ceny:</strong> Wszystkie ceny w serwisie są cenami brutto w złotych polskich (PLN) i zawierają należny podatek VAT. Klient nie ponosi żadnych dodatkowych opłat manipulacyjnych ani prowizji za wybór płatności Przelewy24.</li>
+            <li><strong>Procedura zwrotu środków:</strong> W przypadku odstąpienia od umowy lub uznania reklamacji, zwrot płatności dokonywany jest przez Sprzedawcę przy użyciu takiego samego sposobu zapłaty, jakiego użył Klient (za pośrednictwem Przelewy24 na powiązany rachunek bankowy lub kartę płatniczą), w ustawowym terminie do 14 dni.</li>
+            <li><strong>Kontakt w sprawie płatności:</strong> Zgłoszenia dotyczące przebiegu transakcji przyjmujemy pod adresem <a href="mailto:kontakt@zanisko.pl" style="color:var(--accent);">kontakt@zanisko.pl</a> lub bezpośrednio u operatora: serwis@przelewy24.pl, infolinia: +48 61 642 93 44.</li>
+          </ul>
+        </div>
       </div>
     </div>
   </main>
 
   <footer>
-    <div>© 2026 zanisko.pl · Wszelkie prawa zastrzeżone</div>
+    <div>© 2026 zanisko.pl · Multinewsroom · NIP: 525-218-92-41</div>
     <div style="display:flex; gap:16px;">
       <a href="/regulamin.html">Regulamin</a>
       <a href="/polityka-prywatnosci.html">Polityka prywatności</a>
