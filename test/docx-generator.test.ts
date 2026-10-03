@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { exportDemandLetterToDocx, exportAttachmentToDocx, exportBundleToDocx } from '../src/services/docx-generator.js';
+import {
+  exportDemandLetterToDocx,
+  exportAttachmentToDocx,
+  exportBundleToDocx,
+  demandLetterToDocxXml,
+  attachmentToDocxXml,
+} from '../src/services/docx-generator.js';
 import { generateDemandLetter } from '../src/domain/demand-letter.js';
 import { generateAttachment1Audit, generateAttachment2PimRates, generateAttachment3LegalBasis } from '../src/domain/attachments.js';
 import { runAudit } from '../src/domain/audit-engine.js';
@@ -101,8 +107,41 @@ describe('DOCX OpenXML Generator Service', () => {
       expect(text).toContain('Załącznik nr 1');
       expect(text).toContain('Województwo mazowieckie');
       expect(text).toContain('III CZP 80/11');
+
+      // Weryfikacja braku jakichkolwiek encji '&nbsp;' czy 'krzaczków' w wyjściowym tekście
+      expect(text).not.toContain('&nbsp;');
+      expect(text).not.toContain('&amp;nbsp;');
     } finally {
       if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
     }
+  });
+
+  it('powinien poprawnie wciąć elementy numerowane oraz podpunkty w XML pisma', () => {
+    const xml = demandLetterToDocxXml(letterText);
+
+    // Weryfikacja wcięcia wiszącego dla nagłówków numerowanych (np. 1. ZANIŻENIE..., 2. BEZPRAWNE...)
+    expect(xml).toContain('<w:ind w:left="480" w:hanging="280"/>');
+    // Weryfikacja wcięcia dla właściwości podpunktu (Roszczenie:, Podstawa zarzutu:, Uzasadnienie:)
+    expect(xml).toContain('<w:ind w:left="480"/>');
+    // Weryfikacja wcięcia dla podpunktów wykazów pozycji
+    expect(xml).toContain('<w:ind w:left="840" w:hanging="280"/>');
+    // Zero encji &nbsp; w strukturze XML
+    expect(xml).not.toContain('&nbsp;');
+    expect(xml).not.toContain('&amp;nbsp;');
+  });
+
+  it('powinien wygenerować załączniki tabelaryczne bez encji &nbsp; ani krzaczków', () => {
+    const xml1 = attachmentToDocxXml(att1);
+    expect(xml1).not.toContain('&nbsp;');
+    expect(xml1).not.toContain('&amp;nbsp;');
+    expect(xml1).toContain('3200.00');
+    expect(xml1).toContain('I. Metryka szkody');
+
+    const xml2 = attachmentToDocxXml(att2);
+    expect(xml2).not.toContain('&nbsp;');
+    expect(xml2).not.toContain('&amp;nbsp;');
+    expect(xml2).toContain('Rekomendacj');
+    // Sprawdź czy sekcja III Załącznika nr 2 (po tabeli) została uwzględniona
+    expect(xml2).toContain('III. Wymogi technologiczne');
   });
 });

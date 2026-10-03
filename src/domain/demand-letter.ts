@@ -188,7 +188,7 @@ export function demandLetterToHtml(text: string): string {
         inNumberedItem = false;
         inAttachmentsList = true;
         html.push(`<p class="party" style="margin-top:14pt;">${esc(line)}</p>`);
-      } else if (inAttachmentsList && /^\d+\.\s+/.test(line)) {
+      } else if (/^\d+\.\s+/.test(line)) {
         html.push(`<p class="num-li">${labelled(line)}</p>`);
       } else if (/^[.…_]{10,}$/.test(line)) {
         inNumberedItem = false;

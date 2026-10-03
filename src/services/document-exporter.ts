@@ -55,8 +55,8 @@ h1, h2, h3 { font-family: 'Calibri', Arial, sans-serif; }
 h1 { font-size: 14pt; font-weight: bold; text-align: center; margin: 18pt 0 4pt 0; text-transform: uppercase; }
 h2 { font-size: 11.5pt; font-weight: bold; margin: 14pt 0 6pt 0; border-bottom: 1px solid #444; padding-bottom: 2pt; page-break-after: avoid; }
 h3 { font-size: 11pt; font-weight: bold; margin: 10pt 0 3pt 0; page-break-after: avoid; }
-h3.basis { font-size: 11pt; margin-top: 10pt; margin-bottom: 3pt; page-break-after: avoid; }
-h3.num-item { font-size: 11pt; font-weight: bold; margin: 12pt 0 4pt 0; page-break-after: avoid; }
+h3.basis { font-size: 11pt; font-weight: bold; margin: 12pt 0 3pt 24pt; mso-para-margin-left: 24pt; text-indent: -14pt; page-break-after: avoid; text-align: justify; }
+h3.num-item { font-size: 11pt; font-weight: bold; margin: 14pt 0 4pt 24pt; mso-para-margin-left: 24pt; text-indent: -14pt; page-break-after: avoid; text-align: justify; }
 p { margin: 0 0 2pt 0; text-align: left; }
 p.justify { text-align: justify; margin-bottom: 4pt; }
 p.subtitle { text-align: center; font-weight: bold; margin: 0 0 2pt 0; }

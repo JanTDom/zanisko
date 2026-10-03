@@ -142,10 +142,40 @@ const STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 </w:styles>`;
 
 /**
+ * Odszyfrowuje encje HTML (takie jak &nbsp;, &ndash;, &amp; itp.) na natywne znaki Unicode.
+ */
+export function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&nbsp;/gi, '\u00A0')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&mdash;/gi, '—')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;|&#39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&amp;/gi, '&')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+/**
+ * Czyści fragment HTML na czysty tekst z zachowaniem niełamliwych spacji Unicode (\u00A0).
+ */
+export function cleanHtmlToDocxText(html: string): string {
+  if (!html) return '';
+  const noTags = html
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ');
+  return decodeHtmlEntities(noTags).replace(/[ \t\r\n]+/g, ' ').trim();
+}
+
+/**
  * Konwertuje tekst akapitu na format Word OpenXML (z obsługą pogrubionych etykiet 'Etykieta:').
  */
 function formatParagraphRuns(text: string): string {
-  const fixed = fixPolishTypography(text, false);
+  const decoded = decodeHtmlEntities(text || '');
+  const fixed = fixPolishTypography(decoded, false);
   const LABEL = /^(Roszczenie|Podstawa zarzutu|Podstawa prawna|Uzasadnienie|Numer rachunku|Tytuł przelewu|Szczegółowy wykaz pozycji|Dotyczy|Data zdarzenia|Numer szkody[^:]*|Pojazd[^:]*|Numer rejestracyjny|Województwo szkody|Stawka przyjęta|Stawka robocizny|Przyznana kwota bezsporna|Wyliczona kwota zaniżenia|Pełny, rzetelny koszt|WZYWAJĄCY[^:]*|ADRESAT[^:]*)\s*:\s*/i;
 
   const m = fixed.match(LABEL);
@@ -212,22 +242,24 @@ export function demandLetterToDocxXml(text: string): string {
           `<w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Podpunkty numerowane (np. 1. ZANIŻENIE STAWKI..., 2. BEZPRAWNE POTRĄCENIE...)
+      // Podpunkty numerowane sekcji II (np. 1. ZANIŻENIE STAWKI..., 2. BEZPRAWNE POTRĄCENIE...)
       else if (/^\d+\.\s+/.test(line) && UPPER.test(line)) {
         inNumberedItem = true;
         inAttachmentsList = false;
+        const cleanTitle = fixPolishTypography(decodeHtmlEntities(line), false);
         out.push(
-          `<w:p><w:pPr><w:spacing w:before="180" w:after="60"/></w:pPr>` +
-          `<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
+          `<w:p><w:pPr><w:ind w:left="480" w:hanging="280"/><w:spacing w:before="180" w:after="60"/><w:jc w:val="both"/></w:pPr>` +
+          `<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>${escapeXml(cleanTitle)}</w:t></w:r></w:p>`
         );
       }
       // Podstawy prawne w sekcji III (np. 1. Zasada pełnej kompensacji...:)
       else if (/^\d+\.\s+.{3,120}:$/.test(line)) {
         inNumberedItem = true;
         inAttachmentsList = false;
+        const cleanBasis = fixPolishTypography(decodeHtmlEntities(line), false);
         out.push(
-          `<w:p><w:pPr><w:spacing w:before="160" w:after="60"/></w:pPr>` +
-          `<w:r><w:rPr><w:b/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
+          `<w:p><w:pPr><w:ind w:left="480" w:hanging="280"/><w:spacing w:before="160" w:after="60"/><w:jc w:val="both"/></w:pPr>` +
+          `<w:r><w:rPr><w:b/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr><w:t>${escapeXml(cleanBasis)}</w:t></w:r></w:p>`
         );
       }
       // Lista załączników na końcu
@@ -239,9 +271,10 @@ export function demandLetterToDocxXml(text: string): string {
           `<w:r><w:rPr><w:b/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      else if (inAttachmentsList && /^\d+\.\s+/.test(line)) {
+      // Każda inna linia z numeracją punktową (np. lista załączników lub pozycje rozliczenia)
+      else if (/^\d+\.\s+/.test(line)) {
         out.push(
-          `<w:p><w:pPr><w:ind w:left="480" w:hanging="260"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
+          `<w:p><w:pPr><w:ind w:left="480" w:hanging="280"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
         );
       }
       // Kwota roszczenia wyróżniona
@@ -272,19 +305,19 @@ export function demandLetterToDocxXml(text: string): string {
           `<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="64748B"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Elementy podrzędne wewnątrz sekcji numerowanej lub z wcięciem (wcięcie przy numeracji!)
+      // Elementy podrzędne wewnątrz sekcji numerowanej lub z wcięciem (wcięcie dopasowane do numeracji)
       else if (inNumberedItem || isIndented || LABEL.test(line)) {
         if (/^[-–•]\s+/.test(line)) {
           // Podpunkt w wykazie pozycji (np. - Zderzak przedni kpl...)
           const itemText = line.replace(/^[-–•]\s+/, '');
           out.push(
-            `<w:p><w:pPr><w:ind w:left="960" w:hanging="280"/><w:spacing w:after="30"/><w:jc w:val="both"/></w:pPr>` +
+            `<w:p><w:pPr><w:ind w:left="840" w:hanging="280"/><w:spacing w:after="30"/><w:jc w:val="both"/></w:pPr>` +
             `<w:r><w:t>–&#160;</w:t></w:r>${formatParagraphRuns(itemText)}</w:p>`
           );
         } else {
           // Etykiety i treść podpunktu (Roszczenie:, Podstawa zarzutu:, Uzasadnienie:, Szczegółowy wykaz pozycji:)
           out.push(
-            `<w:p><w:pPr><w:ind w:left="540"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
+            `<w:p><w:pPr><w:ind w:left="480"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
           );
         }
       }
@@ -317,20 +350,67 @@ export function demandLetterToDocxXml(text: string): string {
 }
 
 /**
+ * Parsuje fragmenty HTML (nagłówki, akapity, cytaty, wypunktowania) do elementów OpenXML Worda.
+ */
+function renderHtmlFragmentToDocx(html: string): string {
+  const out: string[] = [];
+  const blockRegex = /<(h[23]|p|li|div)[^>]*>([\s\S]*?)<\/\1>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = blockRegex.exec(html)) !== null) {
+    const tag = m[1].toLowerCase();
+    const rawInner = m[2];
+
+    // Pomiń nagłówek nadrzędny header-box, bo tytuł i podtytuł są już wyrenderowane
+    if (tag === 'div' && (m[0].includes('header-box') || rawInner.includes('<h1') || rawInner.includes('<h2'))) {
+      continue;
+    }
+
+    const text = cleanHtmlToDocxText(rawInner);
+    if (!text) continue;
+
+    if (tag === 'h2' || tag === 'h3') {
+      out.push(
+        `<w:p><w:pPr><w:spacing w:before="240" w:after="60"/><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="3" w:color="94A3B8"/></w:pBdr></w:pPr>` +
+        `<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>${escapeXml(text)}</w:t></w:r></w:p>`
+      );
+    } else if (tag === 'li') {
+      out.push(
+        `<w:p><w:pPr><w:ind w:left="480" w:hanging="260"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>` +
+        `<w:r><w:t>–&#160;</w:t></w:r>${formatParagraphRuns(text)}</w:p>`
+      );
+    } else if (tag === 'div' && rawInner.includes('„')) {
+      // Cytat / teza z orzeczenia (elegancki boczny pasek)
+      out.push(
+        `<w:p><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="0284C7"/></w:pBdr><w:ind w:left="360"/><w:spacing w:before="80" w:after="80"/><w:jc w:val="both"/></w:pPr>` +
+        `<w:r><w:rPr><w:i/><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="1E293B"/></w:rPr><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r></w:p>`
+      );
+    } else {
+      out.push(
+        `<w:p><w:pPr><w:jc w:val="both"/><w:spacing w:after="60"/></w:pPr>${formatParagraphRuns(text)}</w:p>`
+      );
+    }
+  }
+  return out.join('');
+}
+
+/**
  * Konwertuje załącznik dowodowy na tabelaryczny format Word OpenXML.
  */
 export function attachmentToDocxXml(att: AttachmentData): string {
   const out: string[] = [];
 
   // Nagłówek załącznika
+  const cleanTitle = cleanHtmlToDocxText(att.title);
+  const cleanSubtitle = cleanHtmlToDocxText(att.subtitle);
+
   out.push(
     `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="100" w:after="40"/></w:pPr>` +
-    `<w:r><w:rPr><w:b/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr><w:t>${escapeXml(att.title)}</w:t></w:r></w:p>`
+    `<w:r><w:rPr><w:b/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr><w:t>${escapeXml(cleanTitle)}</w:t></w:r></w:p>`
   );
-  if (att.subtitle) {
+  if (cleanSubtitle) {
     out.push(
       `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="160"/></w:pPr>` +
-      `<w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="475569"/></w:rPr><w:t>${escapeXml(att.subtitle)}</w:t></w:r></w:p>`
+      `<w:r><w:rPr><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="475569"/></w:rPr><w:t>${escapeXml(cleanSubtitle)}</w:t></w:r></w:p>`
     );
   }
 
@@ -342,17 +422,10 @@ export function attachmentToDocxXml(att: AttachmentData): string {
     let match: RegExpExecArray | null;
 
     while ((match = tableRegex.exec(att.htmlContent)) !== null) {
-      // Tekst przed tabelą
+      // Tekst przed tabelą (nagłówki, akapity)
       const preText = att.htmlContent.slice(lastIndex, match.index);
       if (preText.trim()) {
-        const headings = preText.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/gi) || [];
-        for (const h of headings) {
-          const cleanH = h.replace(/<[^>]+>/g, '').trim();
-          out.push(
-            `<w:p><w:pPr><w:spacing w:before="200" w:after="60"/><w:pBdr><w:bottom w:val="single" w:sz="4" w:space="3" w:color="94A3B8"/></w:pBdr></w:pPr>` +
-            `<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>${escapeXml(cleanH)}</w:t></w:r></w:p>`
-          );
-        }
+        out.push(renderHtmlFragmentToDocx(preText));
       }
 
       // Generowanie tabeli OpenXML
@@ -382,7 +455,7 @@ export function attachmentToDocxXml(att: AttachmentData): string {
         tableXml += `<w:tr>`;
         for (const cell of cells) {
           const isHeaderCell = /<th/i.test(cell);
-          const cellContent = cell.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          const cellContent = cleanHtmlToDocxText(cell);
           const isRightAlign = /align\s*:\s*right|text-align:\s*right|PLN|zł/i.test(cell);
           const jcXml = isRightAlign ? `<w:jc w:val="right"/>` : `<w:jc w:val="left"/>`;
           const shdXml = (isHeaderRow || isHeaderCell)
@@ -405,6 +478,15 @@ export function attachmentToDocxXml(att: AttachmentData): string {
       out.push(tableXml);
       lastIndex = tableRegex.lastIndex;
     }
+
+    // Tekst po ostatniej tabeli (np. sekcja III w Załączniku nr 2)
+    const postText = att.htmlContent.slice(lastIndex);
+    if (postText.trim()) {
+      out.push(renderHtmlFragmentToDocx(postText));
+    }
+  } else if (att.htmlContent && /<(h[23]|p|li|div)/i.test(att.htmlContent)) {
+    // Brak tabel, ale bogaty htmlContent (np. Załącznik nr 3 z orzecznictwem)
+    out.push(renderHtmlFragmentToDocx(att.htmlContent));
   } else {
     // Brak tabel w htmlContent -> parsujemy czytelnie textContent
     out.push(demandLetterToDocxXml(att.textContent));

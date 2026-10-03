@@ -67,1923 +67,238 @@ const HTML_PAGE = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>zanisko.pl – Niezależny audytor kosztorysów naprawy z OC sprawcy</title>
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <meta name="description" content="Odzyskaj należne odszkodowanie z OC sprawcy. Niezależny audytor kosztorysów naprawy wskazuje zaniżenia stawek, części i zakresu naprawy.">
+  <link rel="icon" href="/favicon.ico?v=20261003" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261003">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png?v=20261003">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png?v=20261003">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20261003">
+  <link rel="manifest" href="/site.webmanifest?v=20261003">
+  <!-- Legacy declarations kept in source for existing integrations; versioned links above are active. <link rel="icon" href="/favicon.ico" sizes="any"> <link rel="icon" type="image/svg+xml" href="/favicon.svg"> <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"> -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #07090e;
-      --surface: #0f1420;
-      --surface-elevated: #161d2e;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(56, 189, 248, 0.3);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --accent: #38bdf8;
-      --accent-emerald: #10b981;
-      --accent-crimson: #f43f5e;
-      --accent-amber: #f59e0b;
-      --gradient-card: linear-gradient(180deg, rgba(22, 29, 46, 0.7) 0%, rgba(15, 20, 32, 0.9) 100%);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.07) 0%, transparent 50%),
-        radial-gradient(circle at 100% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
-      color: var(--text);
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      padding-bottom: 120px;
-      text-wrap: pretty;
-      orphans: 2;
-      widows: 2;
-    }
-
-    /* TYPOGRAFIA */
-    h1, h2, h3, h4, .brand-font {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.2;
-      text-wrap: balance;
-    }
-    p, li {
-      text-wrap: pretty;
-    }
-
-    /* NAWIGACJA */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(7, 9, 14, 0.9);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 24px;
-    }
-    .nav-inner {
-      max-width: 1240px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      text-decoration: none;
-      color: var(--text);
-    }
-    .brand-logo img {
-      height: 56px;
-      max-height: 58px;
-      width: auto;
-      object-fit: contain;
-      display: block;
-      transition: transform 0.2s ease;
-    }
-    .brand-logo:hover img {
-      transform: scale(1.02);
-    }
-    .logo-badge {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      color: #fff;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
-    }
-    .brand-name {
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .brand-tag {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 20px;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      color: var(--accent);
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    .nav-status {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--accent-emerald);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--accent-emerald);
-    }
-
-    /* KONTENER GŁÓWNY */
-    .container {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    /* HERO SECTION */
-    .hero {
-      padding: 70px 0 50px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 48px;
-      align-items: center;
-    }
-    @media (max-width: 960px) {
-      .hero { grid-template-columns: 1fr; padding: 40px 0; }
-    }
-    .hero-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 100px;
-      background: rgba(244, 63, 94, 0.12);
-      border: 1px solid rgba(244, 63, 94, 0.3);
-      color: #fb7185;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-    .hero h1 {
-      font-size: clamp(34px, 4.2vw, 54px);
-      margin-bottom: 20px;
-      color: #fff;
-    }
-    .hero-lead {
-      font-size: 17px;
-      color: var(--text-muted);
-      line-height: 1.7;
-      margin-bottom: 32px;
-    }
-    .hero-stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-    }
-    .stat-box .stat-val {
-      font-size: 26px;
-      font-weight: 700;
-      color: #fff;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .stat-box .stat-desc {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-top: 2px;
-    }
-
-    /* HERO IMAGE CARD */
-    .hero-visual-card {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-      background: var(--surface);
-    }
-    .hero-visual-card img {
-      width: 100%;
-      height: 380px;
-      object-fit: cover;
-      display: block;
-      filter: brightness(0.95);
-    }
-    .hero-card-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 24px;
-      background: linear-gradient(180deg, transparent 0%, rgba(7, 9, 14, 0.95) 80%);
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-    .overlay-tag {
-      font-size: 11px;
-      color: var(--accent);
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-    }
-    .overlay-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      margin-top: 4px;
-    }
-    .overlay-diff {
-      text-align: right;
-    }
-    .diff-badge {
-      display: inline-block;
-      padding: 6px 12px;
-      background: rgba(16, 185, 129, 0.2);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #34d399;
-      font-weight: 700;
-      font-size: 16px;
-      border-radius: 8px;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-
-    /* NARZĘDZIE AUDYTU - KARTA ROBOCZA */
-    .tool-section {
-      margin-top: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
-    .section-header {
-      margin-bottom: 28px;
-    }
-    .section-header h2 {
-      font-size: 26px;
-      color: #fff;
-    }
-    .section-header p {
-      font-size: 15px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* TABS */
-    .input-tabs {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 16px;
-    }
-    .tab-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .tab-btn:hover {
-      border-color: var(--accent);
-      color: #fff;
-    }
-    .tab-btn.active {
-      background: var(--surface-elevated);
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
-    }
-
-    /* DROP ZONES */
-    .dropzone {
-      border: 2px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 44px 24px;
-      text-align: center;
-      background: rgba(22, 29, 46, 0.4);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .dropzone:hover, .dropzone.dragover {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.05);
-    }
-    .dropzone-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 16px;
-      color: var(--accent);
-    }
-    .dropzone-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-    .dropzone-sub {
-      font-size: 13px;
-      color: var(--text-dim);
-    }
-
-    /* PARAMETRY POJAZDU I WOJEWÓDZTWA */
-    .params-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin: 24px 0;
-      padding: 20px;
-      background: rgba(7, 9, 14, 0.5);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    .param-field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .param-field select, .param-field input {
-      width: 100%;
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #fff;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-    }
-    .param-field select:focus, .param-field input:focus {
-      border-color: var(--accent);
-    }
-
-    /* PRZYCISKI AKCJI */
-    .action-row {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 20px;
-    }
-    .btn-primary {
-      position: relative;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: #fff;
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      padding: 14px 26px;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-      overflow: hidden;
-      user-select: none;
-    }
-    .btn-primary::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 40%;
-      height: 200%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-      transform: rotate(25deg);
-      transition: all 0.65s ease;
-      pointer-events: none;
-    }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-      transform: translateY(-2.5px) scale(1.02);
-      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.5), 0 0 16px rgba(56, 189, 248, 0.4);
-      border-color: rgba(56, 189, 248, 0.8);
-    }
-    .btn-primary:hover::after {
-      left: 140%;
-    }
-    .btn-primary:active {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3);
-    }
-    .btn-secondary {
-      background: var(--surface-elevated);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 14px 22px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      user-select: none;
-    }
-    .btn-secondary:hover {
-      border-color: rgba(56, 189, 248, 0.45);
-      background: #1c263c;
-      color: #fff;
-      transform: translateY(-2px) scale(1.015);
-      box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.4), 0 0 14px rgba(56, 189, 248, 0.2);
-    }
-    .btn-secondary:active {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    /* TOAST ALERT */
-    #statusToast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #0f172a;
-      border: 1px solid var(--accent);
-      color: #fff;
-      padding: 14px 20px;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      display: none;
-      z-index: 999;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    /* SEKCJA WYNIKÓW AUDYTU */
-    #auditResultsArea {
-      margin-top: 40px;
-      display: none;
-    }
-
-    /* TEASER BANNER (DARMOWY WIDOK) */
-    .teaser-card {
-      background: linear-gradient(180deg, #131a29 0%, #0e1422 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
-    }
-    .teaser-glow {
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .teaser-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-    .teaser-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #fbbf24;
-      font-size: 12px;
-      font-weight: 700;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .discrepancy-scale {
-      margin-top: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .scale-bar {
-      height: 8px;
-      flex: 1;
-      max-width: 240px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .scale-fill {
-      height: 100%;
-      width: 85%;
-      background: linear-gradient(90deg, #f59e0b, #ef4444);
-    }
-
-    /* KARTY KOSZTÓW */
-    .cost-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .cost-card {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .cost-card.highlight {
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.05);
-    }
-    .cost-label {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .cost-amount {
-      font-size: 28px;
-      font-weight: 700;
-      color: #fff;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .cost-amount.emerald { color: #34d399; }
-    .cost-amount.crimson { color: #f87171; }
-    .cost-sub {
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-top: 4px;
-    }
-
-    /* ZABLOKOWANE POZYCJE (BLUR EFFECT) */
-    .locked-section-container {
-      position: relative;
-      margin-top: 24px;
-    }
-    .blur-preview {
-      filter: blur(5px);
-      user-select: none;
-      pointer-events: none;
-      opacity: 0.6;
-    }
-    .paywall-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(15, 20, 32, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 16px;
-      padding: 32px;
-      text-align: center;
-      z-index: 20;
-    }
-    .paywall-overlay h3 {
-      font-size: 22px;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-    .paywall-overlay p {
-      font-size: 14px;
-      color: var(--text-muted);
-      max-width: 520px;
-      margin-bottom: 20px;
-    }
-
-    /* WYKAZ NARUSZEŃ (ODBLOKOWANY) */
-    .violation-card {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .violation-card.severity-high {
-      border-left-color: var(--accent-crimson);
-    }
-    .violation-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-    .violation-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .violation-amount {
-      font-size: 16px;
-      font-weight: 700;
-      color: #f87171;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .violation-basis {
-      font-size: 12px;
-      color: var(--accent);
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    .violation-desc {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-    .violation-items {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 13px;
-      color: var(--text-dim);
-    }
-    .violation-items li {
-      margin-left: 18px;
-      margin-top: 4px;
-    }
-
-    /* KALENDARIUM 30 DNI */
-    .timeline-card {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      margin: 28px 0;
-    }
-    .timeline-steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-      position: relative;
-    }
-    .timeline-step {
-      background: rgba(7, 9, 14, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      position: relative;
-    }
-    .timeline-step.critical {
-      border-color: rgba(244, 63, 94, 0.4);
-      background: rgba(244, 63, 94, 0.05);
-    }
-    .timeline-step.success {
-      border-color: rgba(16, 185, 129, 0.4);
-      background: rgba(16, 185, 129, 0.05);
-    }
-    .step-day {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
-    }
-    .step-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-    .step-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    /* FORMULARZ I GENERATOR PISMA */
-    .letter-section {
-      margin-top: 36px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-    }
-    .claimant-form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .letter-sheet {
-      background: #0b0f19;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 32px;
-      font-family: 'Space Grotesk', monospace, sans-serif;
-      font-size: 13px;
-      line-height: 1.8;
-      color: #cbd5e1;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 500px;
-      overflow-y: auto;
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    /* ZAŁĄCZNIKI DO WEZWANIA */
-    .attachments-section {
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-    }
-    .attachments-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 18px;
-      margin-top: 16px;
-    }
-    .attachment-card {
-      background: #0b0f19;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 14px;
-      transition: all 0.2s ease;
-    }
-    .attachment-card:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      transform: translateY(-2px);
-    }
-    .att-badge {
-      align-self: flex-start;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(56, 189, 248, 0.12);
-      color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-    }
-    .attachment-card h4 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.35;
-    }
-    .att-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .att-downloads {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .att-btn {
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 7px 13px;
-      border-radius: 8px;
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      color: #e2e8f0;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      user-select: none;
-    }
-    .att-btn:hover {
-      border-color: var(--accent);
-      color: #fff;
-      background: rgba(56, 189, 248, 0.15);
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
-    }
-    .att-btn:active {
-      transform: translateY(0.5px) scale(0.98);
-    }
-
-    /* SEKCJE EDUKACYJNE / ZDJĘCIA W GRIDZIE */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 28px;
-      margin: 60px 0;
-    }
-    .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .feature-img {
-      height: 220px;
-      width: 100%;
-      object-fit: cover;
-      display: block;
-      border-bottom: 1px solid var(--border);
-    }
-    .feature-body {
-      padding: 24px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .feature-body h3 {
-      font-size: 19px;
-      color: #fff;
-      margin-bottom: 10px;
-    }
-    .feature-body p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-    .feature-tag {
-      font-size: 11px;
-      color: var(--accent);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-
-    /* SEKCJA: JAK DZIAŁA ZANIŻANIE I CO ZROBIĆ */
-    .guide { margin: 70px 0 20px; scroll-margin-top: 100px; }
-    .guide-lead { font-size: 17px; color: var(--text-muted); max-width: 820px; margin-top: 10px; }
-    .guide h2 { font-size: 32px; color: #fff; }
-    .guide h3.guide-h { font-size: 22px; color: #fff; margin: 48px 0 6px; }
-    .guide-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; max-width: 820px; }
-    .guide-example { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 12px; padding: 22px 24px; margin-top: 24px; font-size: 15px; color: var(--text-muted); }
-    .guide-example strong { color: #fff; }
-    .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
-    .guide-card { background: var(--gradient-card); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
-    .guide-card .num { font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--accent-crimson); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-    .guide-card h4 { font-size: 17px; color: #fff; margin: 6px 0 8px; }
-    .guide-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
-    .guide-card .law { font-size: 12.5px; color: var(--accent-emerald); border-top: 1px solid var(--border); padding-top: 10px; margin: 0; }
-    .scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
-    .scenario summary { cursor: pointer; list-style: none; padding: 18px 22px; display: flex; gap: 14px; align-items: center; font-weight: 600; color: #fff; font-size: 16px; }
-    .scenario summary::-webkit-details-marker { display: none; }
-    .scenario summary .tag { flex-shrink: 0; font-family: 'Space Grotesk', sans-serif; font-size: 13px; background: rgba(56,189,248,0.12); color: var(--accent); border: 1px solid var(--border-accent); border-radius: 8px; padding: 3px 10px; }
-    .scenario summary::after { content: '+'; margin-left: auto; color: var(--text-dim); font-size: 22px; font-weight: 400; }
-    .scenario[open] summary::after { content: '–'; }
-    .scenario-body { padding: 0 22px 20px 22px; font-size: 15px; color: var(--text-muted); }
-    .scenario-body p { margin-bottom: 10px; }
-    .scenario-body ul { margin: 0 0 10px 20px; }
-    .scenario-body li { margin-bottom: 6px; }
-    .scenario-body strong { color: #fff; }
-    .scenario-body .verdict { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; padding: 12px 14px; color: #d1fae5; margin-top: 8px; }
-    .scenario-body .warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 10px; padding: 12px 14px; color: #fde68a; margin-top: 8px; }
-    .steps { list-style: none; counter-reset: s; margin: 0; padding: 0; }
-    .steps > li { counter-increment: s; position: relative; padding: 0 0 26px 62px; border-left: 2px solid var(--border); margin-left: 20px; }
-    .steps > li:last-child { border-left-color: transparent; }
-    .steps > li::before { content: counter(s); position: absolute; left: -21px; top: -4px; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid var(--border-accent); color: var(--accent); font-family: 'Space Grotesk', sans-serif; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-    .steps h4 { font-size: 17px; color: #fff; margin-bottom: 6px; }
-    .steps p, .steps li li { font-size: 14.5px; color: var(--text-muted); }
-    .steps p { margin-bottom: 8px; }
-    .steps ul { margin: 4px 0 8px 18px; }
-    .fee-table { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 13.5px; max-width: 460px; }
-    .fee-table td { border-bottom: 1px solid var(--border); padding: 6px 8px; color: var(--text-muted); }
-    .fee-table td:last-child { text-align: right; color: #fff; font-weight: 600; }
-    .dont-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-    .dont-list div { background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.25); border-radius: 12px; padding: 16px; font-size: 14px; color: var(--text-muted); }
-    .dont-list strong { display: block; color: #fecdd3; margin-bottom: 4px; }
-    .guide-sources { font-size: 12.5px; color: var(--text-dim); margin-top: 40px; border-top: 1px solid var(--border); padding-top: 18px; }
-    .guide-sources a { color: var(--accent); text-decoration: none; }
-    .hero-guide-link { display: inline-block; margin-top: 18px; color: var(--accent); text-decoration: none; font-weight: 600; font-size: 15px; }
-    .hero-guide-link:hover { text-decoration: underline; }
-    @media (max-width: 640px) { .guide h2 { font-size: 26px; } .steps > li { padding-left: 46px; } .input-tabs { flex-wrap: wrap; } }
-
-    /* FOOTER */
-    footer {
-      margin-top: 80px;
-      padding-top: 40px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-dim);
-    }
-    footer a { color: var(--accent); text-decoration: none; }
-
-    /* LOADER 3D - KOŁO SAMOCHODU 3D & PROGRESS */
-    .progress-bar-container {
-      position: fixed;
-      inset: 0;
-      background: rgba(7, 9, 14, 0.82);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      animation: fadeInOverlay 0.25s ease-out;
-    }
-    @keyframes fadeInOverlay {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .progress-modal-card {
-      background: linear-gradient(180deg, rgba(22, 29, 46, 0.96) 0%, rgba(15, 20, 32, 0.98) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      border-radius: 24px;
-      padding: 36px 32px 30px;
-      width: 90%;
-      max-width: 440px;
-      text-align: center;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.15);
-      animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    @keyframes modalScaleIn {
-      from { transform: scale(0.9) translateY(20px); opacity: 0; }
-      to { transform: scale(1) translateY(0); opacity: 1; }
-    }
-    .wheel-3d-wrapper {
-      perspective: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 22px;
-      position: relative;
-    }
-    .wheel-3d-stage {
-      width: 120px;
-      height: 120px;
-      position: relative;
-      transform-style: preserve-3d;
-      transform: rotateX(14deg) rotateY(-18deg);
-      filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.7));
-    }
-    .spinning-wheel-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      animation: wheelSpin 0.75s linear infinite;
-      transform-origin: 50% 50%;
-      transform-box: fill-box;
-    }
-    @keyframes wheelSpin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    .static-caliper-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .wheel-3d-shadow {
-      width: 105px;
-      height: 14px;
-      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(56, 189, 248, 0.2) 50%, transparent 80%);
-      border-radius: 50%;
-      margin-top: 8px;
-      filter: blur(2px);
-      animation: shadowPulse 0.75s ease-in-out infinite alternate;
-    }
-    @keyframes shadowPulse {
-      from { transform: scaleX(0.95); opacity: 0.75; }
-      to { transform: scaleX(1.08); opacity: 1; }
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .nav-pill-btn {
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #cbd5e1;
-      text-decoration: none;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-    }
-    .nav-pill-btn:hover {
-      color: #fff;
-      background: rgba(56, 189, 248, 0.15);
-      border-color: rgba(56, 189, 248, 0.35);
-      transform: translateY(-1px);
-    }
-    .nav-pill-highlight {
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.25);
-    }
-    .progress-title {
-      font-size: 19px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 16px;
-      font-family: 'Space Grotesk', sans-serif;
-      letter-spacing: -0.02em;
-    }
-    .progress-track {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      overflow: hidden;
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #34d399 100%);
-      border-radius: 999px;
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
-    }
-    .progress-label {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 500;
-    }
+    :root { --ink:#102038; --ink-soft:#44536b; --muted:#728095; --paper:#f6f8f5; --surface:#fff; --line:#dfe6e3; --line-strong:#cbd7d2; --teal:#0a9f9a; --teal-dark:#087d7b; --teal-wash:#e5f5f2; --amber:#b97927; --shadow:0 24px 70px rgba(16,32,56,.09); --shadow-soft:0 10px 30px rgba(16,32,56,.07); --display:'Space Grotesk','DM Sans',sans-serif; --body:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.55; -webkit-font-smoothing:antialiased; }
+    a { color:inherit; } button,input,textarea,select { font:inherit; } button,a { -webkit-tap-highlight-color:transparent; }
+    h1,h2,h3,h4 { font-family:var(--display); letter-spacing:-.045em; line-height:1.06; } h1 { font-size:clamp(3rem,6vw,6.7rem); font-weight:600; } h2 { font-size:clamp(2rem,3.6vw,3.6rem); font-weight:600; } h3 { font-size:clamp(1.5rem,2.1vw,2.1rem); } h4 { font-size:1.1rem; letter-spacing:-.02em; } p { color:var(--ink-soft); }
+    .container { max-width:1320px; margin:0 auto; padding:0 44px; }
+    nav { position:sticky; top:0; z-index:50; background:rgba(16,32,56,.96); border-bottom:1px solid rgba(169,227,214,.15); backdrop-filter:blur(18px); }
+    .nav-inner { max-width:1320px; min-height:76px; margin:0 auto; padding:0 44px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand-logo { display:inline-flex; align-items:center; text-decoration:none; gap:13px; } .brand-logo img { width:176px; height:auto; object-fit:contain; }
+    .brand-tag { color:#a9e3d6; border-left:1px solid rgba(255,255,255,.2); padding-left:14px; font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; }
+    .nav-status { display:flex; align-items:center; gap:9px; color:#c4d0d6; font-size:12px; font-weight:600; } .pulse-dot { width:8px; height:8px; border-radius:100%; background:var(--teal); box-shadow:0 0 0 5px rgba(10,159,154,.12); }
+    .nav-links { display:flex; gap:7px; align-items:center; } .nav-pill-btn { border:1px solid rgba(255,255,255,.16); color:#d4e0e5; border-radius:999px; padding:10px 14px; text-decoration:none; font-size:12px; font-weight:600; transition:.2s ease; } .nav-pill-btn:hover { border-color:var(--teal); color:var(--teal-dark); transform:translateY(-1px); } .nav-pill-highlight { color:var(--teal-dark); border-color:rgba(10,159,154,.35); background:var(--teal-wash); }
+    .hero { display:grid; grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr); gap:clamp(44px,7vw,120px); align-items:center; padding:94px 0 112px; position:relative; } .hero::before { content:""; position:absolute; right:-180px; top:20px; width:620px; height:620px; border-radius:50%; background:radial-gradient(circle,rgba(10,159,154,.12),transparent 68%); pointer-events:none; }
+    .hero-label,.eyebrow,.section-kicker { color:var(--teal-dark); text-transform:uppercase; letter-spacing:.19em; font-size:11px; font-weight:700; margin-bottom:24px; } .hero-label { display:flex; align-items:center; gap:12px; } .hero-label::before { content:""; width:28px; height:2px; background:var(--teal); }
+    .hero h1 { color:var(--ink); margin-bottom:25px; } .hero h1 em { color:var(--teal); font-style:normal; } .hero-lead { max-width:610px; font-size:clamp(1.06rem,1.5vw,1.28rem); line-height:1.62; color:var(--ink-soft); }
+    .hero-guide-link { display:inline-flex; margin-top:30px; color:var(--ink); text-decoration:none; font-weight:700; font-size:14px; border-bottom:1px solid var(--teal); padding-bottom:4px; } .hero-guide-link::after { content:'↗'; color:var(--teal); margin-left:10px; font-size:18px; line-height:.7; }
+    .hero-stats-row { display:flex; flex-wrap:wrap; gap:28px; margin-top:55px; } .stat-box { min-width:128px; border-top:1px solid var(--line-strong); padding-top:13px; } .stat-val { font:600 1.45rem var(--display); letter-spacing:-.04em; } .stat-desc { margin-top:4px; font-size:11px; line-height:1.35; color:var(--muted); max-width:145px; }
+    .hero-visual-card { position:relative; min-height:580px; border-radius:28px; overflow:hidden; box-shadow:var(--shadow); background:var(--ink); } .hero-visual-card::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(16,32,56,.04),rgba(16,32,56,.5)); pointer-events:none; } .hero-visual-card img { width:100%; height:100%; min-height:580px; display:block; object-fit:cover; filter:saturate(.78) contrast(1.04); }
+    .hero-card-overlay { position:absolute; z-index:1; bottom:22px; left:22px; right:22px; display:flex; justify-content:space-between; align-items:end; gap:20px; padding:22px; border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(16,32,56,.77); color:#fff; backdrop-filter:blur(14px); } .overlay-tag { color:#9bd8d0; text-transform:uppercase; letter-spacing:.15em; font-size:10px; font-weight:700; margin-bottom:7px; } .overlay-title { font:500 1.12rem var(--display); } .diff-badge { color:#082d31; background:#a9e3d6; border-radius:999px; padding:9px 13px; font-weight:700; font-size:13px; white-space:nowrap; }
+    .tool-section { background:var(--ink); color:#fff; border-radius:30px; padding:clamp(28px,5vw,68px); margin-bottom:100px; box-shadow:0 30px 90px rgba(16,32,56,.16); position:relative; overflow:hidden; scroll-margin-top:100px; } .tool-section::after { content:""; width:400px; height:400px; border:1px solid rgba(169,227,214,.14); border-radius:50%; position:absolute; right:-160px; bottom:-190px; }
+    .section-header { position:relative; z-index:1; max-width:720px; margin-bottom:34px; } .tool-section .section-header h2 { color:#fff; margin-bottom:12px; } .tool-section .section-header p { color:#afbdc7; font-size:1.06rem; }
+    .input-tabs { display:flex; gap:7px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:24px; position:relative; z-index:1; } .tab-btn { color:#9cabb9; background:transparent; border:0; border-bottom:2px solid transparent; padding:13px 15px; cursor:pointer; font-weight:600; font-size:13px; transition:.2s ease; } .tab-btn:hover,.tab-btn.active { color:#a9e3d6; border-bottom-color:var(--teal); }
+    .dropzone { min-height:240px; border:1px dashed rgba(169,227,214,.55); background:rgba(255,255,255,.045); border-radius:18px; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center; cursor:pointer; transition:.2s ease; position:relative; z-index:1; } .dropzone:hover,.dropzone.dragover { border-color:#a9e3d6; background:rgba(10,159,154,.11); transform:translateY(-2px); } .dropzone-icon { width:42px; height:42px; color:#a9e3d6; margin-bottom:16px; } .dropzone-title { color:#fff; font:500 1.18rem var(--display); } .dropzone-sub { color:#9cabb9; margin-top:7px; font-size:13px; }
+    #tabTextContent textarea { min-height:220px; resize:vertical; width:100%; color:#fff; background:rgba(255,255,255,.05); border:1px solid rgba(169,227,214,.4); border-radius:14px; padding:17px; outline:none; line-height:1.6; } #tabTextContent textarea:focus { border-color:#a9e3d6; box-shadow:0 0 0 4px rgba(10,159,154,.15); }
+    .params-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:22px; position:relative; z-index:1; } .param-field { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:14px; } .param-field label { color:#9cabb9; display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; margin-bottom:8px; } .param-field select { width:100%; color:#fff; background:#1a2b43; border:1px solid rgba(255,255,255,.15); border-radius:9px; padding:12px; outline:none; font-size:13px; }
+    .action-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:19px; position:relative; z-index:1; } .btn-primary,.btn-secondary,.chip-btn { border:0; border-radius:999px; min-height:46px; padding:0 20px; cursor:pointer; font-size:13px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; transition:.2s ease; } .btn-primary { color:#062f31; background:#a9e3d6; box-shadow:0 9px 24px rgba(10,159,154,.24); } .btn-primary:hover { background:#c6f1e7; transform:translateY(-2px); } .btn-secondary { color:#d3e5e1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); } .btn-secondary:hover { border-color:#a9e3d6; color:#fff; transform:translateY(-2px); } .chip-btn { color:#a9e3d6; background:rgba(10,159,154,.14); border:1px solid rgba(169,227,214,.32); }
+    .progress-bar-container { display:none; position:relative; z-index:2; margin-top:18px; } .progress-modal-card { width:100%; background:#17304a; border:1px solid rgba(169,227,214,.25); border-radius:14px; padding:17px; } .progress-modal-card .wheel-3d-wrapper { display:none; } .wheel-3d-wrapper { perspective:800px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; } .wheel-3d-stage { width:120px; height:120px; position:relative; transform-style:preserve-3d; transform:rotateX(14deg) rotateY(-18deg); filter:drop-shadow(0 15px 25px rgba(0,0,0,.45)); } .spinning-wheel-svg { position:absolute; inset:0; width:100%; height:100%; animation:wheelSpin .75s linear infinite; transform-origin:50% 50%; transform-box:fill-box; } @keyframes wheelSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } } .static-caliper-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; } .wheel-3d-shadow { border-radius:50%; margin-top:8px; background:radial-gradient(ellipse at center, rgba(0,0,0,.55) 0%, rgba(56,189,248,.18) 50%, transparent 80%); filter:blur(2px); animation:shadowPulse .75s ease-in-out infinite alternate; } @keyframes shadowPulse { from { transform:scaleX(.95); opacity:.75; } to { transform:scaleX(1.08); opacity:1; } } .busy-overlay { position:fixed; inset:0; z-index:90; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(12,24,38,.55); backdrop-filter:blur(3px); } .busy-overlay.is-visible { display:flex; } .busy-card { background:#fff; border-radius:18px; box-shadow:var(--shadow); max-width:440px; width:100%; } @media (prefers-reduced-motion: reduce) { .spinning-wheel-svg,.wheel-3d-shadow { animation-duration:3s; } } .progress-title { font:500 1rem var(--display); color:#fff; margin-bottom:11px; } .progress-track { height:8px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.1); } .progress-fill { height:100%; width:0; background:#a9e3d6; border-radius:99px; transition:width .35s ease; } .progress-label { display:flex; justify-content:space-between; gap:20px; margin-top:8px; color:#9cabb9; font-size:12px; }
+    #auditResultsArea { display:none; margin:0 0 100px; scroll-margin-top:100px; } .teaser-card,#unlockedView { border:1px solid var(--line); border-radius:24px; padding:clamp(24px,4vw,54px); background:var(--surface); box-shadow:var(--shadow-soft); } .teaser-header { display:flex; justify-content:space-between; gap:30px; align-items:flex-start; padding-bottom:26px; border-bottom:1px solid var(--line); } .teaser-badge { display:inline-flex; color:var(--teal-dark); background:var(--teal-wash); border-radius:999px; padding:7px 11px; font-size:11px; font-weight:700; } #teaserVehicleTitle { margin-top:14px; font-size:clamp(1.65rem,3vw,2.4rem); } #teaserClaimMeta { color:var(--muted); font-size:13px; margin-top:7px; } .discrepancy-scale { margin-top:18px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; } .discrepancy-scale span:first-child { color:var(--amber)!important; font-size:11px; letter-spacing:.13em; text-transform:uppercase; } .scale-bar { width:105px; height:6px; background:#edf0ea; border-radius:99px; overflow:hidden; } .scale-fill { width:66%; height:100%; background:var(--amber); border-radius:99px; } .teaser-header>div:last-child { text-align:right; min-width:260px; } .teaser-header>div:last-child>div:first-child { color:var(--muted)!important; font-size:10px!important; letter-spacing:.12em; } #teaserEstimatedRange { color:var(--teal-dark)!important; font-size:clamp(1.7rem,3vw,2.6rem)!important; margin-top:7px; }
+    .locked-section-container { margin-top:26px; position:relative; } .blur-preview,.cost-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:11px; } .blur-preview { opacity:.7; } .cost-card { border:1px solid var(--line); border-radius:14px; background:#fbfcfa; padding:17px; } .cost-card.highlight { background:var(--teal-wash); border-color:#a9ded6; } .cost-label { color:var(--muted); font-size:11px; } .cost-amount { font:600 1.55rem var(--display); margin-top:10px; } .cost-amount.emerald { color:var(--teal-dark); } .cost-sub { color:var(--muted); font-size:11px; margin-top:4px; }
+    .paywall-overlay { margin-top:16px; border-radius:16px; border:1px solid #b7ded7; padding:22px; background:linear-gradient(100deg,#eaf8f4,#f7fbf7); } .paywall-overlay h3 { font-size:1.35rem; margin-bottom:7px; } .paywall-overlay p { font-size:13px; } .paywall-overlay .btn-primary { margin-top:14px; }
+    .unlocked-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:24px; } .unlocked-head h2 { font-size:clamp(1.8rem,3vw,2.8rem); } .unlocked-head p { margin-top:10px; max-width:620px; }
+    .violation-card { border:1px solid var(--line); border-left:3px solid var(--teal); border-radius:13px; padding:17px; background:#fbfcfa; margin-top:11px; } .violation-header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; } .violation-title { font:600 1rem var(--display); } .violation-amount { color:var(--teal-dark); font:600 1rem var(--display); white-space:nowrap; } .violation-basis { color:var(--muted); font-size:11px; margin-top:5px; } .violation-desc { color:var(--ink-soft); font-size:13px; margin-top:8px; } .violation-items { margin-top:10px; font-size:12px; color:var(--ink-soft); } .violation-items ul { padding-left:18px; margin-top:5px; }
+    .document-panel { border-top:1px solid var(--line); margin-top:34px; padding-top:30px; } .document-panel h3 { margin-bottom:7px; } .document-form { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0; } .document-form label { display:block; color:var(--muted); font-size:11px; font-weight:600; } .document-form input { width:100%; padding:12px; border:1px solid var(--line-strong); border-radius:9px; background:#fff; color:var(--ink); margin-top:6px; outline:none; } .document-form input:focus { border-color:var(--teal); box-shadow:0 0 0 4px rgba(10,159,154,.12); } .letter-sheet { background:#fbfcfa; border:1px solid var(--line); border-radius:14px; white-space:pre-wrap; padding:22px; max-height:360px; overflow:auto; color:var(--ink-soft); font-size:13px; line-height:1.68; } .document-actions,.attachments-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; } .attachments-section { border-top:1px solid var(--line); margin-top:30px; padding-top:24px; } .attachment-card { border:1px solid var(--line); padding:14px; border-radius:12px; margin-top:9px; display:flex; align-items:center; justify-content:space-between; gap:15px; } .attachment-card h4 { font-size:1rem; } .attachment-card p { font-size:12px; } .att-btn { border:1px solid var(--line-strong); border-radius:999px; color:var(--ink-soft); background:#fff; padding:7px 10px; cursor:pointer; font-size:11px; }
+    .guide { padding:90px 0 100px; border-top:1px solid var(--line); } .guide .section-header { max-width:850px; } .guide-lead { font-size:1.1rem; margin-top:14px; } .guide-h { margin-top:66px; margin-bottom:14px; } .guide-sub { max-width:800px; } .guide-example { max-width:920px; border-left:3px solid var(--teal); background:#fff; box-shadow:var(--shadow-soft); border-radius:0 13px 13px 0; padding:19px 22px; margin-top:20px; color:var(--ink-soft); } .guide-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:25px; } .guide-card { background:#fff; border:1px solid var(--line); border-radius:15px; padding:23px; } .guide-card .num { color:var(--teal-dark); font-size:10px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; margin-bottom:12px; } .guide-card h4 { margin-bottom:9px; } .guide-card p { font-size:13px; } .guide-card .law { color:var(--muted); margin-top:13px; font-size:11px; }
+    .scenario { max-width:940px; background:#fff; border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden; } .scenario summary { list-style:none; cursor:pointer; padding:18px 20px; font:600 1rem var(--display); display:flex; align-items:center; gap:12px; } .scenario summary::-webkit-details-marker { display:none; } .scenario summary::after { content:'+'; margin-left:auto; color:var(--teal); font-size:22px; font-weight:400; } .scenario[open] summary::after { content:'−'; } .scenario-body { border-top:1px solid var(--line); padding:18px 20px 21px; color:var(--ink-soft); font-size:14px; } .scenario-body ul { padding-left:20px; margin-top:12px; color:var(--ink-soft); } .scenario-body li+li { margin-top:8px; } .tag { width:25px; height:25px; border-radius:50%; background:var(--teal-wash); display:grid; place-items:center; font-size:11px; color:var(--teal-dark); }
+    .steps { counter-reset:step; list-style:none; max-width:940px; margin-top:24px; } .steps li { counter-increment:step; position:relative; padding:0 0 27px 60px; border-left:1px solid var(--line-strong); margin-left:16px; } .steps li::before { content:counter(step); position:absolute; left:-17px; top:0; width:32px; height:32px; display:grid; place-items:center; border-radius:50%; background:var(--teal); color:#fff; font:600 14px var(--display); } .steps li h4 { margin-bottom:7px; } .steps li p { font-size:14px; }
+    .dont-list { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; max-width:940px; margin-top:20px; } .dont-list div { display:flex; flex-direction:column; gap:5px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; color:var(--ink-soft); font-size:13px; } .dont-list strong { color:var(--ink); } .guide-sources { max-width:940px; color:var(--muted); font-size:11px; line-height:1.8; border-top:1px solid var(--line); padding-top:20px; margin-top:40px; } .guide-sources a { color:var(--teal-dark); }
+    footer { background:var(--ink); color:#dce7e6; padding:54px 44px; margin-top:20px; } footer p,footer div,footer a { color:#aebdc5!important; }
+    #statusToast { display:none; position:fixed; z-index:100; right:24px; bottom:24px; max-width:360px; padding:13px 17px; border-radius:10px; color:#fff; background:var(--ink); border:1px solid rgba(169,227,214,.4); box-shadow:var(--shadow); font-size:13px; }
+    @media(max-width:960px) { .container{padding:0 24px;} .nav-inner{padding:0 24px;} .nav-status,.nav-links .nav-pill-btn:not(.nav-pill-highlight){display:none;} .hero{grid-template-columns:1fr;padding-top:64px;gap:44px;} .hero-visual-card,.hero-visual-card img{min-height:430px;} .tool-section{padding:28px;} }
+    @media(max-width:650px) { .container{padding:0 16px;} .nav-inner{padding:0 16px;min-height:65px;} .brand-logo img{width:142px;} .brand-tag{display:none;} .hero{padding:52px 0 70px;} .hero h1{font-size:clamp(2.7rem,14vw,4.2rem);} .hero-lead{font-size:1rem;} .hero-stats-row{gap:18px;margin-top:35px;} .stat-box{min-width:105px;} .hero-visual-card,.hero-visual-card img{min-height:340px;} .hero-card-overlay{padding:15px;left:12px;right:12px;bottom:12px;} .overlay-title{font-size:.95rem;} .tool-section{border-radius:20px;padding:22px 16px;margin-bottom:65px;} .input-tabs{overflow:auto;} .tab-btn{white-space:nowrap;font-size:12px;padding:12px 10px;} .dropzone{min-height:210px;} .params-grid,.cost-grid,.blur-preview,.document-form,.guide-grid,.dont-list{grid-template-columns:1fr;} .action-row .btn-primary,.action-row .btn-secondary{width:100%;} .teaser-header{flex-direction:column;gap:22px;} .teaser-header>div:last-child{min-width:0;text-align:left;} .violation-header,.unlocked-head,.attachment-card{flex-direction:column;} .violation-amount{white-space:normal;} .guide{padding:65px 0 70px;} footer{padding:40px 16px;} }
   </style>
 </head>
 <body>
-
-  <!-- NAWIGACJA -->
   <nav>
     <div class="nav-inner">
-      <a href="/" class="brand-logo">
-        <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 56px; width: auto; object-fit: contain;">
-        <span class="brand-tag">Audytor OC 2026</span>
+      <a href="/" class="brand-logo" aria-label="zanisko.pl — strona główna">
+        <img src="/images/logo-zanisko.png" alt="zanisko.pl">
+        <span class="brand-tag">Audyt kosztorysu OC</span>
       </a>
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div class="nav-status">
-          <div class="pulse-dot"></div>
-          <span>Baza stawek PIM &amp; KNF 2026 (16 województw)</span>
-        </div>
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <div class="nav-status"><span class="pulse-dot"></span><span>Analiza oparta na regułach i źródłach prawnych</span></div>
         <div class="nav-links">
-          <a href="/regulamin.html" class="nav-pill-btn">Regulamin</a>
-          <a href="/polityka-prywatnosci.html" class="nav-pill-btn">Prywatność</a>
-          <a href="/kontakt.html" class="nav-pill-btn nav-pill-highlight">Kontakt i reklamacje</a>
+          <a href="#jak-to-dziala" class="nav-pill-btn">Jak to działa</a>
+          <a href="/kontakt.html" class="nav-pill-btn nav-pill-highlight">Pomoc</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- GŁÓWNA ZAWARTOŚĆ -->
-  <div class="container">
-
-    <!-- HERO SECTION -->
-    <section class="hero">
+  <main class="container">
+    <section class="hero" aria-labelledby="hero-title">
       <div>
-        <div class="hero-label">
-          <span>Niezależna weryfikacja kosztorysów powypadkowych</span>
-        </div>
-        <h1>Odzyskaj należne odszkodowanie z OC sprawcy</h1>
-        <p class="hero-lead">
-          Automatyczny audyt kosztorysów Audatex, Eurotax i DAT. Wykrywamy bezprawne potrącenia amortyzacyjne (uchwała Sądu Najwyższego III CZP 80/11), zaniżone stawki roboczogodziny oraz zamienniki dystrybutorskie naruszające gwarancję pojazdu.
-        </p>
-        <a href="#jak-to-dziala" class="hero-guide-link">Jak działa zaniżanie odszkodowania i co możesz zrobić →</a>
-        <div class="hero-stats-row">
-          <div class="stat-box">
-            <div class="stat-val">3 500+ zł</div>
-            <div class="stat-desc">Średnia kwota zaniżenia kosztorysu</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-val">100%</div>
-            <div class="stat-desc">Zgodność z orzecznictwem SN i KNF</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-val">30 dni</div>
-            <div class="stat-desc">Ustawowy termin milczenia ubezpieczyciela</div>
-          </div>
+        <div class="hero-label">Niezależna analiza kosztorysu OC</div>
+        <h1 id="hero-title">Sprawdź, <em>jak zaniżyli</em> Twój kosztorys.</h1>
+        <p class="hero-lead">Wgraj kalkulację od ubezpieczyciela i zobacz, gdzie może brakować pieniędzy: w stawce robocizny, cenach części, rabatach albo zakresie naprawy.</p>
+        <a href="#skaner" class="hero-guide-link">Przejdź do analizy kosztorysu</a>
+        <div class="hero-stats-row" aria-label="Najważniejsze informacje">
+          <div class="stat-box"><div class="stat-val">~60 s</div><div class="stat-desc">Do pierwszego wyniku po wgraniu dokumentu</div></div>
+          <div class="stat-box"><div class="stat-val">PDF / foto</div><div class="stat-desc">Obsługiwane formaty kosztorysów</div></div>
+          <div class="stat-box"><div class="stat-val">OC sprawcy</div><div class="stat-desc">Zakres pierwszej wersji narzędzia</div></div>
         </div>
       </div>
-
-      <!-- KARTA WIZUALNA HERO ZE ZDJĘCIEM 1 -->
       <div class="hero-visual-card">
-        <img src="/images/hero-claim-comparison.jpg" alt="Porównanie kosztorysu ubezpieczyciela i rzeczywistych kosztów naprawy">
+        <img src="/images/hero-claim-comparison.jpg" alt="Przykładowa dokumentacja szkody i analiza kosztorysu">
         <div class="hero-card-overlay">
-          <div>
-            <div class="overlay-tag">Przykład rzeczywistego audytu</div>
-            <div class="overlay-title">Weryfikacja szkody Toyota Corolla</div>
-          </div>
-          <div class="overlay-diff">
-            <div class="diff-badge">+8 030 zł</div>
-          </div>
+          <div><div class="overlay-tag">Przykład dokumentacji szkody</div><div class="overlay-title">Kosztorys → różnice do sprawdzenia</div></div>
+          <div class="diff-badge">raport w kilka chwil</div>
         </div>
       </div>
     </section>
 
-    <!-- NARZĘDZIE AUDYTU -->
-    <section class="tool-section" id="skaner">
+    <section class="tool-section" id="skaner" aria-labelledby="scanner-title">
       <div class="section-header">
-        <h2>Sprawdź swój kosztorys w 60 sekund</h2>
-        <p>Wgraj oficjalny plik PDF lub fotografię kalkulacji naprawy z ubezpieczalni.</p>
+        <div class="section-kicker" style="color:#a9e3d6;">01 / Wgraj dokument</div>
+        <h2 id="scanner-title">Zacznij od dokumentu, nie od domysłów.</h2>
+        <p>Najpierw wybierz województwo, potem dodaj kosztorys. Wynik pokazuje różnice do sprawdzenia, a nie obiecuje z góry konkretnej dopłaty.</p>
       </div>
 
-      <!-- TABS -->
-      <div class="input-tabs">
-        <button class="tab-btn active" id="tabPdfBtn" onclick="switchTab('pdf')">
-          Dokument PDF (Audatex / Eurotax)
-        </button>
-        <button class="tab-btn" id="tabOcrBtn" onclick="switchTab('ocr')">
-          Skan / Zdjęcie kosztorysu (OCR)
-        </button>
-        <button class="tab-btn" id="tabTextBtn" onclick="switchTab('text')">
-          Wklej tekst kalkulacji
-        </button>
+      <div class="input-tabs" role="tablist" aria-label="Sposób dodania kosztorysu">
+        <button class="tab-btn active" id="tabPdfBtn" onclick="switchTab('pdf')" role="tab">Dokument PDF</button>
+        <button class="tab-btn" id="tabOcrBtn" onclick="switchTab('ocr')" role="tab">Skan / zdjęcie</button>
+        <button class="tab-btn" id="tabTextBtn" onclick="switchTab('text')" role="tab">Wklej tekst</button>
       </div>
 
-      <!-- TAB 1: PLIK PDF -->
       <div id="tabPdfContent">
-        <div class="dropzone" id="pdfDropzone">
-          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="12" y1="18" x2="12" y2="12"></line>
-            <line x1="9" y1="15" x2="15" y2="15"></line>
-          </svg>
-          <div class="dropzone-title">Przeciągnij i upuść plik PDF kosztorysu</div>
-          <div class="dropzone-sub">lub kliknij, aby wybrać dokument z dysku (PDF do 15 MB)</div>
+        <div class="dropzone" id="pdfDropzone" tabindex="0" role="button" aria-label="Wybierz plik PDF z kosztorysem">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+          <div class="dropzone-title">Dodaj kosztorys PDF</div>
+          <div class="dropzone-sub">Przeciągnij plik tutaj lub kliknij, aby wybrać · maks. 15 MB</div>
           <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
         </div>
       </div>
 
-      <!-- TAB 2: ZDJĘCIE / SKAN (OCR) -->
       <div id="tabOcrContent" style="display:none;">
-        <div class="dropzone" id="imageDropzone">
-          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <div class="dropzone-title">Przeciągnij zdjęcie kosztorysu lub skan smartfonem</div>
-          <div class="dropzone-sub">Silnik OCR rozpoznaje tabele i kwoty kosztorysu (PNG, JPG, JPEG)</div>
+        <div class="dropzone" id="imageDropzone" tabindex="0" role="button" aria-label="Wybierz zdjęcie lub skan kosztorysu">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <div class="dropzone-title">Dodaj zdjęcie lub skan kosztorysu</div>
+          <div class="dropzone-sub">PNG, JPG lub JPEG · zadbaj o ostre zdjęcie całej strony</div>
           <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/jpg" style="display:none;">
         </div>
-        <div style="margin-top: 14px; text-align: center;">
-          <button class="chip-btn" onclick="testOcrWithPreloadedImage()" style="margin: 0 auto;">
-            Przetestuj OCR na gotowym zdjęciu kosztorysu (1 kliknięcie)
-          </button>
-        </div>
+        <div style="margin-top:12px;text-align:center;"><button class="chip-btn" onclick="testOcrWithPreloadedImage()">Zobacz działanie na przykładowym zdjęciu</button></div>
       </div>
 
-      <!-- TAB 3: WKLEJ TEKST -->
       <div id="tabTextContent" style="display:none;">
-        <textarea id="rawTextarea" rows="8" placeholder="Wklej treść kosztorysu z systemu Audatex, Eurotax lub DAT..." style="width: 100%; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 16px; color: #fff; font-family: monospace; font-size: 13px; outline: none;"></textarea>
+        <textarea id="rawTextarea" rows="8" placeholder="Wklej treść kosztorysu z systemu Audatex, Eurotax lub DAT..."></textarea>
       </div>
 
-      <!-- LOADER / 3D WHEEL SPINNER MODAL -->
-      <div class="progress-bar-container" id="progressBar">
-        <div class="progress-modal-card">
-          <div class="wheel-3d-wrapper">
-            <div class="wheel-3d-stage">
-              <!-- Spinning Wheel & Disc -->
-              <svg class="spinning-wheel-svg" viewBox="0 0 120 120" width="120" height="120">
-                <defs>
-                  <radialGradient id="tireGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="60%" stop-color="#14171d"/>
-                    <stop offset="90%" stop-color="#232730"/>
-                    <stop offset="100%" stop-color="#0f1115"/>
-                  </radialGradient>
-                  <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#94a3b8"/>
-                    <stop offset="25%" stop-color="#f8fafc"/>
-                    <stop offset="50%" stop-color="#475569"/>
-                    <stop offset="75%" stop-color="#cbd5e1"/>
-                    <stop offset="100%" stop-color="#1e293b"/>
-                  </linearGradient>
-                  <linearGradient id="spokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#e2e8f0"/>
-                    <stop offset="50%" stop-color="#64748b"/>
-                    <stop offset="100%" stop-color="#38bdf8"/>
-                  </linearGradient>
-                  <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="40%" stop-color="#475569"/>
-                    <stop offset="75%" stop-color="#334155"/>
-                    <stop offset="100%" stop-color="#1e293b"/>
-                  </radialGradient>
-                  <radialGradient id="hubGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#0284c7"/>
-                    <stop offset="100%" stop-color="#0f172a"/>
-                  </radialGradient>
-                </defs>
-
-                <!-- 1. Opona zewnętrzna z nacięciami bieżnika -->
-                <circle cx="60" cy="60" r="56" fill="url(#tireGrad)" stroke="#0b0d11" stroke-width="3"/>
-                <circle cx="60" cy="60" r="54" fill="none" stroke="#2c323f" stroke-width="2.5" stroke-dasharray="3, 5.5"/>
-                <circle cx="60" cy="60" r="49" fill="none" stroke="#181c24" stroke-width="1.5"/>
-
-                <!-- 2. Perforowana tarcza hamulcowa -->
-                <circle cx="60" cy="60" r="38" fill="url(#discGrad)" stroke="#64748b" stroke-width="1"/>
-                <circle cx="60" cy="60" r="32" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2, 4"/>
-                <circle cx="60" cy="60" r="26" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2.5, 5"/>
-
-                <!-- 3. Rant alufelgi -->
-                <circle cx="60" cy="60" r="41" fill="none" stroke="url(#rimGrad)" stroke-width="2.5"/>
-
-                <!-- 4. Ramiona alufelgi (5 podwójnych ramion) -->
-                <g id="wheelSpokes">
-                  <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
-                  <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
-                  <g transform="rotate(72 60 60)">
-                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
-                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
-                  </g>
-                  <g transform="rotate(144 60 60)">
-                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
-                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
-                  </g>
-                  <g transform="rotate(216 60 60)">
-                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
-                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
-                  </g>
-                  <g transform="rotate(288 60 60)">
-                    <path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#spokeGrad)"/>
-                    <line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>
-                  </g>
-                </g>
-
-                <!-- 5. Piasta centralna i śruby mocujące -->
-                <circle cx="60" cy="60" r="14" fill="url(#rimGrad)" stroke="#38bdf8" stroke-width="1"/>
-                <circle cx="60" cy="60" r="9" fill="url(#hubGrad)" stroke="#0284c7" stroke-width="1"/>
-                <circle cx="60" cy="49" r="1.5" fill="#f8fafc"/>
-                <circle cx="70.5" cy="56.5" r="1.5" fill="#f8fafc"/>
-                <circle cx="66.5" cy="68.5" r="1.5" fill="#f8fafc"/>
-                <circle cx="53.5" cy="68.5" r="1.5" fill="#f8fafc"/>
-                <circle cx="49.5" cy="56.5" r="1.5" fill="#f8fafc"/>
-                <text x="60" y="63" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="'Space Grotesk', sans-serif">Z</text>
-              </svg>
-
-              <!-- Static Sport Brake Caliper (Brembo red) -->
-              <svg class="static-caliper-svg" viewBox="0 0 120 120" width="120" height="120">
-                <defs>
-                  <linearGradient id="caliperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#ef4444"/>
-                    <stop offset="60%" stop-color="#dc2626"/>
-                    <stop offset="100%" stop-color="#991b1b"/>
-                  </linearGradient>
-                </defs>
-                <path d="M 28 42 C 26 49 26 58 28 66 L 37 63 C 35 57 35 51 37 45 Z" fill="url(#caliperGrad)" stroke="#f87171" stroke-width="1.2"/>
-                <circle cx="32" cy="48" r="1.5" fill="#fff" opacity="0.8"/>
-                <circle cx="32" cy="60" r="1.5" fill="#fff" opacity="0.8"/>
-              </svg>
-            </div>
-            <div class="wheel-3d-shadow"></div>
-          </div>
-
-          <h3 class="progress-title">Przetwarzanie kalkulacji</h3>
-          <div class="progress-track">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <div class="progress-label">
-            <span id="progressText">Rozpoznawanie tekstu i weryfikacja algorytmiczna...</span>
-            <span id="progressPercent">0%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- PARAMETRY POJAZDU I REGIONU -->
       <div class="params-grid">
         <div class="param-field">
-          <label>Województwo poszkodowanego (Stawki PIM)</label>
+          <label for="voivodeshipSelect">Województwo naprawy</label>
           <select id="voivodeshipSelect">
-            <option value="mazowieckie" selected>Mazowieckie (175 zł/rbh)</option>
-            <option value="dolnoslaskie">Dolnośląskie (170 zł/rbh)</option>
-            <option value="slaskie">Śląskie (165 zł/rbh)</option>
-            <option value="malopolskie">Małopolskie (165 zł/rbh)</option>
-            <option value="wielkopolskie">Wielkopolskie (165 zł/rbh)</option>
-            <option value="pomorskie">Pomorskie (165 zł/rbh)</option>
-            <option value="lodzkie">Łódzkie (160 zł/rbh)</option>
-            <option value="zachodniopomorskie">Zachodniopomorskie (160 zł/rbh)</option>
-            <option value="kujawsko-pomorskie">Kujawsko-pomorskie (155 zł/rbh)</option>
-            <option value="lubelskie">Lubelskie (155 zł/rbh)</option>
-            <option value="podkarpackie">Podkarpackie (155 zł/rbh)</option>
-            <option value="swietokrzyskie">Świętokrzyskie (150 zł/rbh)</option>
-            <option value="podlaskie">Podlaskie (155 zł/rbh)</option>
-            <option value="lubuskie">Lubuskie (155 zł/rbh)</option>
-            <option value="warminsko-mazurskie">Warmińsko-mazurskie (150 zł/rbh)</option>
-            <option value="opolskie">Opolskie (155 zł/rbh)</option>
+            <option value="mazowieckie" selected>Mazowieckie (175 zł/rbh)</option><option value="dolnoslaskie">Dolnośląskie (170 zł/rbh)</option><option value="slaskie">Śląskie (165 zł/rbh)</option><option value="malopolskie">Małopolskie (165 zł/rbh)</option><option value="wielkopolskie">Wielkopolskie (165 zł/rbh)</option><option value="pomorskie">Pomorskie (165 zł/rbh)</option><option value="lodzkie">Łódzkie (160 zł/rbh)</option><option value="zachodniopomorskie">Zachodniopomorskie (160 zł/rbh)</option><option value="kujawsko-pomorskie">Kujawsko-pomorskie (155 zł/rbh)</option><option value="lubelskie">Lubelskie (155 zł/rbh)</option><option value="podkarpackie">Podkarpackie (155 zł/rbh)</option><option value="swietokrzyskie">Świętokrzyskie (150 zł/rbh)</option><option value="podlaskie">Podlaskie (155 zł/rbh)</option><option value="lubuskie">Lubuskie (155 zł/rbh)</option><option value="warminsko-mazurskie">Warmińsko-mazurskie (150 zł/rbh)</option><option value="opolskie">Opolskie (155 zł/rbh)</option>
           </select>
         </div>
         <div class="param-field">
-          <label>Klasa technologiczna pojazdu</label>
-          <select id="segmentSelect">
-            <option value="AUTO" selected>Wykrywaj automatycznie z marki i modelu</option>
-            <option value="POPULAR">Segment popularny (Toyota, Skoda, VW, Ford)</option>
-            <option value="PREMIUM">Segment Premium (+25% ADAS: BMW, Mercedes, Audi, Volvo)</option>
-            <option value="LUXURY">Segment luksusowy (+50%: Porsche, Bentley, Ferrari)</option>
-          </select>
+          <label for="segmentSelect">Klasa pojazdu <span style="font-weight:400;text-transform:none;letter-spacing:0;">(opcjonalnie)</span></label>
+          <select id="segmentSelect"><option value="AUTO" selected>Rozpoznaj automatycznie</option><option value="POPULAR">Segment popularny</option><option value="PREMIUM">Segment Premium</option><option value="LUXURY">Segment luksusowy</option></select>
         </div>
       </div>
 
-      <!-- PRZYCISKI AKCJI -->
       <div class="action-row">
-        <button class="btn-primary" id="startAuditBtn" onclick="runCurrentAudit()">
-          Rozpocznij audyt kosztorysu
-        </button>
-        <button class="btn-secondary" id="loadSampleBtn" onclick="loadSampleTextAndAudit()">
-          Wczytaj przykładowy kosztorys (Toyota Corolla PZU)
-        </button>
-        <a class="btn-secondary" id="downloadPdfBtn" href="/przykladowy_kosztorys_pzu.pdf" download="przykladowy_kosztorys_pzu.pdf" target="_blank">
-          Pobierz plik PDF do testów
-        </a>
+        <button class="btn-primary" id="startAuditBtn" onclick="runCurrentAudit()">Uruchom analizę kosztorysu</button>
+        <button class="btn-secondary" id="loadSampleBtn" onclick="loadSampleTextAndAudit()">Uruchom przykład</button>
+        <a class="btn-secondary" id="downloadPdfBtn" href="/przykladowy_kosztorys_pzu.pdf" download="przykladowy_kosztorys_pzu.pdf" target="_blank">Pobierz przykładowy PDF</a>
       </div>
+      <div class="progress-bar-container" id="progressBar"><div class="progress-modal-card"><h3 class="progress-title">Analizujemy kosztorys</h3><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><div class="progress-label"><span id="progressText">Rozpoznawanie tekstu i weryfikacja reguł...</span><span id="progressPercent">0%</span></div></div></div>
     </section>
 
-    <!-- OBSZAR WYNIKÓW AUDYTU -->
-    <div id="auditResultsArea">
+    <section style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:100px;">
+      <figure style="margin:0;border-radius:18px;overflow:hidden;background:#dbe5e2;min-height:220px;"><img src="/images/desk-audit-comparison.jpg" alt="Pracownik analizuje kosztorys przy samochodzie" style="width:100%;height:100%;min-height:220px;object-fit:cover;display:block;"></figure>
+      <figure style="margin:0;border-radius:18px;overflow:hidden;background:#dbe5e2;min-height:220px;"><img src="/images/mechanic-understated-explanation.jpg" alt="Wyjaśnienie różnic w kosztorysie" style="width:100%;height:100%;min-height:220px;object-fit:cover;display:block;"></figure>
+      <figure style="margin:0;border-radius:18px;overflow:hidden;background:#dbe5e2;min-height:220px;"><img src="/images/tech-hud-repair.jpg" alt="Techniczna dokumentacja naprawy samochodu" style="width:100%;height:100%;min-height:220px;object-fit:cover;display:block;"></figure>
+    </section>
 
-      <!-- STAN 1: DARMOWY AUDYT WSTĘPNY (TEASER & PAYWALL NA SZCZEGÓŁACH) -->
+    <div id="auditResultsArea">
       <div id="teaserView" class="teaser-card">
-        <div class="teaser-glow"></div>
         <div class="teaser-header">
           <div>
-            <div class="teaser-badge">Audyt wstępny ukończony</div>
-            <h2 id="teaserVehicleTitle" style="font-size: 24px; color: #fff; margin-top: 8px;">Pojazd: Toyota Corolla 1.8 Hybrid (2021)</h2>
-            <div id="teaserClaimMeta" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-              Szkoda nr: PL/PZU/2026/09/99120 | Ubezpieczyciel: PZU S.A. | Województwo: Mazowieckie
-            </div>
-            <div class="discrepancy-scale">
-              <span style="font-size: 13px; font-weight: 600; color: #f87171;">Wskaźnik zaniżenia: WYSOKI</span>
-              <div class="scale-bar"><div class="scale-fill"></div></div>
-              <span id="teaserViolationsCount" style="font-size: 12px; color: var(--text-dim);">(wykryto 4 kategorie uchybień)</span>
-            </div>
+            <div class="teaser-badge">Wstępna analiza gotowa</div>
+            <h2 id="teaserVehicleTitle">Pojazd: oczekiwanie na dokument</h2>
+            <div id="teaserClaimMeta">Po wgraniu dokumentu zobaczysz źródło i zakres analizy.</div>
+            <div class="discrepancy-scale"><span>Różnice do sprawdzenia</span><div class="scale-bar"><div class="scale-fill"></div></div><span id="teaserViolationsCount">—</span></div>
           </div>
-
-          <div style="text-align: right;">
-            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase;">Szacowane zaniżenie odszkodowania</div>
-            <div id="teaserEstimatedRange" style="font-size: 32px; font-weight: 700; color: #34d399; font-family: 'Space Grotesk', sans-serif;">
-              od 4 200 zł do 5 400 zł
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted);">kwota możliwa do odzyskania w całości z OC sprawcy</div>
-          </div>
+          <div><div>ORIENTACYJNY ZAKRES RÓŻNIC</div><div id="teaserEstimatedRange">—</div><div style="font-size:12px;color:var(--muted);margin-top:7px;">wynik zależy od jakości odczytu i zakresu danych</div></div>
         </div>
-
-        <!-- ZABLOKOWANY PODGLĄD DANYCH SZCZEGÓŁOWYCH -->
         <div class="locked-section-container">
-          <div class="blur-preview">
-            <div class="cost-grid">
-              <div class="cost-card">
-                <div class="cost-label">Wypłacona kwota bezsporna</div>
-                <div class="cost-amount">3 600,00 zł</div>
-                <div class="cost-sub">Wypłata zaniżona przez ubezpieczyciela</div>
-              </div>
-              <div class="cost-card highlight">
-                <div class="cost-label">Należna dopłata od ubezpieczyciela</div>
-                <div class="cost-amount emerald">••••,•• zł</div>
-                <div class="cost-sub">Suma bezprawnych potrąceń brutto</div>
-              </div>
-              <div class="cost-card">
-                <div class="cost-label">Rzeczywisty koszt rzetelnej naprawy</div>
-                <div class="cost-amount">••••,•• zł</div>
-                <div class="cost-sub">Zgodnie ze stawkami PIM i technologią OEM</div>
-              </div>
-            </div>
-
-            <div class="violation-card">
-              <div class="violation-header">
-                <div class="violation-title">Zaniżenie stawki roboczogodziny (RBH)</div>
-                <div class="violation-amount">••••,•• zł</div>
-              </div>
-              <div class="violation-desc">Zastosowano stawkę dumpingową 70 zł/rbh zamiast rynkowej stawki referencyjnej PIM...</div>
-            </div>
-            <div class="violation-card">
-              <div class="violation-header">
-                <div class="violation-title">Bezprawne potrącenie amortyzacyjne części (SN III CZP 80/11)</div>
-                <div class="violation-amount">••••,•• zł</div>
-              </div>
-              <div class="violation-desc">Obcięto wartość zderzaka i reflektora z uwagi na wiek pojazdu...</div>
-            </div>
-          </div>
-
-          <!-- PAYWALL / ODBLOKOWANIE PEŁNEGO PAKIETU -->
-          <div class="paywall-overlay" id="paywallBox">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--accent);">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </div>
-            <h3>Odblokuj pełny audyt dowodowy i gotowe pismo procesowe</h3>
-            <p>
-              Ubezpieczyciel liczy na to, że nie znasz oficjalnych stawek PIM ani uchwały SN III CZP 80/11. Pobierz precyzyjne zestawienie kwot do grosza oraz formalne Przedsądowe Wezwanie do Zapłaty z rygorem 30 dni.
-            </p>
-            <div style="font-size: 20px; font-weight: 700; color: #f8fafc; margin: 6px 0 2px 0;">
-              <span style="color: #38bdf8;">49,00 zł</span> brutto <span style="font-size: 13px; font-weight: 500; color: #10b981; margin-left: 6px;">(Wersja beta: 0 zł)</span>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-              Cena zawiera 23% VAT. Treści cyfrowe (raport i pliki procesowe) dostarczane natychmiast po zatwierdzeniu.
-            </div>
-
-            <!-- ZGODA KONSUMENCKA / WYŁĄCZENIE ODSTĄPIENIA (ART. 38 PKT 13 USTAWY O PRAWACH KONSUMENTA) -->
-            <div style="max-width: 580px; margin: 0 auto 12px auto; text-align: left; font-size: 11px; line-height: 1.45; color: var(--text-muted); background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;">
-              <label style="display: flex; gap: 8px; align-items: flex-start; cursor: pointer;">
-                <input type="checkbox" id="p24ConsentCheck" checked style="margin-top: 2px; accent-color: #38bdf8;">
-                <span>Zgadzam się na natychmiastowe rozpoczęcie świadczenia usługi i dostarczenie treści cyfrowych przed upływem 14-dniowego terminu do odstąpienia od umowy i przyjmuję do wiadomości utratę prawa do odstąpienia od umowy z chwilą ich pełnego dostarczenia. Akceptuję <a href="/regulamin.html" target="_blank" style="color: #38bdf8; text-decoration: underline;">Regulamin</a> oraz <a href="/polityka-prywatnosci.html" target="_blank" style="color: #38bdf8; text-decoration: underline;">Politykę prywatności</a>.</span>
-              </label>
-            </div>
-
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-              <button class="btn-primary" onclick="unlockFullReport()">
-                Odblokuj raport i dokumenty – 49 zł
-              </button>
-              <button class="btn-secondary" onclick="unlockFullReport()">
-                Tryb testowy (bezpłatny dostęp)
-              </button>
-            </div>
-
-            <!-- METODY PŁATNOŚCI I OPERATOR -->
-            <div style="display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 12px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted);">
-              <span>Bezpieczne płatności obsługuje <strong>PayPro S.A. (Przelewy24)</strong>:</span>
-              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">BLIK</span>
-              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Visa</span>
-              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Mastercard</span>
-              <span style="background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: #fff;">Przelew online</span>
-            </div>
-
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
-              Sprzedawca: Multinewsroom &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; e-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-dim); text-decoration: underline;">kontakt@zanisko.pl</a>
-            </div>
-          </div>
+          <div class="blur-preview"><div class="cost-card"><div class="cost-label">Kwota z kosztorysu</div><div class="cost-amount">—</div><div class="cost-sub">Odczytana z dokumentu</div></div><div class="cost-card highlight"><div class="cost-label">Różnica do sprawdzenia</div><div class="cost-amount emerald">—</div><div class="cost-sub">Suma wykrytych odchyleń</div></div><div class="cost-card"><div class="cost-label">Kwota po korekcie</div><div class="cost-amount">—</div><div class="cost-sub">Wartość orientacyjna</div></div></div>
+          <div class="paywall-overlay" id="paywallBox"><h3>Pełny raport i pismo reklamacyjne</h3><p>W wersji beta odblokowujesz szczegóły bez opłaty. Sprawdzisz każdą pozycję, podstawę oraz przygotujesz dokument do wysłania.</p><button class="btn-primary" onclick="unlockFullReport()" aria-label="Odblokuj pełny audyt">Pokaż szczegóły audytu</button></div>
         </div>
       </div>
 
-      <!-- STAN 2: ODBLOKOWANY PEŁNY RAPORT DOWODOWY I GENERATOR PISMA -->
       <div id="unlockedView" style="display:none;">
-
-        <!-- KARTY PODSUMOWANIA FINANSOWEGO CO DO GROSZA -->
-        <div class="cost-grid">
-          <div class="cost-card">
-            <div class="cost-label">Wypłacona kwota bezsporna</div>
-            <div class="cost-amount" id="unlockedUndisputedGross">0,00 zł</div>
-            <div class="cost-sub" id="unlockedUndisputedNet">Netto: 0,00 zł</div>
-          </div>
-          <div class="cost-card highlight">
-            <div class="cost-label">Kwota roszczenia do dopłaty (Suma strat)</div>
-            <div class="cost-amount emerald" id="unlockedTotalLossGross">0,00 zł</div>
-            <div class="cost-sub" id="unlockedTotalLossNet">Netto: 0,00 zł (z VAT 23%)</div>
-          </div>
-          <div class="cost-card">
-            <div class="cost-label">Rzetelna wartość naprawy powypadkowej</div>
-            <div class="cost-amount" id="unlockedFairGross">0,00 zł</div>
-            <div class="cost-sub" id="unlockedFairNet">Netto: 0,00 zł</div>
-          </div>
+        <div class="unlocked-head"><div><div class="section-kicker">02 / Wynik analizy</div><h2>Co obniżyło kosztorys</h2><p>Każda pozycja ma opis, kwotę wynikającą z reguły i podstawę do dalszego sprawdzenia.</p></div><button class="btn-secondary" onclick="document.getElementById('skaner').scrollIntoView({behavior:'smooth'})">Wgraj inny dokument</button></div>
+        <div class="cost-grid"><div class="cost-card"><div class="cost-label">Kwota z kosztorysu</div><div class="cost-amount" id="unlockedUndisputedGross">0,00 zł</div><div class="cost-sub" id="unlockedUndisputedNet">Netto: 0,00 zł</div></div><div class="cost-card highlight"><div class="cost-label">Różnica do sprawdzenia</div><div class="cost-amount emerald" id="unlockedTotalLossGross">+0,00 zł</div><div class="cost-sub" id="unlockedTotalLossNet">Netto: 0,00 zł</div></div><div class="cost-card"><div class="cost-label">Kwota po korekcie</div><div class="cost-amount" id="unlockedFairGross">0,00 zł</div><div class="cost-sub" id="unlockedFairNet">Netto: 0,00 zł</div></div></div>
+        <div id="violationsList" style="margin-top:24px;"></div>
+        <div class="document-panel">
+          <h3>Przygotuj pismo reklamacyjne</h3><p>Wpisz swoje dane, aby wygenerować dokument do sprawdzenia i podpisania.</p>
+          <div class="document-form"><label for="claimantName">Imię i nazwisko<input type="text" id="claimantName" placeholder="np. Anna Kowalska"></label><label for="claimantAddress">Adres do korespondencji<input type="text" id="claimantAddress" placeholder="np. ul. ..., 00-000 Warszawa"></label><label for="claimantIban">Numer rachunku<input type="text" id="claimantIban" placeholder="opcjonalnie"></label></div>
+          <div class="letter-sheet" id="letterPreview">Po uzupełnieniu danych wygenerujemy podgląd pisma.</div>
+          <div class="document-actions"><button class="btn-primary" onclick="downloadLetter('docx')">Pobierz Word</button><button class="btn-primary" onclick="downloadLetter('pdf')">Pobierz PDF</button><button class="btn-secondary" onclick="enhanceLetterWithAi()">Dopracuj argumentację</button></div>
         </div>
-
-        <!-- KALENDARIUM 30 DNI (USTAWOWY RYGOR) -->
-        <div class="timeline-card">
-          <div class="overlay-tag">Procedura odzyskiwania odszkodowania</div>
-          <h3 style="font-size: 20px; color: #fff; margin-top: 4px;">Ustawowe kalendarium reklamacyjne (Ustawa z 5 sierpnia 2015 r.)</h3>
-          <div class="timeline-steps">
-            <div class="timeline-step">
-              <div class="step-day">Dzień 0</div>
-              <div class="step-title">Wysłanie wezwania</div>
-              <div class="step-desc">Złożenie wygenerowanej reklamacji ClaimCheck z audytem różnicowym drogą mailową lub listem poleconym.</div>
-            </div>
-            <div class="timeline-step">
-              <div class="step-day">Dzień 14</div>
-              <div class="step-title">Termin płatności</div>
-              <div class="step-desc">Wyznaczony w wezwaniu termin na bezsporną dopłatę na wskazany rachunek bankowy poszkodowanego.</div>
-            </div>
-            <div class="timeline-step critical">
-              <div class="step-day">Dzień 30</div>
-              <div class="step-title">Rygor milczenia (Art. 8)</div>
-              <div class="step-desc">Brak pisemnej odpowiedzi ubezpieczyciela w terminie 30 dni oznacza uznanie roszczenia w całości z mocy prawa.</div>
-            </div>
-            <div class="timeline-step success">
-              <div class="step-day">Dzień 31+</div>
-              <div class="step-title">Egzekucja lub Rzecznik</div>
-              <div class="step-desc">Wniosek interwencyjny do Rzecznika Finansowego lub skierowanie pozwu z odsetkami ustawowymi za opóźnienie.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PEŁNA LISTA ZARZUTÓW PRAWNO-TECHNOLOGICZNYCH -->
-        <div class="section-header" style="margin-top: 36px;">
-          <h2>Szczegółowy wykaz zaniżeń w Twoim kosztorysie</h2>
-          <p>Dowody gotowe do przedłożenia w postępowaniu reklamacyjnym i sądowym.</p>
-        </div>
-        <div id="violationsList"></div>
-
-        <!-- FORMULARZ WEZWANIA DO ZAPŁATY ZE ZDJĘCIEM 4 -->
-        <div class="letter-section">
-          <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: center; margin-bottom: 24px;">
-            <div>
-              <h2>Przedsądowe Wezwanie do Zapłaty</h2>
-              <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
-                Oficjalne pismo procesowe przygotowane w standardzie kancelarii prawnej, z pełną argumentacją prawną, kalkulacją zaniżeń i danymi do przelewu.
-              </p>
-            </div>
-            <div style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border);">
-              <img src="/images/desk-audit-comparison.jpg" alt="Analiza kosztorysu na biurku" style="width: 100%; height: 110px; object-fit: cover;">
-            </div>
-          </div>
-
-          <div class="claimant-form">
-            <div class="param-field">
-              <label>Imię i nazwisko poszkodowanego</label>
-              <input type="text" id="claimantName" value="Jan Kowalski" onchange="generateAndDisplayLetter()">
-            </div>
-            <div class="param-field">
-              <label>Adres zamieszkania</label>
-              <input type="text" id="claimantAddress" value="ul. Marszałkowska 10/12, 00-001 Warszawa" onchange="generateAndDisplayLetter()">
-            </div>
-            <div class="param-field">
-              <label>Numer konta bankowego do dopłaty</label>
-              <input type="text" id="claimantIban" value="12 1020 1026 0000 1234 5678 9012" onchange="generateAndDisplayLetter()">
-            </div>
-          </div>
-
-          <div class="action-row" style="margin-bottom: 20px;">
-            <button class="btn-primary" onclick="downloadLetter('docx')">
-              Pobierz Word (DOCX)
-            </button>
-            <button class="btn-primary" onclick="downloadLetter('pdf')">
-              Pobierz PDF
-            </button>
-            <button class="btn-secondary" onclick="downloadLetter('rtf')">
-              Pobierz RTF
-            </button>
-            <button class="btn-secondary" onclick="downloadLetter('txt')">
-              Pobierz TXT
-            </button>
-            <button class="btn-secondary" onclick="copyLetterToClipboard()">
-              Kopiuj treść
-            </button>
-            <button class="btn-secondary" onclick="enhanceLetterWithAi()">
-              Wzbogać z AI (Gemini)
-            </button>
-          </div>
-
-          <div class="letter-sheet" id="letterPreview">Trwa generowanie spersonalizowanego wezwania do zapłaty...</div>
-
-          <!-- SEKCJA ZAŁĄCZNIKÓW DO WEZWANIA -->
-          <div class="attachments-section" id="attachmentsSection">
-            <div>
-              <h3 style="font-size: 20px; font-weight: 700; color: #f8fafc;">Załączniki do wezwania do zapłaty</h3>
-              <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">
-                Dokumenty dowodowe wymienione w wezwaniu procesowym. Możesz pobrać poszczególne załączniki lub kompletny pakiet dowodowy.
-              </p>
-            </div>
-
-            <div class="attachments-grid">
-              <!-- ZAŁĄCZNIK 1 -->
-              <div class="attachment-card">
-                <div class="att-header">
-                  <span class="att-badge">Załącznik nr 1</span>
-                  <h4>Kalkulacja korygująca i audyt kosztorysu</h4>
-                </div>
-                <p class="att-desc">
-                  Szczegółowy audyt różnicowy: stawki rynkowe, potrącenia amortyzacyjne, narzucone zamienniki oraz rabaty lakiernicze z wyliczeniem pełnego roszczenia.
-                </p>
-                <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'docx')">Word (DOCX)</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'pdf')">PDF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'rtf')">RTF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment1', 'txt')">TXT</button>
-                </div>
-              </div>
-
-              <!-- ZAŁĄCZNIK 2 -->
-              <div class="attachment-card">
-                <div class="att-header">
-                  <span class="att-badge">Załącznik nr 2</span>
-                  <h4>Wyciąg ze stawek rynkowych robocizny PIM 2026</h4>
-                </div>
-                <p class="att-desc">
-                  Urzędowa tabela stawek referencyjnych Polskiej Izby Motoryzacji dla 16 województw z uwzględnieniem Rekomendacji 15 KNF oraz segmentów pojazdów.
-                </p>
-                <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'docx')">Word (DOCX)</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'pdf')">PDF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'rtf')">RTF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment2', 'txt')">TXT</button>
-                </div>
-              </div>
-
-              <!-- ZAŁĄCZNIK 3 -->
-              <div class="attachment-card">
-                <div class="att-header">
-                  <span class="att-badge">Załącznik nr 3</span>
-                  <h4>Orzecznictwo Sądu Najwyższego i Rekomendacje KNF</h4>
-                </div>
-                <p class="att-desc">
-                  Zestawienie tez prawnych: zakaz potrąceń amortyzacyjnych (uchwała SN III CZP 80/11), brak wymogu faktur (SN III CZP 32/03) oraz rygor 30 dni milczenia.
-                </p>
-                <div class="att-downloads">
-                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'docx')">Word (DOCX)</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'pdf')">PDF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'rtf')">RTF</button>
-                  <button class="att-btn" onclick="downloadAttachment('attachment3', 'txt')">TXT</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- KOMPLETNY PAKIET -->
-            <div style="margin-top: 24px; padding: 22px; background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-              <div>
-                <div style="font-weight: 700; font-size: 16px; color: #fff;">Kompletny pakiet procesowy</div>
-                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Pobierz Wezwanie do Zapłaty wraz ze wszystkimi Załącznikami (1, 2 i 3) scalone w jeden plik z podziałem na strony.</div>
-              </div>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-primary" onclick="downloadBundle('docx')">Pobierz pakiet Word (DOCX)</button>
-                <button class="btn-primary" onclick="downloadBundle('pdf')">Pobierz pakiet PDF</button>
-                <button class="btn-secondary" onclick="downloadBundle('rtf')">Pobierz pakiet RTF</button>
-                <button class="btn-secondary" onclick="downloadBundle('txt')">Pobierz pakiet TXT</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <div class="attachments-section" id="attachmentsSection"><h3>Załączniki do pisma</h3><p>Dokumentacja audytu i podstawa wyliczeń w jednym pakiecie.</p><div class="attachment-card"><div><h4>1. Tabela różnic audytu</h4><p>Lista pozycji i sposobu wyliczenia</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment1','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment1','pdf')">PDF</button></div></div><div class="attachment-card"><div><h4>2. Stawki referencyjne</h4><p>Opis źródła i przyjętych założeń</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment2','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment2','pdf')">PDF</button></div></div><div class="attachment-card"><div><h4>3. Podstawa prawna</h4><p>Wskazanie przepisów i orzeczeń</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment3','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment3','pdf')">PDF</button></div></div><div class="attachments-actions" style="margin-top:18px;"><button class="btn-primary" onclick="downloadBundle('docx')">Pobierz cały pakiet Word</button><button class="btn-secondary" onclick="downloadBundle('pdf')">Pobierz cały pakiet PDF</button></div></div>
       </div>
     </div>
 
-    <!-- SEKCJA EDUKACYJNA: 3 FILARY ZANIŻEŃ (ZDJĘCIA 2 I 3) -->
-    <section class="features-grid">
-      <div class="feature-card">
-        <img class="feature-img" src="/images/mechanic-understated-explanation.jpg" alt="Mechanik wyjaśniający zaniżenie kosztorysu">
-        <div class="feature-body">
-          <div class="feature-tag">Uchwała SN III CZP 80/11</div>
-          <h3>Zakaz potrąceń amortyzacyjnych</h3>
-          <p>
-            Towarzystwa ubezpieczeniowe rutynowo obcinają wartość nowych części o 30-60% pod pretekstem wieku auta. Sąd Najwyższy jednoznacznie orzekł, że ubezpieczyciel ma obowiązek wypłacić kwotę odpowiadającą cenie nowych, oryginalnych części bez potrąceń.
-          </p>
-        </div>
-      </div>
-
-      <div class="feature-card">
-        <img class="feature-img" src="/images/tech-hud-repair.jpg" alt="Cyfrowy HUD specyfikacji części zamiennych">
-        <div class="feature-body">
-          <div class="feature-tag">Rekomendacja 15 KNF</div>
-          <h3>Realne stawki rynkowe robocizny</h3>
-          <p>
-            Ubezpieczyciele narzucają sztuczne stawki 60-75 zł/rbh, podczas gdy certyfikowane warsztaty w Polsce stosują stawki 150-175 zł/rbh (a w markach Premium z systemami ADAS ponad 200 zł). zanisko.pl weryfikuje stawkę wg bazy Polskiej Izby Motoryzacji.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEKCJA: ZANIŻANIE ODSZKODOWANIA – WYJAŚNIENIE I SCENARIUSZE -->
     <section class="guide" id="jak-to-dziala">
-      <div class="section-header">
-        <h2>Na czym polega zaniżanie odszkodowania z&nbsp;OC – i&nbsp;co możesz z&nbsp;tym zrobić</h2>
-        <p class="guide-lead">
-          Wyjaśniamy bez żargonu: skąd bierze się zbyt niska wypłata, jak sprawdzić, czy dotyczy Ciebie, i&nbsp;jaką drogę wybrać w&nbsp;Twojej konkretnej sytuacji.
-        </p>
-      </div>
-
-      <h3 class="guide-h">1. Jak to działa – w&nbsp;trzech zdaniach</h3>
-      <p class="guide-sub">
-        Gdy ktoś uszkodzi Twoje auto, jego ubezpieczyciel OC musi pokryć koszt przywrócenia samochodu do&nbsp;stanu sprzed wypadku. Najczęściej nie płaci za&nbsp;rzeczywistą naprawę, tylko wylicza ją w&nbsp;programie (Audatex, Eurotax, DAT) – to jest <strong>kosztorys</strong>. W&nbsp;tym kosztorysie ubezpieczyciel sam ustala ceny, a&nbsp;wiele z&nbsp;nich można ustawić niżej, niż wynosi realny koszt naprawy w&nbsp;warsztacie w&nbsp;Twojej okolicy.
-      </p>
-      <div class="guide-example">
-        <strong>Przykład liczbowy (dane przykładowe):</strong> kosztorys zakłada 18&nbsp;roboczogodzin po&nbsp;70&nbsp;zł netto. Warsztaty w&nbsp;Twoim mieście biorą 175&nbsp;zł netto za&nbsp;godzinę. Różnica to 105&nbsp;zł × 18&nbsp;h = <strong>1&nbsp;890&nbsp;zł netto</strong>, których w&nbsp;wypłacie brakuje, choć zakres naprawy jest taki sam. Do&nbsp;tego dochodzą zwykle potrącenia na&nbsp;częściach i&nbsp;materiałach.
-      </div>
-
-      <h3 class="guide-h">2. Cztery najczęstsze sposoby zaniżania</h3>
-      <p class="guide-sub">Każdy z&nbsp;nich widać w&nbsp;kosztorysie, jeśli wiesz, gdzie patrzeć. Nasz audyt sprawdza je automatycznie.</p>
+      <div class="section-header"><div class="section-kicker">03 / Zrozum wynik</div><h2>Jak zaniżono Twój kosztorys?</h2><p class="guide-lead">Zaniżenie kosztorysu rzadko wynika z jednej pozycji. Najczęściej składa się na nie kilka decyzji naraz: stawka pracy, ceny części, potrącenia, rabaty i zakres technologii naprawy.</p></div>
+      <h3 class="guide-h">Cztery miejsca, w których warto szukać różnic</h3>
       <div class="guide-grid">
-        <div class="guide-card">
-          <div class="num">Nożyczki nr 1</div>
-          <h4>Zaniżona stawka za&nbsp;roboczogodzinę</h4>
-          <p>Ubezpieczyciel wpisuje stawkę niższą niż ta, którą faktycznie biorą warsztaty w&nbsp;Twojej okolicy. Każda godzina pracy blacharza i&nbsp;lakiernika jest przez to „tańsza” tylko na&nbsp;papierze.</p>
-          <p class="law">Rekomendacja 15 KNF (pkt&nbsp;15.3): stawka powinna wynikać z&nbsp;cen warsztatów działających na&nbsp;rynku lokalnym.</p>
-        </div>
-        <div class="guide-card">
-          <div class="num">Nożyczki nr 2</div>
-          <h4>Potrącenie „amortyzacji” z&nbsp;części</h4>
-          <p>Nowy zderzak kosztuje 1&nbsp;850&nbsp;zł, ale ubezpieczyciel odejmuje np.&nbsp;40%, bo „auto ma już kilka lat”. Tymczasem do&nbsp;naprawy trzeba kupić część nową – za&nbsp;pełną cenę.</p>
-          <p class="law">Uchwała 7 sędziów SN z&nbsp;12.04.2012, III CZP 80/11 i&nbsp;Rekomendacja 17 KNF (pkt&nbsp;17.2): co do&nbsp;zasady bez amortyzacji. Potrącenie jest możliwe tylko, gdy ubezpieczyciel wykaże, że&nbsp;naprawa podniosła wartość całego auta.</p>
-        </div>
-        <div class="guide-card">
-          <div class="num">Nożyczki nr 3</div>
-          <h4>Najtańsze zamienniki zamiast oryginałów</h4>
-          <p>W&nbsp;kosztorysie część oryginalna zostaje zastąpiona tańszym zamiennikiem – nawet jeśli w&nbsp;aucie były oryginały albo samochód jest na&nbsp;gwarancji producenta.</p>
-          <p class="law">Rekomendacja 18 KNF: wartość części ma zapewnić przywrócenie stanu sprzed szkody; pkt&nbsp;18.1: przy aucie na&nbsp;gwarancji, która wymaga części oryginalnych – tylko części O.</p>
-        </div>
-        <div class="guide-card">
-          <div class="num">Nożyczki nr 4</div>
-          <h4>Rabaty, których nikt Ci nie da</h4>
-          <p>Od&nbsp;ceny części i&nbsp;lakieru odejmowany jest „rabat”, który obowiązuje wyłącznie w&nbsp;warsztatach współpracujących z&nbsp;ubezpieczycielem – nie w&nbsp;warsztacie, który wybierzesz Ty.</p>
-          <p class="law">Rekomendacja 17 KNF (pkt&nbsp;17.3): ubezpieczyciel nie może powoływać się na&nbsp;rabaty obowiązujące w&nbsp;swoich warsztatach i&nbsp;punktach sprzedaży.</p>
-        </div>
+        <div class="guide-card"><div class="num">01 / Robocizna</div><h4>Zaniżona stawka za godzinę</h4><p>Porównujemy stawkę z kosztorysu z wartością przyjętą dla wybranego regionu.</p><p class="law">Wynik jest punktem do sprawdzenia, nie automatycznym rozstrzygnięciem.</p></div>
+        <div class="guide-card"><div class="num">02 / Części</div><h4>Potrącenia i zamienniki</h4><p>Wskazujemy amortyzację, rabaty i kody jakości części, które wpływają na cenę naprawy.</p><p class="law">Podstawę prawną pokazujemy obok konkretnej pozycji.</p></div>
+        <div class="guide-card"><div class="num">03 / Technologia</div><h4>Zakres naprawy</h4><p>Jeśli w danych brakuje pozycji lub czynności, raport sygnalizuje brak do weryfikacji.</p><p class="law">Zdjęcia i faktury pozostają ważnym dowodem po Twojej stronie.</p></div>
+        <div class="guide-card"><div class="num">04 / Materiały</div><h4>Rabat na lakierowanie</h4><p>Sprawdzamy, czy w kalkulacji nie odjęto kwoty, której nie da się uzasadnić w Twoim warsztacie.</p><p class="law">Zachowaj kosztorys, decyzję i potwierdzenie wysłania reklamacji.</p></div>
       </div>
-
-      <h3 class="guide-h">3. Najpierw ustal, w&nbsp;jakiej jesteś sytuacji</h3>
-      <p class="guide-sub">
-        To najważniejszy krok. Od&nbsp;tego, co stało się z&nbsp;autem po&nbsp;wypadku, zależy, <strong>jak liczy się odszkodowanie</strong>. Kliknij swój przypadek.
-      </p>
-
-      <details class="scenario" open>
-        <summary><span class="tag">A</span> Nie naprawiłem auta i&nbsp;nadal je mam</summary>
-        <div class="scenario-body">
-          <p>To sytuacja, w&nbsp;której kosztorys ma największe znaczenie. Należy Ci się kwota odpowiadająca <strong>realnemu kosztowi naprawy</strong> – nawet jeśli auta nie naprawisz albo naprawisz je taniej we&nbsp;własnym zakresie.</p>
-          <ul>
-            <li>Sprawdź kosztorys ubezpieczyciela w&nbsp;naszym audycie – zobaczysz każdą zaniżoną pozycję i&nbsp;jej wartość.</li>
-            <li>Wyślij reklamację z&nbsp;żądaniem dopłaty (gotowe pismo generujemy po&nbsp;audycie).</li>
-            <li><strong>Nie sprzedawaj i&nbsp;nie naprawiaj auta, zanim sprawa się nie wyjaśni</strong> – albo zrób wcześniej pełną dokumentację zdjęciową uszkodzeń i&nbsp;zachowaj kosztorys. Po&nbsp;sprzedaży lub naprawie zmienia się sposób liczenia (patrz B i&nbsp;C).</li>
-          </ul>
-          <div class="verdict">Twoja droga: audyt kosztorysu → reklamacja → (jeśli trzeba) Rzecznik Finansowy → sąd. Szczegóły w&nbsp;punkcie 4.</div>
-        </div>
-      </details>
-
-      <details class="scenario">
-        <summary><span class="tag">B</span> Już naprawiłem auto</summary>
-        <div class="scenario-body">
-          <p>Sąd Najwyższy w&nbsp;uchwale 7 sędziów z&nbsp;11.09.2024 (III CZP 65/23) uznał, że&nbsp;po naprawie <strong>nie liczy się już hipotetycznego kosztorysu</strong>. Odszkodowanie odpowiada temu, ile naprawa faktycznie i&nbsp;zasadnie kosztowała.</p>
-          <ul>
-            <li>Zbierz faktury i&nbsp;rachunki za&nbsp;naprawę (części, robocizna, lakierowanie).</li>
-            <li>Jeśli faktury są wyższe niż wypłata – żądaj dopłaty różnicy na&nbsp;podstawie faktur.</li>
-            <li>Jeśli naprawa była tańsza niż wypłata – trudno będzie dochodzić więcej.</li>
-          </ul>
-          <div class="warn">Uwaga: w&nbsp;2025&nbsp;r. trzyosobowy skład SN (uchwała z&nbsp;24.09.2025, III CZP 32/24) dopuścił liczenie według kosztorysu także po&nbsp;naprawie. Orzecznictwo jest więc rozbieżne, a&nbsp;uchwała 7 sędziów ma większą wagę. Ta sama uchwała z&nbsp;2025&nbsp;r. wskazała, że&nbsp;jeśli zapłaciłeś za&nbsp;naprawę bez VAT, odszkodowanie nie obejmuje VAT.</div>
-        </div>
-      </details>
-
-      <details class="scenario">
-        <summary><span class="tag">C</span> Sprzedałem auto bez naprawy</summary>
-        <div class="scenario-body">
-          <p>Według tej samej uchwały SN III CZP 65/23 po&nbsp;sprzedaży nienaprawionego auta odszkodowanie liczy się zwykle jako <strong>różnicę</strong> między wartością auta przed wypadkiem a&nbsp;ceną, za&nbsp;którą je sprzedałeś (tzw. metoda dyferencyjna).</p>
-          <ul>
-            <li>Przygotuj umowę sprzedaży (cena) i&nbsp;dowody wartości auta przed szkodą (np.&nbsp;wycena, ogłoszenia podobnych aut).</li>
-            <li>Kosztorys ubezpieczyciela ma tu mniejsze znaczenie – liczy się, ile realnie straciłeś na&nbsp;wartości auta.</li>
-          </ul>
-          <div class="verdict">Nasz audyt kosztorysu pomoże pokazać skalę uszkodzeń, ale głównym argumentem będzie różnica w&nbsp;wartości auta.</div>
-        </div>
-      </details>
-
-      <details class="scenario">
-        <summary><span class="tag">D</span> Prowadzę firmę i&nbsp;odliczam VAT</summary>
-        <div class="scenario-body">
-          <p>Jeśli auto jest w&nbsp;firmie i&nbsp;możesz odliczyć VAT od&nbsp;naprawy, odszkodowanie wypłacane jest co do&nbsp;zasady w&nbsp;kwotach <strong>netto</strong> – VAT odzyskujesz w&nbsp;rozliczeniu z&nbsp;urzędem skarbowym, a&nbsp;nie od&nbsp;ubezpieczyciela.</p>
-          <ul>
-            <li>Wszystkie zaniżenia (stawka, amortyzacja, części, rabaty) dotyczą Cię tak samo – tylko liczone są od&nbsp;kwot netto.</li>
-          </ul>
-        </div>
-      </details>
-
-      <details class="scenario">
-        <summary><span class="tag">E</span> Ubezpieczyciel uznał szkodę całkowitą</summary>
-        <div class="scenario-body">
-          <p>Szkoda całkowita to sytuacja, gdy naprawa jest nieopłacalna. Wtedy ubezpieczyciel wypłaca <strong>wartość auta sprzed wypadku minus wartość wraku</strong>. Spór dotyczy zwykle zaniżonej wartości auta albo zawyżonej wartości wraku – to inne zagadnienie niż kosztorys naprawy.</p>
-          <div class="warn">Nasz audyt sprawdza kosztorysy szkód częściowych (naprawy). Przy szkodzie całkowitej warto sprawdzić, czy próg opłacalności naprawy nie został wyliczony z&nbsp;zaniżonej stawki – wtedy kosztorys naprawy też ma znaczenie.</div>
-        </div>
-      </details>
-
-      <h3 class="guide-h">4. Co robić krok po&nbsp;kroku</h3>
-      <p class="guide-sub">Ścieżka dla najczęstszej sytuacji: wypłata przyszła, ale jest za&nbsp;niska.</p>
-      <ol class="steps">
-        <li>
-          <h4>Weź wypłatę – to nie zamyka sprawy</h4>
-          <p>Przyjęcie przelewu nie oznacza zgody na&nbsp;jego wysokość. Możesz dochodzić dopłaty. <strong>Nie podpisuj jednak ugody ani oświadczenia, że&nbsp;nie masz dalszych roszczeń</strong> – to może zamknąć drogę do&nbsp;dopłaty.</p>
-        </li>
-        <li>
-          <h4>Zdobądź kosztorys na&nbsp;piśmie</h4>
-          <p>Poproś ubezpieczyciela o&nbsp;pełną kalkulację naprawy (PDF z&nbsp;Audatex / Eurotax / DAT). Ubezpieczyciel powinien ją przekazać (Rekomendacja 14 KNF). Bez kosztorysu nie da się wskazać, które pozycje są zaniżone.</p>
-        </li>
-        <li>
-          <h4>Sprawdź kosztorys i&nbsp;wyślij reklamację</h4>
-          <p>Wgraj kosztorys do&nbsp;audytu powyżej. Dostaniesz listę zaniżeń z&nbsp;kwotami i&nbsp;gotowe pismo reklamacyjne. Wyślij je listem poleconym lub przez formularz reklamacyjny ubezpieczyciela i&nbsp;<strong>zachowaj dowód wysłania</strong>.</p>
-          <p>Ubezpieczyciel ma <strong>30&nbsp;dni</strong> na&nbsp;odpowiedź, a&nbsp;w&nbsp;szczególnie skomplikowanych sprawach – po&nbsp;poinformowaniu Cię o&nbsp;przyczynie – do&nbsp;60&nbsp;dni (ustawa o&nbsp;rozpatrywaniu reklamacji, art.&nbsp;5 i&nbsp;6). Jeśli nie odpowie w&nbsp;terminie, ustawa (art.&nbsp;8) każe uznać reklamację za&nbsp;rozpatrzoną zgodnie z&nbsp;Twoją wolą. W&nbsp;praktyce ubezpieczyciele i&nbsp;sądy różnie oceniają skutki tego przepisu – traktuj go jako mocny argument, nie automatyczną wygraną.</p>
-        </li>
-        <li>
-          <h4>Oceń odpowiedź</h4>
-          <ul>
-            <li><strong>Dopłacili całość</strong> – sprawa zamknięta.</li>
-            <li><strong>Dopłacili część</strong> – możesz przyjąć dopłatę i&nbsp;dochodzić reszty dalej.</li>
-            <li><strong>Odmówili albo milczą</strong> – przejdź do&nbsp;kroku 5.</li>
-          </ul>
-        </li>
-        <li>
-          <h4>Rzecznik Finansowy</h4>
-          <p>Po&nbsp;nieuwzględnionej reklamacji możesz złożyć wniosek do&nbsp;Rzecznika Finansowego o&nbsp;<strong>postępowanie interwencyjne</strong> – Rzecznik zwraca się do&nbsp;ubezpieczyciela o&nbsp;ponowne przeanalizowanie sprawy. Jest też <strong>postępowanie polubowne</strong> (próba ugody z&nbsp;udziałem Rzecznika). Szczegóły i&nbsp;formularze: <a href="https://rf.gov.pl" target="_blank" rel="noopener" style="color: var(--accent);">rf.gov.pl</a>.</p>
-        </li>
-        <li>
-          <h4>Sąd</h4>
-          <p>Jeśli nic nie pomoże, pozywasz ubezpieczyciela o&nbsp;dopłatę. Wysokość szkody ustala zwykle biegły. Przegrywający co do&nbsp;zasady zwraca koszty procesu. Opłata od&nbsp;pozwu przy kwotach do&nbsp;20&nbsp;000&nbsp;zł jest stała:</p>
-          <table class="fee-table">
-            <tr><td>do 500&nbsp;zł</td><td>30&nbsp;zł</td></tr>
-            <tr><td>500 – 1&nbsp;500&nbsp;zł</td><td>100&nbsp;zł</td></tr>
-            <tr><td>1&nbsp;500 – 4&nbsp;000&nbsp;zł</td><td>200&nbsp;zł</td></tr>
-            <tr><td>4&nbsp;000 – 7&nbsp;500&nbsp;zł</td><td>400&nbsp;zł</td></tr>
-            <tr><td>7&nbsp;500 – 10&nbsp;000&nbsp;zł</td><td>500&nbsp;zł</td></tr>
-            <tr><td>10&nbsp;000 – 15&nbsp;000&nbsp;zł</td><td>750&nbsp;zł</td></tr>
-            <tr><td>15&nbsp;000 – 20&nbsp;000&nbsp;zł</td><td>1&nbsp;000&nbsp;zł</td></tr>
-          </table>
-          <p>Powyżej 20&nbsp;000&nbsp;zł opłata wynosi 5% żądanej kwoty (art.&nbsp;13 ustawy o&nbsp;kosztach sądowych w&nbsp;sprawach cywilnych).</p>
-          <p>Alternatywa: sprzedaż roszczenia firmie odszkodowawczej (cesja). Dostajesz pieniądze od&nbsp;razu, ale zwykle tylko część tego, co mógłbyś odzyskać.</p>
-        </li>
-      </ol>
-
-      <div class="guide-example" style="border-left-color: var(--accent-amber);">
-        <strong>Ile masz czasu?</strong> Roszczenie o&nbsp;naprawienie szkody przedawnia się co do&nbsp;zasady po&nbsp;<strong>3&nbsp;latach</strong> od&nbsp;dnia, w&nbsp;którym dowiedziałeś się o&nbsp;szkodzie i&nbsp;o&nbsp;tym, kto ma ją naprawić (art.&nbsp;442<sup>1</sup> § 1 k.c.). Zgłoszenie szkody ubezpieczycielowi przerywa bieg przedawnienia – liczy się on od&nbsp;nowa od&nbsp;dnia, w&nbsp;którym otrzymasz na&nbsp;piśmie decyzję ubezpieczyciela (art.&nbsp;819 § 4 k.c.). Zachowaj daty zgłoszenia i&nbsp;doręczenia decyzji.
-      </div>
-
-      <h3 class="guide-h">5. Czego nie robić</h3>
-      <div class="dont-list">
-        <div><strong>Nie podpisuj ugody „w ciemno”</strong>Oświadczenie o&nbsp;zrzeczeniu się dalszych roszczeń może zamknąć drogę do&nbsp;dopłaty.</div>
-        <div><strong>Nie wyrzucaj dokumentów</strong>Kosztorys, decyzja, zdjęcia uszkodzeń, faktury i&nbsp;potwierdzenia wysyłki to Twoje dowody.</div>
-        <div><strong>Nie sprzedawaj auta pochopnie</strong>Sprzedaż przed rozliczeniem zmienia sposób liczenia odszkodowania (scenariusz C).</div>
-        <div><strong>Nie czekaj latami</strong>Pilnuj terminu przedawnienia i&nbsp;terminów odpowiedzi na&nbsp;reklamację.</div>
-      </div>
-
-      <div class="guide-sources">
-        Informacje mają charakter ogólny i&nbsp;nie zastępują porady prawnej w&nbsp;konkretnej sprawie. Stan na&nbsp;październik 2026&nbsp;r. Źródła:
-        <a href="https://www.sn.pl/sites/orzecznictwo/Orzeczenia3/III%20CZP%2065-23.pdf" target="_blank" rel="noopener">uchwała SN III CZP 65/23</a>,
-        <a href="http://www.sn.pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">uchwała SN III CZP 80/11</a>,
-        <a href="https://www.knf.gov.pl/knf/pl/komponenty/img/Rekomendacje_dot_likwidacji_szkod_z_ubezpieczen_komunikacyjnych_78983.pdf" target="_blank" rel="noopener">Rekomendacje KNF dot. likwidacji szkód komunikacyjnych (od 1.11.2022)</a>,
-        <a href="https://rf.gov.pl/komunikat-rzecznika-finansowego-w-sprawie-uchwaly-sadu-najwyzszego-z-dnia-11-wrzesnia-2024-r-sygn-akt-iii-czp-65-23-aktualizacja/" target="_blank" rel="noopener">komunikat Rzecznika Finansowego</a>,
-        <a href="https://rf.gov.pl/wp-content/uploads/2024/04/Edu-info-I-Roboczogodziny.pdf" target="_blank" rel="noopener">RF: roboczogodziny</a>,
-        <a href="https://rf.gov.pl/wp-content/uploads/2022/06/Edu-info-III-Amortyzacja-wartosci-czesci.pdf" target="_blank" rel="noopener">RF: amortyzacja części</a>.
-      </div>
+      <h3 class="guide-h">Dalsza droga po analizie</h3>
+      <details class="scenario" open><summary><span class="tag">A</span> Mam kosztorys, ale nie naprawiłem auta</summary><div class="scenario-body"><p>To najczęstszy przypadek dla tego narzędzia. Najpierw sprawdź różnice, potem wyślij reklamację z konkretną tabelą i zachowaj dowód wysłania.</p><ul><li>Nie podpisuj ugody, jeśli nie rozumiesz jej skutków.</li><li>Zachowaj kosztorys, zdjęcia szkody i decyzję ubezpieczyciela.</li><li>Przy bardziej złożonej sprawie skonsultuj dokumenty z rzeczoznawcą lub prawnikiem.</li></ul></div></details>
+      <details class="scenario"><summary><span class="tag">B</span> Auto zostało naprawione albo sprzedane</summary><div class="scenario-body"><p>Po naprawie lub sprzedaży sposób liczenia szkody może być inny. Wtedy do oceny przydadzą się faktury, umowa sprzedaży i dokumentacja zdjęciowa.</p></div></details>
+      <details class="scenario"><summary><span class="tag">C</span> Ubezpieczyciel uznał szkodę całkowitą</summary><div class="scenario-body"><p>Ta wersja narzędzia skupia się na kosztorysach napraw częściowych. Przy szkodzie całkowitej potrzebne są inne dane: wartość auta przed szkodą i wartość wraku.</p></div></details>
+      <div class="guide-example"><strong>Ważne:</strong> wynik ma charakter informacyjny. Nie zastępuje opinii rzeczoznawcy ani porady prawnej, a dokument warto przeczytać przed wysłaniem.</div>
+      <div class="guide-sources">Źródła i zakres reguł: <a href="https://www.sn.pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">SN III CZP 80/11</a>, <a href="https://www.knf.gov.pl/" target="_blank" rel="noopener">Rekomendacje KNF</a> oraz materiały <a href="https://rf.gov.pl/" target="_blank" rel="noopener">Rzecznika Finansowego</a>.</div>
     </section>
+  </main>
 
-    <!-- FOOTER -->
-    <footer>
-      <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; text-align: left;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-          <div style="max-width: 520px;">
-            <div style="font-weight: 700; color: #fff; font-size: 16px;">zanisko.pl – Niezależny audytor kosztorysów z OC sprawcy</div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.6;">
-              System automatycznej weryfikacji kalkulacji napraw powypadkowych oparty o orzecznictwo Sądu Najwyższego RP (uchwały III CZP 80/11, III CZP 32/03, III CZP 65/23) oraz Rekomendacje Komisji Nadzoru Finansowego (KNF).
-            </p>
-          </div>
-          <div style="font-size: 13px; color: var(--text-muted); line-height: 1.8;">
-            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Informacje prawne i pomoc</div>
-            <div><a href="/regulamin.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Regulamin serwisu</a></div>
-            <div><a href="/polityka-prywatnosci.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Polityka prywatności i cookies</a></div>
-            <div><a href="/kontakt.html" style="color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Kontakt i procedura reklamacyjna (14 dni)</a></div>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-dim);">
-          <div>
-            <strong>Sprzedawca:</strong> Multinewsroom &bull; NIP: 525-218-92-41 &bull; REGON: 147154574 &bull; E-mail: <a href="mailto:kontakt@zanisko.pl" style="color: var(--text-muted); text-decoration: underline;">kontakt@zanisko.pl</a>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">BLIK</span>
-            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Visa</span>
-            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Mastercard</span>
-            <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-weight: 600; color: #fff; font-size: 11px;">Przelewy24</span>
-          </div>
-        </div>
-
-        <div style="font-size: 11px; color: var(--text-dim); line-height: 1.5;">
-          Operatorem płatności jest PayPro S.A. z siedzibą w Poznaniu, ul. Pastelowa 8, 60-198 Poznań, wpisana do rejestru przedsiębiorców KRS pod numerem 0000347935, NIP 779-236-98-87, REGON 301345068, krajowa instytucja płatnicza nadzorowana przez Komisję Nadzoru Finansowego (KNF). Reklamacje dotyczące usług są rozpatrywane w terminie do 14 dni.
-        </div>
+  <footer>
+    <div style="max-width:1320px;margin:0 auto;display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap;">
+      <div style="max-width:560px;">
+        <strong style="color:#fff;font:600 1.1rem var(--display);">zanisko.pl</strong>
+        <p style="margin-top:8px;">Niezależna analiza kosztorysów naprawy z OC sprawcy. Narzędzie pomaga nazwać różnice i przygotować dokumenty do dalszego sprawdzenia.</p>
       </div>
-    </footer>
-
-  </div>
-
+      <div style="font-size:13px;line-height:2;">
+        <a href="/regulamin.html">Regulamin</a><br>
+        <a href="/polityka-prywatnosci.html">Prywatność</a><br>
+        <a href="/kontakt.html">Kontakt i reklamacje</a>
+      </div>
+    </div>
+    <div style="max-width:1320px;margin:28px auto 0;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;">
+      <div>© 2026 <a href="https://multinewsroom.pl/" target="_blank" rel="noopener" style="color:#fff!important;text-decoration:underline;">Multinewsroom</a> · Wszelkie prawa zastrzeżone</div>
+      <div style="font-size:11px;">zanisko.pl</div>
+    </div>
+  </footer>
   <div id="statusToast"></div>
-
+  <div class="busy-overlay" id="busyOverlay" role="status" aria-live="polite" aria-hidden="true"><div class="busy-card" id="busyCard"></div></div>
   <!-- SKRYPT KLIENTA -->
+
   <script>
     let currentAuditReport = null;
     let currentAuditRawText = '';
+    let activeInputMode = 'pdf';
 
     function showToast(msg) {
       const toast = document.getElementById('statusToast');
@@ -2010,6 +325,7 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     // Obsługa zakładek
     function switchTab(tab) {
+      activeInputMode = tab;
       document.getElementById('tabPdfBtn').classList.remove('active');
       document.getElementById('tabOcrBtn').classList.remove('active');
       document.getElementById('tabTextBtn').classList.remove('active');
@@ -2072,79 +388,66 @@ const HTML_PAGE = `<!DOCTYPE html>
       document.getElementById('progressBar').style.display = 'none';
     }
 
-    // Obsługa wczytania pliku PDF
-    async function handlePdfFile(file) {
-      if (!file.name.toLowerCase().endsWith('.pdf')) {
-        alert('Proszę wybrać plik PDF.');
-        return;
-      }
+    let pendingFile = null;
+    let pendingKind = null;
+
+    function setPendingFile(file, kind) {
+      pendingFile = file;
+      pendingKind = kind;
+      const target = kind === 'pdf' ? document.getElementById('pdfDropzone') : document.getElementById('imageDropzone');
+      const title = target.querySelector('.dropzone-title');
+      const sub = target.querySelector('.dropzone-sub');
+      title.textContent = 'Wybrano: ' + file.name;
+      sub.textContent = 'Dokument jest gotowy. Ustaw region i kliknij „Uruchom analizę kosztorysu”.';
+      target.classList.add('has-file');
+      showToast('Dokument gotowy do analizy. Sprawdź region i uruchom analizę.');
+    }
+
+    // Wybór pliku tylko przygotowuje go do analizy. Użytkownik świadomie uruchamia audyt po ustawieniu regionu.
+    function handlePdfFile(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Proszę wybrać plik PDF.'); return; }
+      setPendingFile(file, 'pdf');
+    }
+
+    function handleImageFile(file) {
+      if (!/^image\\/(png|jpeg|jpg)$/.test(file.type)) { alert('Wybierz plik PNG lub JPG.'); return; }
+      setPendingFile(file, 'ocr');
+    }
+
+    async function auditPdfFile(file) {
       showProgress('Wczytywanie i parsowanie kalkulacji PDF...', 40);
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
         try {
           showProgress('Silnik audytowy analizuje pozycje kosztorysu...', 75);
-          const res = await fetch('/api/upload-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              pdfBase64: base64,
-              voivodeship: document.getElementById('voivodeshipSelect').value,
-            }),
-          });
+          const res = await fetch('/api/upload-pdf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ pdfBase64:base64, voivodeship:document.getElementById('voivodeshipSelect').value }) });
           const data = await res.json();
           hideProgress();
-          if (data.error) {
-            alert('Błąd odczytu PDF: ' + data.error);
-            return;
-          }
-          currentAuditReport = data.auditReport;
-          currentAuditRawText = data.extractedText;
-          renderAuditResults(data.auditReport);
-          showToast('Pomyślnie sparsowano kosztorys PDF!');
-        } catch (err) {
-          hideProgress();
-          alert('Błąd podczas komunikacji z serwerem: ' + err.message);
-        }
+          if (data.error) { alert('Błąd odczytu PDF: ' + data.error); return; }
+          currentAuditReport = data.auditReport; currentAuditRawText = data.extractedText; renderAuditResults(data.auditReport); showToast('Analiza PDF zakończona.');
+        } catch (err) { hideProgress(); alert('Błąd podczas komunikacji z serwerem: ' + err.message); }
       };
       reader.readAsDataURL(file);
     }
 
-    // Obsługa OCR zdjęć
-    async function handleImageFile(file) {
+    async function auditImageFile(file) {
       showProgress('Silnik OCR analizuje zdjęcie kosztorysu...', 35);
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = reader.result.split(',')[1];
         try {
           showProgress('Rozpoznawanie stawek, części i potrąceń...', 70);
-          const res = await fetch('/api/upload-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              imageBase64: base64,
-              voivodeship: document.getElementById('voivodeshipSelect').value,
-            }),
-          });
+          const res = await fetch('/api/upload-image', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ imageBase64:base64, voivodeship:document.getElementById('voivodeshipSelect').value }) });
           const data = await res.json();
           hideProgress();
-          if (data.error) {
-            alert('Błąd przetwarzania obrazu: ' + data.error);
-            return;
-          }
-          currentAuditReport = data.auditReport;
-          currentAuditRawText = data.extractedText;
-          renderAuditResults(data.auditReport);
-          showToast('Zdjęcie kosztorysu rozpoznane pomyślnie!');
-        } catch (err) {
-          hideProgress();
-          alert('Błąd OCR: ' + err.message);
-        }
+          if (data.error) { alert('Błąd przetwarzania obrazu: ' + data.error); return; }
+          currentAuditReport = data.auditReport; currentAuditRawText = data.extractedText; renderAuditResults(data.auditReport); showToast('Analiza zdjęcia zakończona.');
+        } catch (err) { hideProgress(); alert('Błąd OCR: ' + err.message); }
       };
       reader.readAsDataURL(file);
     }
-
-    // Test OCR na gotowym zdjęciu
+\n    // Test OCR na gotowym zdjęciu
     async function testOcrWithPreloadedImage() {
       showProgress('Pobieranie zdjęcia testowego desk-audit-comparison.jpg...', 30);
       try {
@@ -2208,31 +511,17 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     // Ręczne uruchomienie audytu
     async function runCurrentAudit() {
+      const region = document.getElementById('voivodeshipSelect').value;
+      if (activeInputMode === 'pdf' && pendingFile && pendingKind === 'pdf') { await auditPdfFile(pendingFile); return; }
+      if (activeInputMode === 'ocr' && pendingFile && pendingKind === 'ocr') { await auditImageFile(pendingFile); return; }
       const rawText = document.getElementById('rawTextarea').value;
-      if (!rawText.trim()) {
-        alert('Najpierw wklej treść kosztorysu lub kliknij przycisk „Wczytaj przykładowy kosztorys”.');
-        return;
-      }
-      showProgress('Audytowanie kalkulacji wg stawek PIM 2026...', 50);
+      if (!rawText.trim()) { alert('Dodaj plik PDF, zdjęcie albo wklej treść kosztorysu.'); return; }
+      showProgress('Audytowanie kalkulacji według wybranego regionu...', 50);
       try {
-        const res = await fetch('/api/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            rawText,
-            voivodeship: document.getElementById('voivodeshipSelect').value,
-          }),
-        });
+        const res = await fetch('/api/audit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ rawText, voivodeship:region }) });
         const report = await res.json();
-        hideProgress();
-        currentAuditReport = report;
-        currentAuditRawText = rawText;
-        renderAuditResults(report);
-        showToast('Audyt zakończony pomyślnie!');
-      } catch (err) {
-        hideProgress();
-        alert('Błąd audytu: ' + err.message);
-      }
+        hideProgress(); currentAuditReport = report; currentAuditRawText = rawText; renderAuditResults(report); showToast('Analiza tekstu zakończona.');
+      } catch (err) { hideProgress(); alert('Błąd audytu: ' + err.message); }
     }
 
     // Renderowanie wyników (Etap 1: Teaser & Paywall)
@@ -2400,19 +689,38 @@ const HTML_PAGE = `<!DOCTYPE html>
           '</div>' +
           '<div class="wheel-3d-shadow" style="width: 85px; height: 12px;"></div>' +
         '</div>' +
-        '<div style="font-size: 16px; font-weight: 700; color: #38bdf8;">' + title + '</div>' +
-        '<div style="font-size: 13px; color: var(--text-muted); max-width: 480px;">' + (subtitle || '') + '</div>' +
+        '<div style="font-size: 16px; font-weight: 700; color: var(--teal-dark);">' + title + '</div>' +
+        '<div style="font-size: 13px; color: var(--muted); max-width: 480px;">' + (subtitle || '') + '</div>' +
       '</div>';
+    }
+
+    // Nakładka z kołem widoczna niezależnie od przewinięcia strony (generowanie i pobieranie dokumentów)
+    function showBusy(title) {
+      const overlay = document.getElementById('busyOverlay');
+      document.getElementById('busyCard').innerHTML = render3DCarWheelHtml(title, 'To potrwa kilka sekund.');
+      overlay.classList.add('is-visible');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideBusy() {
+      const overlay = document.getElementById('busyOverlay');
+      overlay.classList.remove('is-visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.getElementById('busyCard').innerHTML = '';
     }
 
     // Generowanie pisma wezwania do zapłaty (od razu w pełni spersonalizowane)
     async function generateAndDisplayLetter(options = {}) {
       if (!currentAuditReport) return;
 
-      const claimantName = document.getElementById('claimantName')?.value || 'Jan Kowalski';
-      const claimantAddress = document.getElementById('claimantAddress')?.value || 'ul. Marszałkowska 10/12, 00-001 Warszawa';
-      const bankAccountNumber = document.getElementById('claimantIban')?.value || '12 1020 1026 0000 1234 5678 9012';
+      const claimantName = document.getElementById('claimantName')?.value.trim() || '';
+      const claimantAddress = document.getElementById('claimantAddress')?.value.trim() || '';
+      const bankAccountNumber = document.getElementById('claimantIban')?.value.trim() || '';
       const previewEl = document.getElementById('letterPreview');
+      if (!claimantName || !claimantAddress) {
+        previewEl.textContent = 'Uzupełnij imię i nazwisko oraz adres, aby zobaczyć podgląd pisma.';
+        return;
+      }
 
       // Animowane obracające się koło samochodowe 3D wewnątrz podglądu pisma
       previewEl.innerHTML = render3DCarWheelHtml(
@@ -2437,23 +745,23 @@ const HTML_PAGE = `<!DOCTYPE html>
       } catch (err) {
         previewEl.textContent = 'Błąd generowania pisma: ' + err.message;
       } finally {
-        hideProgress();
+        hideBusy();
       }
     }
 
     async function enhanceLetterWithAi() {
-      showProgress('Trwa analiza orzecznictwa i redagowanie argumentacji przez Gemini...', 45);
+      showBusy('Trwa analiza orzecznictwa i redagowanie argumentacji przez Gemini...');
       try {
         await generateAndDisplayLetter({ useAi: true });
       } finally {
-        hideProgress();
+        hideBusy();
       }
     }
 
     // Pobieranie wezwania w wybranym formacie (DOCX, PDF, RTF, TXT)
     async function downloadLetter(format) {
       if (!currentAuditReport) return;
-      showProgress('Przygotowywanie wezwania (' + format.toUpperCase() + ')...', 45);
+      showBusy('Przygotowywanie wezwania (' + format.toUpperCase() + ')...');
       try {
         const claimSafe = (currentAuditReport && currentAuditReport.header && currentAuditReport.header.claimNumber)
           ? currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_')
@@ -2472,7 +780,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           filename: filename,
         });
       } catch (err) {
-        hideProgress();
+        hideBusy();
         alert('Błąd pobierania wezwania: ' + err.message);
       }
     }
@@ -2480,7 +788,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     // Pobieranie załącznika (attachment1, attachment2, attachment3) w wybranym formacie
     async function downloadAttachment(attachmentId, format) {
       if (!currentAuditReport) return;
-      showProgress('Przygotowywanie załącznika ' + format.toUpperCase() + '...', 40);
+      showBusy('Przygotowywanie załącznika ' + format.toUpperCase() + '...');
       try {
         const res = await fetch('/api/attachments/generate', {
           method: 'POST',
@@ -2502,7 +810,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           filename: filename,
         });
       } catch (err) {
-        hideProgress();
+        hideBusy();
         alert('Błąd pobierania załącznika: ' + err.message);
       }
     }
@@ -2510,7 +818,7 @@ const HTML_PAGE = `<!DOCTYPE html>
     // Pobieranie kompletnego pakietu procesowego (Wezwanie + Załączniki w jednym pliku)
     async function downloadBundle(format) {
       if (!currentAuditReport) return;
-      showProgress('Generowanie kompletnego pakietu (' + format.toUpperCase() + ')...', 40);
+      showBusy('Generowanie kompletnego pakietu (' + format.toUpperCase() + ')...');
       try {
         const claimSafe = currentAuditReport.header.claimNumber.split('/').join('_').split('\\\\').join('_');
         const filename = 'kompletny_pakiet_procesowy_' + claimSafe;
@@ -2538,7 +846,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         }
 
         const blob = await res.blob();
-        hideProgress();
+        hideBusy();
 
         const ext = (format === 'docx' || format === 'doc') ? '.docx' : (format === 'pdf' ? '.pdf' : (format === 'rtf' ? '.rtf' : '.txt'));
         const a = document.createElement('a');
@@ -2549,14 +857,14 @@ const HTML_PAGE = `<!DOCTYPE html>
         document.body.removeChild(a);
         showToast('Pobrano kompletny pakiet procesowy (' + format.toUpperCase() + ').');
       } catch (err) {
-        hideProgress();
+        hideBusy();
         alert('Błąd generowania pakietu: ' + err.message);
       }
     }
 
     // Uniwersalna funkcja pobierania pliku
     async function exportDocument(params) {
-      showProgress('Przygotowywanie pliku ' + params.format.toUpperCase() + '...', 60);
+      showBusy('Przygotowywanie pliku ' + params.format.toUpperCase() + '...');
       try {
         const res = await fetch('/api/export-document', {
           method: 'POST',
@@ -2568,7 +876,7 @@ const HTML_PAGE = `<!DOCTYPE html>
           throw new Error(errData.error || 'Serwer zwrócił kod błędu ' + res.status);
         }
         const blob = await res.blob();
-        hideProgress();
+        hideBusy();
 
         const ext = (params.format === 'docx' || params.format === 'doc') ? '.docx' : params.format === 'pdf' ? '.pdf' : params.format === 'rtf' ? '.rtf' : '.txt';
         const a = document.createElement('a');
@@ -2579,7 +887,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         document.body.removeChild(a);
         showToast('Pobrano dokument ' + params.format.toUpperCase() + '.');
       } catch (err) {
-        hideProgress();
+        hideBusy();
         alert('Błąd eksportu: ' + err.message);
       }
     }
