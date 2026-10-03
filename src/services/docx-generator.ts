@@ -166,6 +166,10 @@ export function demandLetterToDocxXml(text: string): string {
   const blocks = (text || '').replace(/\r\n/g, '\n').split(/\n\s*\n/);
   const out: string[] = [];
   const UPPER = /^[^a-ząćęłńóśźż]*$/;
+  const LABEL = /^(Roszczenie|Podstawa zarzutu|Podstawa prawna|Uzasadnienie|Numer rachunku|Tytuł przelewu|Szczegółowy wykaz pozycji|Dotyczy|Data zdarzenia|Numer szkody[^:]*|Pojazd[^:]*|Numer rejestracyjny|Województwo szkody|Stawka przyjęta|Stawka robocizny|Przyznana kwota bezsporna|Wyliczona kwota zaniżenia|Pełny, rzetelny koszt|WZYWAJĄCY[^:]*|ADRESAT[^:]*)\s*:\s*/i;
+
+  let inNumberedItem = false;
+  let inAttachmentsList = false;
 
   blocks.forEach((block, bi) => {
     const rawLines = block.split('\n').filter(l => l.trim().length > 0);
@@ -173,6 +177,8 @@ export function demandLetterToDocxXml(text: string): string {
 
     // Tytuł pisma
     if (/PRZEDSĄDOWE WEZWANIE/i.test(rawLines[0].trim())) {
+      inNumberedItem = false;
+      inAttachmentsList = false;
       out.push(
         `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="240" w:after="40"/></w:pPr>` +
         `<w:r><w:rPr><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t>${escapeXml(rawLines[0].trim())}</w:t></w:r></w:p>`
@@ -199,23 +205,43 @@ export function demandLetterToDocxXml(text: string): string {
       }
       // Główne nagłówki sekcji (I. WEZWANIE, II. WYKAZ, III. PODSTAWA, IV. RYGOR)
       else if (/^(I|II|III|IV|V|VI|VII|VIII)\.\s+\S/.test(line) && UPPER.test(line)) {
+        inNumberedItem = false;
+        inAttachmentsList = false;
         out.push(
           `<w:p><w:pPr><w:spacing w:before="280" w:after="100"/><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="4" w:color="334155"/></w:pBdr></w:pPr>` +
           `<w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Podpunkty numerowane (np. 1. ZANIŻENIE...)
-      else if (/^\d+\.\s+[A-ZĄĆĘŁŃÓŚŹŻ( ]+$/.test(line)) {
+      // Podpunkty numerowane (np. 1. ZANIŻENIE STAWKI..., 2. BEZPRAWNE POTRĄCENIE...)
+      else if (/^\d+\.\s+/.test(line) && UPPER.test(line)) {
+        inNumberedItem = true;
+        inAttachmentsList = false;
         out.push(
           `<w:p><w:pPr><w:spacing w:before="180" w:after="60"/></w:pPr>` +
           `<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Podstawy prawne (np. 1. Zasada pełnej kompensacji...:)
+      // Podstawy prawne w sekcji III (np. 1. Zasada pełnej kompensacji...:)
       else if (/^\d+\.\s+.{3,120}:$/.test(line)) {
+        inNumberedItem = true;
+        inAttachmentsList = false;
         out.push(
           `<w:p><w:pPr><w:spacing w:before="160" w:after="60"/></w:pPr>` +
           `<w:r><w:rPr><w:b/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
+        );
+      }
+      // Lista załączników na końcu
+      else if (/^Załączniki\s*:/i.test(line)) {
+        inNumberedItem = false;
+        inAttachmentsList = true;
+        out.push(
+          `<w:p><w:pPr><w:spacing w:before="200" w:after="60"/></w:pPr>` +
+          `<w:r><w:rPr><w:b/><w:sz w:val="21"/><w:szCs w:val="21"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
+        );
+      }
+      else if (inAttachmentsList && /^\d+\.\s+/.test(line)) {
+        out.push(
+          `<w:p><w:pPr><w:ind w:left="480" w:hanging="260"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
         );
       }
       // Kwota roszczenia wyróżniona
@@ -234,22 +260,39 @@ export function demandLetterToDocxXml(text: string): string {
       }
       // Podpisy
       else if (/^[.…_]{10,}$/.test(line)) {
+        inNumberedItem = false;
         out.push(
           `<w:p><w:pPr><w:jc w:val="right"/><w:spacing w:before="360" w:after="20"/></w:pPr>` +
           `<w:r><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       } else if (/^\(własnoręczny podpis/i.test(line)) {
+        inNumberedItem = false;
         out.push(
           `<w:p><w:pPr><w:jc w:val="right"/><w:spacing w:after="160"/></w:pPr>` +
           `<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="64748B"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Wypunktowania z wcięciem wiszącym
+      // Elementy podrzędne wewnątrz sekcji numerowanej lub z wcięciem (wcięcie przy numeracji!)
+      else if (inNumberedItem || isIndented || LABEL.test(line)) {
+        if (/^[-–•]\s+/.test(line)) {
+          // Podpunkt w wykazie pozycji (np. - Zderzak przedni kpl...)
+          const itemText = line.replace(/^[-–•]\s+/, '');
+          out.push(
+            `<w:p><w:pPr><w:ind w:left="960" w:hanging="280"/><w:spacing w:after="30"/><w:jc w:val="both"/></w:pPr>` +
+            `<w:r><w:t>–&#160;</w:t></w:r>${formatParagraphRuns(itemText)}</w:p>`
+          );
+        } else {
+          // Etykiety i treść podpunktu (Roszczenie:, Podstawa zarzutu:, Uzasadnienie:, Szczegółowy wykaz pozycji:)
+          out.push(
+            `<w:p><w:pPr><w:ind w:left="540"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>${formatParagraphRuns(line)}</w:p>`
+          );
+        }
+      }
+      // Standardowe wypunktowania poza podpunktami
       else if (/^[-–•]\s+/.test(line)) {
         const itemText = line.replace(/^[-–•]\s+/, '');
-        const indentLeft = isIndented ? '720' : '420';
         out.push(
-          `<w:p><w:pPr><w:ind w:left="${indentLeft}" w:hanging="260"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>` +
+          `<w:p><w:pPr><w:ind w:left="420" w:hanging="260"/><w:spacing w:after="40"/><w:jc w:val="both"/></w:pPr>` +
           `<w:r><w:t>–&#160;</w:t></w:r>${formatParagraphRuns(itemText)}</w:p>`
         );
       }
@@ -260,7 +303,7 @@ export function demandLetterToDocxXml(text: string): string {
           `<w:r><w:rPr><w:b/><w:sz w:val="19"/><w:szCs w:val="19"/><w:color w:val="334155"/></w:rPr><w:t>${escapeXml(line)}</w:t></w:r></w:p>`
         );
       }
-      // Standardowy akapit tekstu (z justowaniem dla dłuższych partii tekstu)
+      // Standardowy akapit tekstu
       else {
         const jc = line.length > 90 ? `<w:jc w:val="both"/>` : '';
         out.push(

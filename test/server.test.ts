@@ -276,7 +276,8 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
       });
       expect(res.status).toBe(200);
       const disposition = res.headers.get('content-disposition');
-      expect(disposition).toContain(`attachment; filename="test_doc.${format}"`);
+      const expectedExt = format === 'doc' ? 'docx' : format;
+      expect(disposition).toContain(`attachment; filename="test_doc.${expectedExt}"`);
       const buffer = await res.arrayBuffer();
       expect(buffer.byteLength).toBeGreaterThan(20);
     }
@@ -327,7 +328,8 @@ describe('ClaimCheck Web Server (Integracja API i UI)', () => {
       });
       expect(res.status).toBe(200);
       const disposition = res.headers.get('content-disposition');
-      expect(disposition).toContain(`attachment; filename="pakiet_testowy.${format}"`);
+      const expectedExt = format === 'doc' ? 'docx' : format;
+      expect(disposition).toContain(`attachment; filename="pakiet_testowy.${expectedExt}"`);
       const buffer = await res.arrayBuffer();
       expect(buffer.byteLength).toBeGreaterThan(100);
     }

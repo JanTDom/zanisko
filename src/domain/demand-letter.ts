@@ -17,8 +17,11 @@ export interface DemandLetterOptions {
  */
 export function generateDemandLetter(
   report: AuditReport,
-  options: DemandLetterOptions
+  options: Partial<DemandLetterOptions> = {}
 ): string {
+  const claimantName = options.claimantName || 'Jan Kowalski';
+  const claimantAddress = options.claimantAddress || 'ul. Marszałkowska 10/12, 00-001 Warszawa';
+  const bankAccountNumber = options.bankAccountNumber || '12 1020 1026 0000 1234 5678 9012';
   const currentDate = options.cityAndDate ?? `Warszawa, dnia ${new Date().toLocaleDateString('pl-PL')}`;
   const h = report.header;
   const s = report.summary;
@@ -49,8 +52,8 @@ ${idx + 1}. ${v.title.toUpperCase()}
   const letter = `${currentDate}
 
 WZYWAJĄCY (POSZKODOWANY):
-${options.claimantName}
-${options.claimantAddress}
+${claimantName}
+${claimantAddress}
 
 ADRESAT (UBEZPIECZYCIEL):
 ${h.insurerName}
@@ -77,7 +80,7 @@ ${s.totalLossGross.toFixed(2)} PLN BRUTTO
 (słownie: kwota wyliczona na podstawie załączonego audytu różnicowego kosztorysu)
 
 Kwotę powyższą należy uiścić w nieprzekraczalnym terminie 14 dni od dnia doręczenia niniejszego wezwania na rachunek bankowy poszkodowanego:
-Numer rachunku: ${options.bankAccountNumber}
+Numer rachunku: ${bankAccountNumber}
 Tytuł przelewu: Dopłata do odszkodowania – szkoda ${h.claimNumber}
 
 Jednocześnie wskazuję, że dotychczas wypłacona kwota w wysokości ${s.undisputedAmountGross.toFixed(2)} PLN brutto (${s.undisputedAmountNet.toFixed(2)} PLN netto) została przyjęta wyłącznie jako kwota bezsporna w rozumieniu art. 817 § 2 k.c. i nie zaspokaja roszczenia restytucyjnego wynikającego z art. 361 § 2 k.c. i art. 363 § 1 k.c. Pełna, rzetelna wartość naprawy wynosi ${s.fairAmountGross.toFixed(2)} PLN brutto (${s.fairAmountNet.toFixed(2)} PLN netto).
@@ -146,12 +149,17 @@ export function demandLetterToHtml(text: string): string {
   const blocks = text.replace(/\r\n/g, '\n').split(/\n\s*\n/);
   const out: string[] = [];
 
+  let inNumberedItem = false;
+  let inAttachmentsList = false;
+
   blocks.forEach((block, bi) => {
     const rawLines = block.split('\n').filter(l => l.trim().length > 0);
     if (!rawLines.length) return;
 
     // Tytuł pisma
     if (/PRZEDSĄDOWE WEZWANIE/i.test(rawLines[0].trim())) {
+      inNumberedItem = false;
+      inAttachmentsList = false;
       out.push(`<h1>${esc(rawLines[0].trim())}</h1>`);
       rawLines.slice(1).forEach(l => out.push(`<p class="subtitle">${esc(l.trim())}</p>`));
       return;
@@ -165,22 +173,28 @@ export function demandLetterToHtml(text: string): string {
       if (bi === 0 && li === 0 && /dnia|\d{1,2}[.\-]\d{1,2}[.\-]\d{2,4}/.test(line) && line.length < 60) {
         html.push(`<p class="date">${esc(line)}</p>`);
       } else if (/^(I|II|III|IV|V|VI|VII|VIII)\.\s+\S/.test(line) && UPPER.test(line)) {
+        inNumberedItem = false;
+        inAttachmentsList = false;
         html.push(`<h2>${esc(line)}</h2>`);
-      } else if (/^\d+\.\s+[A-ZĄĆĘŁŃÓŚŹŻ( ]+$/.test(line)) {
+      } else if (/^\d+\.\s+/.test(line) && UPPER.test(line)) {
+        inNumberedItem = true;
+        inAttachmentsList = false;
         html.push(`<h3 class="num-item">${esc(line)}</h3>`);
-      } else if (/^\d+\.\s+\S/.test(line) && UPPER.test(line) && line.length < 140) {
-        html.push(`<h3>${esc(line)}</h3>`);
       } else if (/^\d+\.\s+.{3,120}:$/.test(line)) {
+        inNumberedItem = true;
+        inAttachmentsList = false;
         html.push(`<h3 class="basis">${esc(line)}</h3>`);
-      } else if (isIndented && /^[-–•]\s+/.test(line)) {
-        html.push(`<p class="sub-li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
-      } else if (isIndented && LABEL.test(line)) {
-        html.push(`<p class="item-prop">${labelled(line)}</p>`);
-      } else if (/^[-–•]\s+/.test(line)) {
-        html.push(`<p class="li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
+      } else if (/^Załączniki\s*:/i.test(line)) {
+        inNumberedItem = false;
+        inAttachmentsList = true;
+        html.push(`<p class="party" style="margin-top:14pt;">${esc(line)}</p>`);
+      } else if (inAttachmentsList && /^\d+\.\s+/.test(line)) {
+        html.push(`<p class="num-li">${labelled(line)}</p>`);
       } else if (/^[.…_]{10,}$/.test(line)) {
+        inNumberedItem = false;
         html.push(`<p class="sign">${esc(line)}</p>`);
       } else if (/^\(własnoręczny podpis/i.test(line)) {
+        inNumberedItem = false;
         html.push(`<p class="sign small">${esc(line)}</p>`);
       } else if (/^[\d\s.,]+\s*(PLN|zł)\s*(BRUTTO)?$/i.test(line)) {
         html.push(`<p class="amount">${esc(line)}</p>`);
@@ -188,6 +202,14 @@ export function demandLetterToHtml(text: string): string {
         html.push(`<p class="center small">${esc(line)}</p>`);
       } else if (/^[A-ZĄĆĘŁŃÓŚŹŻ() ]{4,}:$/.test(line)) {
         html.push(`<p class="party">${esc(line)}</p>`);
+      } else if (inNumberedItem || isIndented || LABEL.test(line)) {
+        if (/^[-–•]\s+/.test(line)) {
+          html.push(`<p class="sub-li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
+        } else {
+          html.push(`<p class="item-prop">${labelled(line)}</p>`);
+        }
+      } else if (/^[-–•]\s+/.test(line)) {
+        html.push(`<p class="li">–&nbsp;${labelled(line.replace(/^[-–•]\s+/, ''))}</p>`);
       } else if (line.length > 110) {
         html.push(`<p class="justify">${labelled(line)}</p>`);
       } else {

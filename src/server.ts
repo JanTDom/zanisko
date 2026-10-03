@@ -1052,8 +1052,9 @@ const HTML_PAGE = `<!DOCTYPE html>
       left: 0;
       width: 100%;
       height: 100%;
-      animation: wheelSpin 0.7s linear infinite;
-      transform-origin: 60px 60px;
+      animation: wheelSpin 0.75s linear infinite;
+      transform-origin: 50% 50%;
+      transform-box: fill-box;
     }
     @keyframes wheelSpin {
       from { transform: rotate(0deg); }
@@ -1075,11 +1076,40 @@ const HTML_PAGE = `<!DOCTYPE html>
       border-radius: 50%;
       margin-top: 8px;
       filter: blur(2px);
-      animation: shadowPulse 0.7s ease-in-out infinite alternate;
+      animation: shadowPulse 0.75s ease-in-out infinite alternate;
     }
     @keyframes shadowPulse {
       from { transform: scaleX(0.95); opacity: 0.75; }
       to { transform: scaleX(1.08); opacity: 1; }
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-pill-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+    .nav-pill-btn:hover {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.35);
+      transform: translateY(-1px);
+    }
+    .nav-pill-highlight {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.25);
     }
     .progress-title {
       font-size: 19px;
@@ -1126,15 +1156,15 @@ const HTML_PAGE = `<!DOCTYPE html>
         <img src="/images/logo-zanisko.png" alt="zanisko.pl" style="height: 56px; width: auto; object-fit: contain;">
         <span class="brand-tag">Audytor OC 2026</span>
       </a>
-      <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
         <div class="nav-status">
           <div class="pulse-dot"></div>
           <span>Baza stawek PIM &amp; KNF 2026 (16 województw)</span>
         </div>
-        <div class="nav-links" style="display: flex; gap: 14px; font-size: 13px; font-weight: 500;">
-          <a href="/regulamin.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Regulamin</a>
-          <a href="/polityka-prywatnosci.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Prywatność</a>
-          <a href="/kontakt.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">Kontakt i reklamacje</a>
+        <div class="nav-links">
+          <a href="/regulamin.html" class="nav-pill-btn">Regulamin</a>
+          <a href="/polityka-prywatnosci.html" class="nav-pill-btn">Prywatność</a>
+          <a href="/kontakt.html" class="nav-pill-btn nav-pill-highlight">Kontakt i reklamacje</a>
         </div>
       </div>
     </div>
@@ -2286,6 +2316,95 @@ const HTML_PAGE = `<!DOCTYPE html>
 
     let currentLetterText = '';
 
+    function render3DCarWheelHtml(title, subtitle) {
+      return '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 48px 20px; text-align: center; gap: 14px;">' +
+        '<div class="wheel-3d-wrapper" style="margin-bottom: 8px;">' +
+          '<div class="wheel-3d-stage" style="width: 100px; height: 100px;">' +
+            '<svg class="spinning-wheel-svg" viewBox="0 0 120 120" width="100" height="100">' +
+              '<defs>' +
+                '<radialGradient id="pwTireGrad" cx="50%" cy="50%" r="50%">' +
+                  '<stop offset="60%" stop-color="#14171d"/>' +
+                  '<stop offset="90%" stop-color="#232730"/>' +
+                  '<stop offset="100%" stop-color="#0f1115"/>' +
+                '</radialGradient>' +
+                '<linearGradient id="pwRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                  '<stop offset="0%" stop-color="#94a3b8"/>' +
+                  '<stop offset="25%" stop-color="#f8fafc"/>' +
+                  '<stop offset="50%" stop-color="#475569"/>' +
+                  '<stop offset="75%" stop-color="#cbd5e1"/>' +
+                  '<stop offset="100%" stop-color="#1e293b"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="pwSpokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                  '<stop offset="0%" stop-color="#e2e8f0"/>' +
+                  '<stop offset="50%" stop-color="#64748b"/>' +
+                  '<stop offset="100%" stop-color="#38bdf8"/>' +
+                '</linearGradient>' +
+                '<radialGradient id="pwDiscGrad" cx="50%" cy="50%" r="50%">' +
+                  '<stop offset="40%" stop-color="#475569"/>' +
+                  '<stop offset="75%" stop-color="#334155"/>' +
+                  '<stop offset="100%" stop-color="#1e293b"/>' +
+                '</radialGradient>' +
+                '<radialGradient id="pwHubGrad" cx="50%" cy="50%" r="50%">' +
+                  '<stop offset="0%" stop-color="#0284c7"/>' +
+                  '<stop offset="100%" stop-color="#0f1115"/>' +
+                '</radialGradient>' +
+              '</defs>' +
+              '<circle cx="60" cy="60" r="56" fill="url(#pwTireGrad)" stroke="#0b0d11" stroke-width="3"/>' +
+              '<circle cx="60" cy="60" r="54" fill="none" stroke="#2c323f" stroke-width="2.5" stroke-dasharray="3, 5.5"/>' +
+              '<circle cx="60" cy="60" r="49" fill="none" stroke="#181c24" stroke-width="1.5"/>' +
+              '<circle cx="60" cy="60" r="38" fill="url(#pwDiscGrad)" stroke="#64748b" stroke-width="1"/>' +
+              '<circle cx="60" cy="60" r="32" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2, 4"/>' +
+              '<circle cx="60" cy="60" r="26" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="2.5, 5"/>' +
+              '<circle cx="60" cy="60" r="41" fill="none" stroke="url(#pwRimGrad)" stroke-width="2.5"/>' +
+              '<g>' +
+                '<path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#pwSpokeGrad)"/>' +
+                '<line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>' +
+                '<g transform="rotate(72 60 60)">' +
+                  '<path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#pwSpokeGrad)"/>' +
+                  '<line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>' +
+                '</g>' +
+                '<g transform="rotate(144 60 60)">' +
+                  '<path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#pwSpokeGrad)"/>' +
+                  '<line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>' +
+                '</g>' +
+                '<g transform="rotate(216 60 60)">' +
+                  '<path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#pwSpokeGrad)"/>' +
+                  '<line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>' +
+                '</g>' +
+                '<g transform="rotate(288 60 60)">' +
+                  '<path d="M 57 23 L 63 23 L 61.5 50 L 58.5 50 Z" fill="url(#pwSpokeGrad)"/>' +
+                  '<line x1="60" y1="23" x2="60" y2="48" stroke="#0f172a" stroke-width="1"/>' +
+                '</g>' +
+              '</g>' +
+              '<circle cx="60" cy="60" r="14" fill="url(#pwRimGrad)" stroke="#38bdf8" stroke-width="1"/>' +
+              '<circle cx="60" cy="60" r="9" fill="url(#pwHubGrad)" stroke="#0284c7" stroke-width="1"/>' +
+              '<circle cx="60" cy="49" r="1.5" fill="#f8fafc"/>' +
+              '<circle cx="70.5" cy="56.5" r="1.5" fill="#f8fafc"/>' +
+              '<circle cx="66.5" cy="68.5" r="1.5" fill="#f8fafc"/>' +
+              '<circle cx="53.5" cy="68.5" r="1.5" fill="#f8fafc"/>' +
+              '<circle cx="49.5" cy="56.5" r="1.5" fill="#f8fafc"/>' +
+              '<text x="60" y="63" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="Space Grotesk, sans-serif">Z</text>' +
+            '</svg>' +
+            '<svg class="static-caliper-svg" viewBox="0 0 120 120" width="100" height="100">' +
+              '<defs>' +
+                '<linearGradient id="pwCaliperGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                  '<stop offset="0%" stop-color="#ef4444"/>' +
+                  '<stop offset="60%" stop-color="#dc2626"/>' +
+                  '<stop offset="100%" stop-color="#991b1b"/>' +
+                '</linearGradient>' +
+              '</defs>' +
+              '<path d="M 28 42 C 26 49 26 58 28 66 L 37 63 C 35 57 35 51 37 45 Z" fill="url(#pwCaliperGrad)" stroke="#f87171" stroke-width="1.2"/>' +
+              '<circle cx="32" cy="48" r="1.5" fill="#fff" opacity="0.8"/>' +
+              '<circle cx="32" cy="60" r="1.5" fill="#fff" opacity="0.8"/>' +
+            '</svg>' +
+          '</div>' +
+          '<div class="wheel-3d-shadow" style="width: 85px; height: 12px;"></div>' +
+        '</div>' +
+        '<div style="font-size: 16px; font-weight: 700; color: #38bdf8;">' + title + '</div>' +
+        '<div style="font-size: 13px; color: var(--text-muted); max-width: 480px;">' + (subtitle || '') + '</div>' +
+      '</div>';
+    }
+
     // Generowanie pisma wezwania do zapłaty (od razu w pełni spersonalizowane)
     async function generateAndDisplayLetter(options = {}) {
       if (!currentAuditReport) return;
@@ -2295,25 +2414,11 @@ const HTML_PAGE = `<!DOCTYPE html>
       const bankAccountNumber = document.getElementById('claimantIban')?.value || '12 1020 1026 0000 1234 5678 9012';
       const previewEl = document.getElementById('letterPreview');
 
-      // Animowany obracający się spinner koła wewnątrz podglądu pisma
-      previewEl.innerHTML = 
-        '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 48px 20px; text-align: center; gap: 16px;">' +
-          '<div class="wheel-3d-stage" style="width: 80px; height: 80px; margin: 0 auto;">' +
-            '<svg class="spinning-wheel-svg" viewBox="0 0 120 120" width="80" height="80">' +
-              '<circle cx="60" cy="60" r="56" fill="url(#tireGrad)" stroke="#0b0d11" stroke-width="3"/>' +
-              '<circle cx="60" cy="60" r="54" fill="none" stroke="#2c323f" stroke-width="2.5" stroke-dasharray="3, 5.5"/>' +
-              '<circle cx="60" cy="60" r="38" fill="url(#discGrad)" stroke="#64748b" stroke-width="1"/>' +
-              '<circle cx="60" cy="60" r="41" fill="none" stroke="url(#rimGrad)" stroke-width="2.5"/>' +
-              '<line x1="60" y1="20" x2="60" y2="100" stroke="url(#spokeGrad)" stroke-width="3.5" stroke-linecap="round"/>' +
-              '<line x1="20" y1="60" x2="100" y2="60" stroke="url(#spokeGrad)" stroke-width="3.5" stroke-linecap="round"/>' +
-              '<circle cx="60" cy="60" r="14" fill="url(#hubGrad)" stroke="#38bdf8" stroke-width="1.5"/>' +
-            '</svg>' +
-          '</div>' +
-          '<div style="font-size: 16px; font-weight: 700; color: #38bdf8;">Trwa redagowanie spersonalizowanego wezwania do zapłaty...</div>' +
-          '<div style="font-size: 13px; color: var(--text-muted); max-width: 480px;">' +
-            'Weryfikacja orzecznictwa Sądu Najwyższego (uchwały III CZP 80/11 i III CZP 32/03), stawek rynkowych PIM 2026 oraz wytycznych KNF w toku.' +
-          '</div>' +
-        '</div>';
+      // Animowane obracające się koło samochodowe 3D wewnątrz podglądu pisma
+      previewEl.innerHTML = render3DCarWheelHtml(
+        'Trwa redagowanie spersonalizowanego wezwania do zapłaty...',
+        'Weryfikacja orzecznictwa Sądu Najwyższego (uchwała III CZP 80/11), stawek rynkowych PIM 2026 oraz wytycznych KNF w toku.'
+      );
 
       try {
         const res = await fetch('/api/generate-letter', {
@@ -2331,6 +2436,8 @@ const HTML_PAGE = `<!DOCTYPE html>
         showToast('Wezwanie do zapłaty zostało wygenerowane.');
       } catch (err) {
         previewEl.textContent = 'Błąd generowania pisma: ' + err.message;
+      } finally {
+        hideProgress();
       }
     }
 
@@ -2488,6 +2595,21 @@ const HTML_PAGE = `<!DOCTYPE html>
 </html>
 `;
 
+function resolveAssetFile(relativePath: string): string | null {
+  const metaDir = path.dirname(new URL(import.meta.url).pathname);
+  const candidates = [
+    path.resolve(relativePath),
+    path.join(process.cwd(), relativePath),
+    path.resolve(metaDir, '..', relativePath),
+    path.resolve(metaDir, '../..', relativePath),
+    path.resolve(metaDir, relativePath),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
+
 export function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   const host = req.headers.host || 'localhost';
   const rawReqUrl = new URL(req.url ?? '/', `http://${host}`);
@@ -2517,8 +2639,8 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
     };
 
     if ((req.method === 'GET' || req.method === 'HEAD') && LEGAL_PAGES[url.pathname]) {
-      const pageFile = path.resolve(LEGAL_PAGES[url.pathname]);
-      if (fs.existsSync(pageFile)) {
+      const pageFile = resolveAssetFile(LEGAL_PAGES[url.pathname]);
+      if (pageFile) {
         const content = fs.readFileSync(pageFile, 'utf-8');
         res.writeHead(200, {
           'Content-Type': 'text/html; charset=utf-8',
@@ -2532,8 +2654,8 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
 
     // GET /przykladowy_kosztorys_pzu.pdf - Pobranie przykładowego pliku PDF z wymuszonym nagłówkiem attachment
     if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/przykladowy_kosztorys_pzu.pdf' || url.pathname === '/sample_kosztorys_pzu.pdf')) {
-      const pdfPath = path.resolve('public/przykladowy_kosztorys_pzu.pdf');
-      if (fs.existsSync(pdfPath)) {
+      const pdfPath = resolveAssetFile('public/przykladowy_kosztorys_pzu.pdf');
+      if (pdfPath) {
         const stat = fs.statSync(pdfPath);
         res.writeHead(200, {
           'Content-Type': 'application/pdf',
@@ -2571,8 +2693,8 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
 
     if ((req.method === 'GET' || req.method === 'HEAD') && ROOT_STATIC_ASSETS[url.pathname]) {
       const asset = ROOT_STATIC_ASSETS[url.pathname];
-      const assetPath = path.resolve(asset.file);
-      if (fs.existsSync(assetPath)) {
+      const assetPath = resolveAssetFile(asset.file);
+      if (assetPath) {
         const stat = fs.statSync(assetPath);
         res.writeHead(200, {
           'Content-Type': asset.type,
@@ -2588,8 +2710,8 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
     // GET /images/* - Serwowanie grafik, ikon i fotografii użytkownika
     if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname.startsWith('/images/')) {
       const imageName = path.basename(url.pathname);
-      const imagePath = path.resolve('public/images', imageName);
-      if (fs.existsSync(imagePath)) {
+      const imagePath = resolveAssetFile(path.join('public/images', imageName));
+      if (imagePath) {
         const ext = path.extname(imageName).toLowerCase();
         let contentType = 'image/jpeg';
         if (ext === '.png') contentType = 'image/png';
@@ -2857,6 +2979,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
 
           switch (format) {
             case 'docx':
+            case 'doc':
               if (payload.attachment) {
                 buffer = exportAttachmentToDocx(payload.attachment);
               } else {
@@ -2864,17 +2987,6 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
               }
               contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
               ext = '.docx';
-              break;
-            case 'doc':
-              if (payload.attachment) {
-                buffer = exportAttachmentToDocx(payload.attachment);
-              } else if (text) {
-                buffer = exportDemandLetterToDocx(text, title);
-              } else {
-                buffer = exportToDoc(html, title);
-              }
-              contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-              ext = '.doc';
               break;
             case 'rtf':
               buffer = exportToRtf(text);
@@ -2948,7 +3060,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           if (format === 'docx' || format === 'doc') {
             buffer = exportBundleToDocx(letterText, attachments, title);
             contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            ext = format === 'doc' ? '.doc' : '.docx';
+            ext = '.docx';
           } else {
             let bundleText = letterText;
             for (const att of attachments) {

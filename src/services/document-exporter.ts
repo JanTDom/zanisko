@@ -60,12 +60,12 @@ h3.num-item { font-size: 11pt; font-weight: bold; margin: 12pt 0 4pt 0; page-bre
 p { margin: 0 0 2pt 0; text-align: left; }
 p.justify { text-align: justify; margin-bottom: 4pt; }
 p.subtitle { text-align: center; font-weight: bold; margin: 0 0 2pt 0; }
-p.date { text-align: right; margin-bottom: 14pt; }
-p.party { font-weight: bold; font-size: 9.5pt; letter-spacing: 0.5pt; color: #333; margin-top: 4pt; }
-p.li { margin: 2pt 0 2pt 20pt; text-indent: -14pt; text-align: justify; }
-p.sub-li { margin: 1.5pt 0 1.5pt 36pt; text-indent: -14pt; text-align: justify; }
-p.item-prop { margin: 1.5pt 0 1.5pt 20pt; text-align: justify; }
-p.num-li { margin: 2pt 0 2pt 20pt; text-indent: -14pt; text-align: justify; }
+p.date { text-align: right; margin-bottom: 14pt; page-break-after: avoid; }
+p.party { font-weight: bold; font-size: 9.5pt; letter-spacing: 0.5pt; color: #333; margin-top: 4pt; page-break-after: avoid; }
+p.li { margin: 2pt 0 2pt 20pt; mso-para-margin-left: 20pt; text-indent: -14pt; text-align: justify; }
+p.sub-li { margin: 1.5pt 0 1.5pt 42pt; mso-para-margin-left: 42pt; text-indent: -14pt; text-align: justify; }
+p.item-prop { margin: 2pt 0 2pt 24pt; mso-para-margin-left: 24pt; text-align: justify; }
+p.num-li { margin: 2pt 0 2pt 24pt; mso-para-margin-left: 24pt; text-indent: -14pt; text-align: justify; }
 p.amount { text-align: center; font-weight: bold; font-size: 14pt; margin: 8pt 0 2pt 0; }
 p.center { text-align: center; }
 p.small { font-size: 9.5pt; color: #444; }
