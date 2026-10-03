@@ -31,4 +31,29 @@ describe('Sample PDF File Verification', () => {
     expect(audit.summary.totalLossGross).toBeGreaterThan(1500.0);
     expect(audit.violations.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('powinien poprawnie przetworzyć wgrany kosztorys demonstracyjny Octavia III z pliku PDF', async () => {
+    const demoPdfPath = '/Users/macbookpro/.gemini/antigravity/brain/468bb9c1-b511-4e28-8168-30969e1c17e5/.user_uploaded/media_1791047325441.pdf';
+    if (!fs.existsSync(demoPdfPath)) return;
+
+    const pdfBuffer = fs.readFileSync(demoPdfPath);
+    const pdfInstance = new PDFParse({ data: new Uint8Array(pdfBuffer) });
+    const pdfData = await pdfInstance.getText();
+
+    const parser = new CostEstimateParser();
+    const result = parser.parseText(pdfData.text, 'mazowieckie');
+
+    expect(result.estimate.header.claimNumber).toBe('DEMO/2026/10/00317');
+    expect(result.estimate.header.vehicleMakeModel).toBe('Škoda Octavia III FL');
+    expect(result.estimate.labor.sheetMetalRateNet).toBe(35.0);
+    expect(result.estimate.labor.sheetMetalHours).toBe(5.3);
+    expect(result.estimate.labor.paintHours).toBe(5.5);
+    expect(result.estimate.parts.length).toBe(6);
+    expect(result.estimate.undisputedAmountNet).toBe(1626.0);
+
+    const audit = runAudit(result.estimate);
+    expect(audit.violations.length).toBeGreaterThanOrEqual(2);
+    expect(audit.summary.totalLossGross).toBeGreaterThan(3000.0);
+    expect(audit.summary.appliedLaborRateNet).toBe(35.0);
+  });
 });

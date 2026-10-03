@@ -134,7 +134,7 @@ describe('DOCX OpenXML Generator Service', () => {
     const xml1 = attachmentToDocxXml(att1);
     expect(xml1).not.toContain('&nbsp;');
     expect(xml1).not.toContain('&amp;nbsp;');
-    expect(xml1).toContain('3200.00');
+    expect(xml1).toContain(report.summary.undisputedAmountNet.toFixed(2));
     expect(xml1).toContain('I. Metryka szkody');
 
     const xml2 = attachmentToDocxXml(att2);
