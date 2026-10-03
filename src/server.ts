@@ -249,8 +249,8 @@ const HTML_PAGE = `<!DOCTYPE html>
         <div class="document-panel">
           <h3>Przygotuj pismo reklamacyjne</h3><p>Wpisz swoje dane, aby wygenerować dokument do sprawdzenia i podpisania.</p>
           <div class="document-form"><label for="claimantName">Imię i nazwisko<input type="text" id="claimantName" placeholder="np. Anna Kowalska"></label><label for="claimantAddress">Adres do korespondencji<input type="text" id="claimantAddress" placeholder="np. ul. ..., 00-000 Warszawa"></label><label for="claimantIban">Numer rachunku<input type="text" id="claimantIban" placeholder="opcjonalnie"></label></div>
-          <div class="letter-sheet" id="letterPreview">Po uzupełnieniu danych wygenerujemy podgląd pisma.</div>
-          <div class="document-actions"><button class="btn-primary" onclick="downloadLetter('docx')">Pobierz Word</button><button class="btn-primary" onclick="downloadLetter('pdf')">Pobierz PDF</button><button class="btn-secondary" onclick="enhanceLetterWithAi()">Dopracuj argumentację</button></div>
+          <div class="letter-sheet" id="letterPreview">Uzupełnij dane i kliknij „Przygotuj pismo”.</div>
+          <div class="document-actions"><button class="btn-primary" id="generateLetterBtn" type="button" onclick="generateAndDisplayLetter()">Przygotuj pismo</button><button class="btn-primary" onclick="downloadLetter('docx')">Pobierz Word</button><button class="btn-primary" onclick="downloadLetter('pdf')">Pobierz PDF</button></div>
         </div>
         <div class="attachments-section" id="attachmentsSection"><h3>Załączniki do pisma</h3><p>Dokumentacja audytu i podstawa wyliczeń w jednym pakiecie.</p><div class="attachment-card"><div><h4>1. Tabela różnic audytu</h4><p>Lista pozycji i sposobu wyliczenia</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment1','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment1','pdf')">PDF</button></div></div><div class="attachment-card"><div><h4>2. Stawki referencyjne</h4><p>Opis źródła i przyjętych założeń</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment2','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment2','pdf')">PDF</button></div></div><div class="attachment-card"><div><h4>3. Podstawa prawna</h4><p>Wskazanie przepisów i orzeczeń</p></div><div class="attachments-actions"><button class="att-btn" onclick="downloadAttachment('attachment3','docx')">Word</button><button class="att-btn" onclick="downloadAttachment('attachment3','pdf')">PDF</button></div></div><div class="attachments-actions" style="margin-top:18px;"><button class="btn-primary" onclick="downloadBundle('docx')">Pobierz cały pakiet Word</button><button class="btn-secondary" onclick="downloadBundle('pdf')">Pobierz cały pakiet PDF</button></div></div>
       </div>
@@ -709,23 +709,29 @@ const HTML_PAGE = `<!DOCTYPE html>
       document.getElementById('busyCard').innerHTML = '';
     }
 
-    // Generowanie pisma wezwania do zapłaty (od razu w pełni spersonalizowane)
-    async function generateAndDisplayLetter(options = {}) {
-      if (!currentAuditReport) return;
+    let letterGenerationInFlight = false;
+
+    // Generowanie pisma: od razu w wersji dopracowanej (serwer wraca do szablonu, gdyby dopracowanie się nie powiodło)
+    async function generateAndDisplayLetter() {
+      if (!currentAuditReport || letterGenerationInFlight) return;
 
       const claimantName = document.getElementById('claimantName')?.value.trim() || '';
       const claimantAddress = document.getElementById('claimantAddress')?.value.trim() || '';
       const bankAccountNumber = document.getElementById('claimantIban')?.value.trim() || '';
       const previewEl = document.getElementById('letterPreview');
       if (!claimantName || !claimantAddress) {
-        previewEl.textContent = 'Uzupełnij imię i nazwisko oraz adres, aby zobaczyć podgląd pisma.';
+        previewEl.textContent = 'Uzupełnij imię i nazwisko oraz adres, a potem kliknij „Przygotuj pismo”.';
         return;
       }
 
+      const generateBtn = document.getElementById('generateLetterBtn');
+      letterGenerationInFlight = true;
+      if (generateBtn) generateBtn.disabled = true;
+
       // Animowane obracające się koło samochodowe 3D wewnątrz podglądu pisma
       previewEl.innerHTML = render3DCarWheelHtml(
-        'Trwa redagowanie spersonalizowanego wezwania do zapłaty...',
-        'Weryfikacja orzecznictwa Sądu Najwyższego (uchwała III CZP 80/11), stawek rynkowych PIM 2026 oraz wytycznych KNF w toku.'
+        'Przygotowujemy i dopracowujemy pismo...',
+        'Sprawdzamy orzecznictwo Sądu Najwyższego (uchwała III CZP 80/11), stawki rynkowe i wytyczne KNF. To może potrwać do pół minuty.'
       );
 
       try {
@@ -735,26 +741,21 @@ const HTML_PAGE = `<!DOCTYPE html>
           body: JSON.stringify({
             report: currentAuditReport,
             options: { claimantName, claimantAddress, bankAccountNumber },
-            useAi: Boolean(options.useAi),
+            useAi: true,
           }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.letter) {
+          throw new Error(data.error || 'serwer nie zwrócił pisma (kod ' + res.status + ')');
+        }
         currentLetterText = data.letter;
         previewEl.textContent = data.letter;
-        showToast('Wezwanie do zapłaty zostało wygenerowane.');
+        showToast('Pismo jest gotowe.');
       } catch (err) {
-        previewEl.textContent = 'Błąd generowania pisma: ' + err.message;
+        previewEl.textContent = 'Nie udało się przygotować pisma: ' + err.message + '. Spróbuj ponownie za chwilę.';
       } finally {
-        hideBusy();
-      }
-    }
-
-    async function enhanceLetterWithAi() {
-      showBusy('Trwa analiza orzecznictwa i redagowanie argumentacji przez Gemini...');
-      try {
-        await generateAndDisplayLetter({ useAi: true });
-      } finally {
-        hideBusy();
+        letterGenerationInFlight = false;
+        if (generateBtn) generateBtn.disabled = false;
       }
     }
 
@@ -1142,7 +1143,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify(result));
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Błąd inspekcji uszkodzeń Gemini';
+          const message = err instanceof Error ? err.message : 'Błąd porównania zdjęć z kosztorysem';
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: message }));
         }
@@ -1169,7 +1170,7 @@ export function handleRequest(req: http.IncomingMessage, res: http.ServerRespons
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ letter }));
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Błąd personalizacji Gemini';
+          const message = err instanceof Error ? err.message : 'Błąd dopracowania pisma';
           res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ error: message }));
         }
