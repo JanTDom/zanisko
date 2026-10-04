@@ -62,14 +62,14 @@ Departament Likwidacji Szkód Komunikacyjnych
 
 PRZEDSĄDOWE WEZWANIE DO ZAPŁATY
 FORMALNA REKLAMACJA
-(złożona w trybie art. 3 i art. 5 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego)
+(złożona w trybie art. 3 i art. 5 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego, o Rzeczniku Finansowym i o Funduszu Edukacji Finansowej)
 
 Dotyczy:
 - Numer szkody ubezpieczyciela: ${h.claimNumber}
 - Pojazd poszkodowanego: ${h.vehicleMakeModel} (${h.productionYear}, ${segmentDescription})
 - Numer rejestracyjny: ${h.registrationNumber}
 - Data zdarzenia: ${h.damageDate}
-- Podstawa prawna odpowiedzialności: Odpowiedzialność cywilna sprawcy kolizji (art. 436 § 2 k.c. w zw. z art. 822 § 1 k.c.)
+- Podstawa prawna odpowiedzialności: Odpowiedzialność cywilna sprawcy kolizji oraz gwarancyjna ubezpieczyciela (art. 436 § 2 k.c. w zw. z art. 415 k.c., art. 822 § 1 i § 4 k.c. oraz art. 19 ust. 1, art. 34 ust. 1 i art. 36 ust. 1 Ustawy z dnia 22 maja 2003 r. o ubezpieczeniach obowiązkowych, UFG i PBUK)
 
 
 I. WEZWANIE DO ZAPŁATY
@@ -83,12 +83,12 @@ Kwotę powyższą należy uiścić w nieprzekraczalnym terminie 14 dni od dnia d
 Numer rachunku: ${bankAccountNumber}
 Tytuł przelewu: Dopłata do odszkodowania – szkoda ${h.claimNumber}
 
-Jednocześnie wskazuję, że dotychczas wypłacona kwota w wysokości ${s.undisputedAmountGross.toFixed(2)} PLN brutto (${s.undisputedAmountNet.toFixed(2)} PLN netto) została przyjęta wyłącznie jako kwota bezsporna w rozumieniu art. 817 § 2 k.c. i nie zaspokaja roszczenia restytucyjnego wynikającego z art. 361 § 2 k.c. i art. 363 § 1 k.c. Pełna, rzetelna wartość naprawy wynosi ${s.fairAmountGross.toFixed(2)} PLN brutto (${s.fairAmountNet.toFixed(2)} PLN netto).
+Jednocześnie wskazuję, że dotychczas wypłacona kwota w wysokości ${s.undisputedAmountGross.toFixed(2)} PLN brutto (${s.undisputedAmountNet.toFixed(2)} PLN netto) została przyjęta wyłącznie jako kwota bezsporna w rozumieniu art. 14 ust. 1 i 2 Ustawy o ubezpieczeniach obowiązkowych oraz art. 817 § 2 k.c. i nie zaspokaja roszczenia restytucyjnego wynikającego z art. 361 § 2 k.c. i art. 363 § 1 k.c. Pełna, rzetelna wartość naprawy wynosi ${s.fairAmountGross.toFixed(2)} PLN brutto (${s.fairAmountNet.toFixed(2)} PLN netto).
 
 
 II. WYKAZ ZANIŻEŃ I UZASADNIENIE MERYTORYCZNE
 
-Dokonana przez Państwa kalkulacja naprawy zawiera rażące uchybienia formalne, technologiczne i prawne, naruszające wiążące Rekomendacje Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r. oraz orzecznictwo Sądu Najwyższego:
+Dokonana przez Państwa kalkulacja naprawy zawiera rażące uchybienia formalne, technologiczne i prawne, naruszające Rekomendacje Komisji Nadzoru Finansowego (KNF) dotyczące likwidacji szkód z ubezpieczeń komunikacyjnych oraz orzecznictwo Sądu Najwyższego:
 ${violationsSections}
 
 III. PODSTAWA PRAWNA ROSZCZENIA
@@ -97,24 +97,25 @@ III. PODSTAWA PRAWNA ROSZCZENIA
    Odszkodowanie ubezpieczeniowe ma przywrócić pojazd do pełnego stanu używalności sprzed wypadku. Wszelkie arbitralne cięcia stawek robocizny, potrącenia na lakierze lub zaniżanie cen części stanowią bezpośrednie naruszenie prawa.
 
 2. Zakaz potrąceń amortyzacyjnych ze względu na rocznik pojazdu (Uchwała SN III CZP 80/11):
-   Sąd Najwyższy jednoznacznie orzekł, że ubezpieczyciel nie ma prawa dokonywać potrąceń amortyzacyjnych z cen nowych części zamiennych, chyba że w konkretnym procesie udowodni wzrost wartości rynkowej całego pojazdu. Ciężar tego dowodu spoczywa wyłącznie na ubezpieczycielu.
+   Sąd Najwyższy jednoznacznie orzekł, że ubezpieczyciel nie ma prawa dokonywać potrąceń amortyzacyjnych z cen nowych części zamiennych, chyba że w konkretnym procesie udowodni wzrost wartości rynkowej całego pojazdu. Ciężar tego dowodu spoczywa wyłącznie na ubezpieczycielu (art. 6 k.c.).
 
 3. Obowiązek stosowania realnych stawek lokalnego rynku naprawczego (Rekomendacja 15 KNF):
-   Zakład ubezpieczeń ma obowiązek kalkulować robociznę według stawek stosowanych na rynku lokalnym poszkodowanego przez certyfikowane warsztaty posiadające odpowiednie wyposażenie technologiczne, a nie według stawek dumpingowych sieci partnerskich.
+   Zakład ubezpieczeń ma obowiązek kalkulować robociznę według stawek stosowanych na rynku lokalnym poszkodowanego przez certyfikowane warsztaty posiadające odpowiednie wyposażenie technologiczne, a nie według stawek dumpingowych sieci partnerskich (uchwała SN III CZP 32/03 oraz Rekomendacja 15 KNF).
 
 4. Wymóg zachowania standardu części oryginalnych i ochrona gwarancji (Rekomendacja 18 KNF):
-   W pojeździe o udokumentowanym stanie i historii serwisowej ubezpieczyciel nie może narzucać zamienników najniższej jakości dystrybutorskiej (kategoria PJ/P), a w pojeździe objętym gwarancją fabryczną producenta niedopuszczalne jest naruszanie warunków ochrony gwarancyjnej.
+   W pojeździe o udokumentowanym stanie i historii serwisowej ubezpieczyciel nie może narzucać zamienników najniższej jakości dystrybutorskiej (kategoria PJ/P), a w pojeździe objętym gwarancją fabryczną producenta niedopuszczalne jest naruszanie warunków ochrony gwarancyjnej (Rekomendacja 18 KNF). Ponadto ubezpieczyciel nie może pomniejszać odszkodowania o fikcyjne rabaty na materiały lakiernicze lub części (Rekomendacja 17 pkt 17.3 KNF, uchwały SN III CZP 119/22 i III CZP 142/22).
 
 
 IV. RYGOR USTAWOWY I POUCZENIE O SKUTKACH PRAWNYCH
 
-Niniejsze pismo stanowi formalną REKLAMACJĘ w rozumieniu art. 2 pkt 2 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego (Dz.U. z 2019 r. poz. 2279 z późn. zm.).
+Niniejsze pismo stanowi formalną REKLAMACJĘ w rozumieniu art. 2 pkt 2 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego, o Rzeczniku Finansowym i o Funduszu Edukacji Finansowej (tekst jedn. Dz.U. z 2024 r. poz. 1109).
 
 Zgodnie z art. 5 ust. 1 ww. ustawy, zakład ubezpieczeń zobowiązany jest do rozpatrzenia reklamacji i udzielenia odpowiedzi w formie pisemnej w terminie nieprzekraczającym 30 DNI od dnia jej otrzymania.
 
 Pouczenie o skutku prawnym milczenia ubezpieczyciela:
 W myśl art. 8 ww. ustawy:
 „W razie niedotrzymania terminu określonego w art. 5 ust. 1 (...) reklamację uważa się za rozpatrzoną zgodnie z wolą klienta”.
+Jak rozstrzygnął Sąd Najwyższy w uchwale składu 7 sędziów z dnia 13 czerwca 2018 r. (sygn. akt III CZP 113/17), niedotrzymanie 30-dniowego terminu powoduje przerzucenie na ubezpieczyciela ciężaru dowodu (art. 6 k.c.) w procesie sądowym – to zakład ubezpieczeń musi udowodnić niezasadność roszczenia poszkodowanego.
 
 W przypadku braku zapłaty lub odmownego rozpatrzenia reklamacji, sprawa zostanie bezzwłocznie skierowana z wnioskiem o przeprowadzenie postępowania interwencyjnego do Rzecznika Finansowego, a następnie na drogę postępowania sądowego wraz z żądaniem odsetek ustawowych za opóźnienie (art. 481 k.c.) oraz zwrotu pełnych kosztów procesu.
 

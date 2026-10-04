@@ -109,7 +109,7 @@ Zwróć treść w przejrzystym formacie tekstowym, zawierającym:
               'Potrącenie amortyzacyjne z nowych części z naruszeniem uchwały SN III CZP 80/11',
               'Narzucenie zamienników dystrybutorskich z naruszeniem Rekomendacji 18 KNF',
             ],
-            riskAssessment: 'Wysokie prawdopodobieństwo pełnego odzyskania należności w procedurze 30-dniowej (art. 8 Ustawy o reklamacjach).',
+            riskAssessment: 'Wysokie prawdopodobieństwo uzyskania dopłaty w formalnej procedurze reklamacyjnej (art. 5 i 8 Ustawy o rozpatrywaniu reklamacji w zw. z uchwałą SN III CZP 113/17).',
           },
           extractedText,
         };
@@ -265,12 +265,12 @@ ${baseLetter}
 Dodatkowy kontekst poszkodowanego: ${params.userContext || 'Brak dodatkowego kontekstu'}
 
 Zadanie:
-Wzbogać argumentację prawną pisma, podkreślając nieuczciwość praktyk likwidacyjnych i rygor 30 dni z art. 8 Ustawy o reklamacjach.
+Wzbogać argumentację prawną pisma, wskazując bezpodstawność zaniżeń kosztorysowych oraz rygor 30 dni z art. 5 i 8 Ustawy o rozpatrywaniu reklamacji w powiązaniu z uchwałą składu 7 sędziów SN III CZP 113/17.
 BARDZO WAŻNE REGUŁY FORMATOWANIA:
 1. ZAKAZ UŻYWANIA JAKICHKOLWIEK GWIAZDEK (*) ANI DWÓCH GWIAZDEK (**). Zero formatowania markdownowego z gwiazdkami!
 2. Używaj czystego tekstu, nagłówków z rzymską numeracją (I., II., III.), wielkich liter dla tytułów oraz myślników (- ) dla wyliczeń.
 3. Zachowaj dokładne kwoty roszczenia (${params.report.summary.totalLossGross.toFixed(2)} PLN brutto) oraz numer rachunku bankowego (${params.bankAccountNumber}).
-4. ABSOLUTNY ZAKAZ HALUCYNACJI: Nie wymyślaj żadnych nieistniejących przepisów prawa, orzeczeń ani faktów. Powołuj się wyłącznie na podane w piśmie przepisy: art. 361 § 2 k.c., art. 363 § 1 k.c., uchwałę SN III CZP 80/11, Rekomendacje KNF z 1.11.2022 r. oraz art. 5 i 8 Ustawy o rozpatrywaniu reklamacji.
+4. ABSOLUTNY ZAKAZ HALUCYNACJI: Nie wymyślaj żadnych nieistniejących przepisów prawa, orzeczeń ani faktów. Powołuj się wyłącznie na podane w piśmie przepisy i orzeczenia: art. 361 § 2 k.c., art. 363 § 1 k.c., art. 822 § 1 i § 4 k.c., art. 34 ust. 1 i art. 36 ust. 1 Ustawy o ubezpieczeniach obowiązkowych, uchwały SN (III CZP 80/11, III CZP 32/03, III CZP 113/17, III CZP 119/22, III CZP 142/22), Rekomendacje KNF dotyczące likwidacji szkód komunikacyjnych (obowiązujące od 1.11.2022 r., w tym Rekomendacja 15, 17 i 18) oraz art. 5 i 8 Ustawy o rozpatrywaniu reklamacji.
 5. Zamiast myślnika em-dash (—) używaj wyłącznie en-dash (–).`;
 
         const response = await ai.models.generateContent({

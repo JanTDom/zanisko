@@ -270,7 +270,7 @@ const HTML_PAGE = `<!DOCTYPE html>
       <details class="scenario"><summary><span class="tag">B</span> Auto zostało naprawione albo sprzedane</summary><div class="scenario-body"><p>Po naprawie lub sprzedaży sposób liczenia szkody może być inny. Wtedy do oceny przydadzą się faktury, umowa sprzedaży i dokumentacja zdjęciowa.</p></div></details>
       <details class="scenario"><summary><span class="tag">C</span> Ubezpieczyciel uznał szkodę całkowitą</summary><div class="scenario-body"><p>Ta wersja narzędzia skupia się na kosztorysach napraw częściowych. Przy szkodzie całkowitej potrzebne są inne dane: wartość auta przed szkodą i wartość wraku.</p></div></details>
       <div class="guide-example"><strong>Ważne:</strong> wynik ma charakter informacyjny. Nie zastępuje opinii rzeczoznawcy ani porady prawnej, a dokument warto przeczytać przed wysłaniem.</div>
-      <div class="guide-sources">Źródła i zakres reguł: <a href="https://www.sn.pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">SN III CZP 80/11</a>, <a href="https://www.knf.gov.pl/" target="_blank" rel="noopener">Rekomendacje KNF</a> oraz materiały <a href="https://rf.gov.pl/" target="_blank" rel="noopener">Rzecznika Finansowego</a>.</div>
+      <div class="guide-sources">Źródła i zakres reguł: <a href="https://www.sn.pl/pl/sites/orzecznictwo/orzeczenia1/iii%20czp%2080-11.pdf" target="_blank" rel="noopener">SN III CZP 80/11</a>, <a href="https://www.knf.gov.pl/" target="_blank" rel="noopener">Rekomendacje KNF</a> oraz materiały <a href="https://rf.gov.pl/" target="_blank" rel="noopener">Rzecznika Finansowego</a>.</div>
     </section>
   </main>
 

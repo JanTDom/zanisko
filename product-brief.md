@@ -68,9 +68,9 @@ interface CostEstimateData {
 2. **Reguła Amortyzacji Części:**  
    `Dla każdej części z depreciationPercent > 0` -> Oblicz zaniżenie: `part.basePriceNet * (part.depreciationPercent / 100)`. Zarzut: naruszenie uchwały SN III CZP 80/11 oraz Rekomendacji 17 KNF.
 3. **Reguła Rabatów Lakierniczych:**  
-   `Jeżeli paintMaterials.discountPercent > 0` -> Oblicz zaniżenie: `paintMaterials.baseAmountNet * (paintMaterials.discountPercent / 100)`. Zarzut: bezprawne potrącenie hipotetycznego rabatu handlowego.
+   `Jeżeli paintMaterials.discountPercent > 0` -> Oblicz zaniżenie: `paintMaterials.baseAmountNet * (paintMaterials.discountPercent / 100)`. Zarzut: naruszenie Rekomendacji 17 pkt 17.3 KNF oraz uchwał SN III CZP 119/22 i III CZP 142/22 (bezprawne potrącenie hipotetycznego rabatu handlowego).
 4. **Reguła Zamienników (kategoria PJ):**  
-   Identyfikacja części z kodem PJ zamontowanych w miejsce części oryginalnych bez zgody poszkodowanego -> Zarzut naruszenia Rekomendacji 16 KNF.
+   Identyfikacja części z kodem PJ zamontowanych w miejsce części oryginalnych bez zgody poszkodowanego -> Zarzut: naruszenie Rekomendacji 18 KNF.
 
 ---
 

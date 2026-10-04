@@ -75,7 +75,7 @@ WYKAZ ZIDENTYFIKOWANYCH UCHYBIEŃ I ZANIŻEŃ:
 ${violationsText}
 
 PODSUMOWANIE RZECZOZNAWCZE:
-Niniejsza kalkulacja różnicowa stanowi integralny załącznik do wezwania do zapłaty. Wycena uwzględnia obiektywne stawki rynkowe certyfikowanych warsztatów naprawczych, wytyczne Rekomendacji KNF z dnia 1 listopada 2022 r. oraz zasadę pełnej kompensacji szkody (art. 361 § 2 k.c.).`;
+Niniejsza kalkulacja różnicowa stanowi integralny załącznik do wezwania do zapłaty. Wycena uwzględnia obiektywne stawki rynkowe certyfikowanych warsztatów naprawczych, Rekomendacje KNF dotyczące likwidacji szkód z ubezpieczeń komunikacyjnych (obowiązujące od 1 listopada 2022 r.) oraz zasadę pełnej kompensacji szkody (art. 361 § 2 k.c.).`;
 
   const htmlContent = `
 <div class="header-box">
@@ -181,7 +181,7 @@ WYCIĄG ZE STAWEK RYNKOWYCH ROBOCIZNY POLSKIEJ IZBY MOTORYZACJI (PIM)
 Stan na: 2026 r. | Źródło: Badania rynku usług blacharsko-lakierniczych PIM
 
 1. PODSTAWA PRAWNA STOSOWANIA STAWEK RYNKOWYCH:
-Zgodnie z Rekomendacją 15 Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r. dotyczącą likwidacji szkód z ubezpieczeń komunikacyjnych:
+Zgodnie z Rekomendacją 15 Rekomendacji Komisji Nadzoru Finansowego (KNF) dotyczących likwidacji szkód z ubezpieczeń komunikacyjnych (obowiązujących od 1 listopada 2022 r.):
 „Zakład ubezpieczeń ustala koszty naprawy pojazdu z uwzględnieniem cen części i materiałów oraz stawek robocizny stosowanych przez warsztaty naprawcze na rynku lokalnym (...)”.
 Stosowanie przez ubezpieczyciela zaniżonych stawek kosztorysowych (np. 60-80 zł/rbh netto) narusza prawo, gdyż stawki takie nie występują na rynku komercyjnym i mają charakter wyłącznie dumpingowy w ramach sieci umownych ubezpieczyciela.
 
@@ -201,7 +201,7 @@ ${ratesText}
 
 <h2>I. Wytyczne Rekomendacji 15 KNF</h2>
 <p style="text-align: justify; font-size: 10pt; line-height: 1.4;">
-Zgodnie z Rekomendacją 15 Komisji Nadzoru Finansowego (KNF) z dnia 1 listopada 2022 r., zakład ubezpieczeń ma obowiązek ustalać koszty naprawy na podstawie stawek stosowanych na <strong>rynku lokalnym poszkodowanego</strong> przez certyfikowane warsztaty dysponujące odpowiednim wyposażeniem technicznym. Narzucanie stawek rzędu 60–80 zł/rbh netto jest bezprawne, co potwierdzają jednolicie sądy powszechne oraz Rzecznik Finansowy.
+Zgodnie z Rekomendacją 15 Rekomendacji Komisji Nadzoru Finansowego (KNF) dotyczących likwidacji szkód z ubezpieczeń komunikacyjnych (obowiązujących od 1 listopada 2022 r.), zakład ubezpieczeń ma obowiązek ustalać koszty naprawy na podstawie stawek stosowanych na <strong>rynku lokalnym poszkodowanego</strong> przez certyfikowane warsztaty dysponujące odpowiednim wyposażeniem technicznym. Narzucanie stawek rzędu 60–80 zł/rbh netto jest bezprawne, co potwierdzają jednolicie sądy powszechne oraz Rzecznik Finansowy.
 </p>
 
 <h2>II. Zestawienie stawek referencyjnych dla 16 województw</h2>
@@ -247,25 +247,26 @@ Materiały prawne stanowiące podstawę roszczeń odszkodowawczych z ubezpieczen
 
 I. UCHWAŁA SKŁADU 7 SĘDZIÓW SĄDU NAJWYŻSZEGO Z DNIA 12 KWIETNIA 2012 R. (SYGN. AKT III CZP 80/11)
 Teza orzeczenia:
-„Zakład ubezpieczeń zobowiązany jest na podstawie umowy ubezpieczenia odpowiedzialności cywilnej posiadaczy pojazdów mechanicznych do wypłaty odszkodowania obejmującego celowe i ekonomicznie uzasadnione koszty nowych części i materiałów służących do naprawy uszkodzonego pojazdu.
-Jeżeli ubezpieczyciel wykaże, że prowadzi to do wzrostu wartości pojazdu, odszkodowanie może ulec obniżeniu o kwotę odpowiadającą temu wzrostowi”.
+„Zakład ubezpieczeń zobowiązany jest na żądanie poszkodowanego do wypłaty, w ramach odpowiedzialności z tytułu ubezpieczenia odpowiedzialności cywilnej posiadacza pojazdu mechanicznego, odszkodowania obejmującego celowe i ekonomicznie uzasadnione koszty nowych części i materiałów służących do naprawy uszkodzonego pojazdu. Jeżeli ubezpieczyciel wykaże, że prowadzi to do wzrostu wartości pojazdu, odszkodowanie może ulec obniżeniu o kwotę odpowiadającą temu wzrostowi”.
 Komentarz:
-Ciężar dowodu wzrostu wartości pojazdu spoczywa w całości na ubezpieczycielu (art. 6 k.c.). Automatyczne, procentowe potrącenia amortyzacyjne ze względu na wiek pojazdu (np. 30%, 40%, 55%) są w świetle tej uchwały w pełni nielegalne.
+Ciężar dowodu wykazania wzrostu wartości pojazdu spoczywa w całości na ubezpieczycielu (art. 6 k.c.). Automatyczne, procentowe potrącenia amortyzacyjne ze względu na wiek pojazdu (np. 30%, 40%, 55%) naruszają ustawową zasadę pełnej kompensacji szkody (art. 361 § 2 k.c.) oraz stanowią bezpodstawne zaniżenie należnego świadczenia.
 
 II. UCHWAŁA SĄDU NAJWYŻSZEGO Z DNIA 13 CZERWCA 2003 R. (SYGN. AKT III CZP 32/03)
 Teza orzeczenia:
-„Odszkodowanie przysługujące od ubezpieczyciela odpowiedzialności cywilnej za uszkodzenie pojazdu mechanicznego obejmuje niezbędne i ekonomicznie uzasadnione koszty naprawy pojazdu, ustalone według cen występujących na lokalnym rynku. Obowiązek naprawienia szkody przez wypłatę odpowiedniej sumy pieniężnej powstaje z chwilą wyrządzenia szkody i nie jest uzależniony od tego, czy poszkodowany dokonał naprawy rzeczy i czy w ogóle zamierza ją naprawić”.
+„Odszkodowanie przysługujące od ubezpieczyciela odpowiedzialności cywilnej za uszkodzenie pojazdu mechanicznego obejmuje niezbędne i ekonomicznie uzasadnione koszty naprawy pojazdu, ustalone według cen występujących na lokalnym rynku”.
+Z uzasadnienia orzeczenia oraz uchwały SN z dnia 15 listopada 2001 r. (sygn. akt III CZP 68/01):
+„Obowiązek naprawienia szkody przez wypłatę odpowiedniej sumy pieniężnej powstaje z chwilą wyrządzenia szkody i nie jest uzależniony od tego, czy poszkodowany dokonał naprawy rzeczy i czy w ogóle zamierza ją naprawić”.
 Komentarz:
 Poszkodowany ma pełne prawo rozliczyć szkodę kosztorysowo i żądać pełnej kwoty według cen rynkowych bez obowiązku przedkładania jakichkolwiek faktur źródłowych czy rachunków za naprawę.
 
-III. REKOMENDACJE KOMISJI NADZORU FINANSOWEGO (KNF) Z DNIA 1 LISTOPADA 2022 R.
-- Rekomendacja 15: Zakład ubezpieczeń ma obowiązek kalkulować robociznę według stawek rynku lokalnego poszkodowanego, a nie według sztucznych stawek umownych.
-- Rekomendacja 18: Ubezpieczyciel nie może narzucać części nieoryginalnych (zamienników PJ/P), jeżeli pojazd był serwisowany na częściach oryginalnych, jest na gwarancji lub wymaga zachowania bezpieczeństwa technologicznego.
-- Rekomendacja 17: Ubezpieczyciel nie może stosować arbitralnych rabatów na materiały lakiernicze i części, chyba że poszkodowany faktycznie może bez żadnych barier nabyć materiały w podanej cenie w punkcie bezpośrednio dostępnym w miejscu zamieszkania.
+III. REKOMENDACJE KOMISJI NADZORU FINANSOWEGO (KNF) DOTYCZĄCE LIKWIDACJI SZKÓD KOMUNIKACYJNYCH (OD 1 LISTOPADA 2022 R.)
+- Rekomendacja 15: Zakład ubezpieczeń ma obowiązek ustalić świadczenie w wysokości zapewniającej przywrócenie pojazdu do stanu sprzed szkody na rynku lokalnym poszkodowanego.
+- Rekomendacja 17: Ubezpieczyciel uwzględnia koszty nowych części i materiałów (zakaz automatycznej amortyzacji). Zgodnie z pkt 17.3 ubezpieczyciel nie może powoływać się na rabaty lub upusty warsztatów współpracujących. Potwierdzają to uchwały SN: z 6 października 2022 r. (III CZP 119/22) i z 8 maja 2024 r. (III CZP 142/22) – odszkodowanie nie może być sztucznie obniżane o hipotetyczne upusty ubezpieczyciela.
+- Rekomendacja 18: Ubezpieczyciel nie może narzucać części nieoryginalnych (zamienników PJ/P), jeżeli pojazd był serwisowany na częściach oryginalnych (kategoria O/Q), znajduje się w okresie gwarancji producenta lub wymaga tego bezpieczeństwo technologiczne.
 
-IV. USTAWOWY RYGOR ODPOWIEDZI NA REKLAMACJĘ (DZ.U. Z 2019 R. POZ. 2279)
-Art. 5 ust. 1: Ubezpieczyciel musi udzielić odpowiedzi na reklamację w terminie 30 dni.
-Art. 8: Niedotrzymanie terminu 30 dni skutkuje prawnym uznaniem reklamacji zgodnie z żądaniem poszkodowanego (milczące uwzględnienie roszczenia).`;
+IV. USTAWOWY RYGOR ODPOWIEDZI NA REKLAMACJĘ (ART. 5 I ART. 8 USTAWY W ZW. Z UCHWAŁĄ 7 SĘDZIÓW SN III CZP 113/17)
+- Art. 5 ust. 1 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego, o Rzeczniku Finansowym i o Funduszu Edukacji Finansowej: Ubezpieczyciel ma obowiązek udzielić pisemnej odpowiedzi na reklamację w terminie 30 dni od dnia jej otrzymania.
+- Art. 8 w zw. z uchwałą składu 7 sędziów SN z dnia 13 czerwca 2018 r. (sygn. akt III CZP 113/17): Niedotrzymanie 30-dniowego terminu skutkuje uznaniem reklamacji zgodnie z wolą klienta, co w procesie sądowym przenosi w całości ciężar dowodu (art. 6 k.c.) na zakład ubezpieczeń – to ubezpieczyciel musi udowodnić niezasadność dochodzonego roszczenia.`;
 
   const htmlContent = `
 <div class="header-box">
@@ -276,30 +277,30 @@ Art. 8: Niedotrzymanie terminu 30 dni skutkuje prawnym uznaniem reklamacji zgodn
 
 <h2>I. Uchwała 7 Sędziów Sądu Najwyższego – III CZP 80/11</h2>
 <div style="background: #f8fafc; border-left: 4px solid #0284c7; padding: 8pt 12pt; margin-bottom: 12pt; font-style: italic;">
-„Zakład ubezpieczeń zobowiązany jest na podstawie umowy ubezpieczenia odpowiedzialności cywilnej posiadaczy pojazdów mechanicznych do wypłaty odszkodowania obejmującego celowe i ekonomicznie uzasadnione koszty nowych części i materiałów służących do naprawy uszkodzonego pojazdu. Jeżeli ubezpieczyciel wykaże, że prowadzi to do wzrostu wartości pojazdu, odszkodowanie może ulec obniżeniu o kwotę odpowiadającą temu wzrostowi”.
+„Zakład ubezpieczeń zobowiązany jest na żądanie poszkodowanego do wypłaty, w ramach odpowiedzialności z tytułu ubezpieczenia odpowiedzialności cywilnej posiadacza pojazdu mechanicznego, odszkodowania obejmującego celowe i ekonomicznie uzasadnione koszty nowych części i materiałów służących do naprawy uszkodzonego pojazdu. Jeżeli ubezpieczyciel wykaże, że prowadzi to do wzrostu wartości pojazdu, odszkodowanie może ulec obniżeniu o kwotę odpowiadającą temu wzrostowi”.
 </div>
 <p style="text-align: justify; font-size: 9.5pt;">
-Ciężar dowodu wykazania, że wymiana części doprowadziła do wzrostu wartości handlowej pojazdu spoczywa na ubezpieczycielu (art. 6 k.c.). Rutynowe obcinanie wartości części o wskaźnik amortyzacji stanowi delikt odszkodowawczy.
+Ciężar dowodu wykazania, że wymiana części doprowadziła do wzrostu wartości handlowej pojazdu spoczywa na ubezpieczycielu (art. 6 k.c.). Rutynowe obcinanie wartości części o wskaźnik amortyzacji narusza ustawową zasadę pełnej kompensacji szkody (art. 361 § 2 k.c.) oraz stanowi bezpodstawne zaniżenie należnego świadczenia.
 </p>
 
 <h2>II. Uchwała Sądu Najwyższego – III CZP 32/03</h2>
 <div style="background: #f8fafc; border-left: 4px solid #0f766e; padding: 8pt 12pt; margin-bottom: 12pt; font-style: italic;">
-„Obowiązek naprawienia szkody przez wypłatę odpowiedniej sumy pieniężnej powstaje z chwilą wyrządzenia szkody i nie jest uzależniony od tego, czy poszkodowany dokonał naprawy rzeczy i czy w ogóle zamierza ją naprawić”.
+„Odszkodowanie przysługujące od ubezpieczyciela odpowiedzialności cywilnej za uszkodzenie pojazdu mechanicznego obejmuje niezbędne i ekonomicznie uzasadnione koszty naprawy pojazdu, ustalone według cen występujących na lokalnym rynku”.
 </div>
 <p style="text-align: justify; font-size: 9.5pt;">
-Ubezpieczyciel nie może uzależniać wypłaty pełnego odszkodowania od przedstawienia faktur źródłowych za naprawę pojazdu.
+Obowiązek naprawienia szkody powstaje z chwilą jej wyrządzenia i nie jest uzależniony od tego, czy poszkodowany dokonał naprawy i czy w ogóle zamierza ją naprawić (uchwały SN: III CZP 32/03 oraz III CZP 68/01). Ubezpieczyciel nie może uzależniać wypłaty pełnego odszkodowania od przedstawienia faktur źródłowych za naprawę pojazdu.
 </p>
 
-<h2>III. Wiążące Rekomendacje KNF z dnia 1 listopada 2022 r.</h2>
+<h2>III. Rekomendacje KNF dotyczące likwidacji szkód komunikacyjnych (od 1 listopada 2022 r.)</h2>
 <ul style="font-size: 9.5pt; line-height: 1.4; padding-left: 18pt;">
-  <li><strong>Rekomendacja 15:</strong> Bezwzględny nakaz stosowania stawek rynkowych z rynku lokalnego poszkodowanego.</li>
-  <li><strong>Rekomendacja 18:</strong> Zakaz wymuszania części nieoryginalnych o wątpliwym standardzie bezpieczeństwa (zamienniki PJ/P).</li>
-  <li><strong>Rekomendacja 17:</strong> Zakaz potrącania fikcyjnych rabatów na lakier i części bez gwarancji dostępności u poszkodowanego.</li>
+  <li><strong>Rekomendacja 15:</strong> Obowiązek ustalenia odszkodowania według realnych stawek i cen na lokalnym rynku poszkodowanego.</li>
+  <li><strong>Rekomendacja 17 (oraz pkt 17.3):</strong> Zakaz automatycznych potrąceń amortyzacyjnych oraz zakaz powoływania się na rabaty warsztatów współpracujących (potwierdzony uchwałami SN III CZP 119/22 i III CZP 142/22).</li>
+  <li><strong>Rekomendacja 18:</strong> Zakaz wymuszania części nieoryginalnych (zamienników PJ/P), jeżeli pojazd był serwisowany na częściach oryginalnych lub jest objęty gwarancją.</li>
 </ul>
 
-<h2>IV. Rygor 30 dni milczenia ubezpieczyciela (art. 8 Ustawy o reklamacjach)</h2>
+<h2>IV. Rygor 30 dni na odpowiedź (art. 8 Ustawy o reklamacjach w zw. z uchwałą 7 sędziów SN III CZP 113/17)</h2>
 <p style="text-align: justify; font-size: 9.5pt;">
-Zgodnie z art. 8 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego, brak pisemnej odpowiedzi ubezpieczyciela w terminie 30 dni oznacza <strong>uznanie roszczenia poszkodowanego w całości</strong> z mocy samego prawa.
+Zgodnie z art. 8 Ustawy z dnia 5 sierpnia 2015 r. o rozpatrywaniu reklamacji przez podmioty rynku finansowego, o Rzeczniku Finansowym i o Funduszu Edukacji Finansowej, brak pisemnej odpowiedzi ubezpieczyciela w terminie 30 dni skutkuje uznaniem reklamacji zgodnie z wolą klienta. W myśl uchwały składu 7 sędziów Sądu Najwyższego z dnia 13 czerwca 2018 r. (sygn. akt III CZP 113/17) uchybienie temu terminowi powoduje procesowe przeniesienie ciężaru dowodu (art. 6 k.c.) w procesie na ubezpieczyciela.
 </p>
 `;
 
